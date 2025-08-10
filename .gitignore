@@ -1,0 +1,8 @@
+# Build files
+build/
+
+# IDE files
+.vscode/
+
+# OS files
+.DS_Store
