@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include "utils.h"
+#include "gen.h"
 
 // define compiler and run prefix/suffix for each platform
 #ifdef __APPLE__
@@ -14,18 +17,6 @@
 #define RUNPREFIX ""
 #define RUNSUFFIX ".exe"
 #endif
-
-// Returns a string file name without the extension
-void stripExtension(const char* file, char* strippedFile)
-{
-    int i = 0;
-    while (file[i] != '\0' && file[i] != '.')
-    {
-        strippedFile[i] = file[i];
-        i++;
-    }
-    strippedFile[i] = '\0';
-}
 
 // Compile a C++ source file
 int compileFile(const char* sourceFile, const char* outputFile)
@@ -94,6 +85,14 @@ int runFile(const char* exeFile)
 // Entry point
 int main(int argc, char* argv[])
 {
+    // Retrive path of current working directory where craft is being called
+    char cwd[4096];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(stderr, "Error getting current working directory\n");
+        return -1;
+    }
+
     if (argc < 2)
     {
         printf("Missing command.\n");
@@ -154,6 +153,19 @@ int main(int argc, char* argv[])
         // Attempt to run the executable
         // Returns 0 if successful and -1 if failed
         return runFile(executableName);
+    }
+
+    if (strcmp(argv[1], "gen") == 0)
+    {
+        if (argc < 3)
+        {
+            return -1;   
+        }
+
+        char filename[256];
+        stripExtension(argv[2], filename);
+
+        return generateHeader(filename, cwd);
     }
 
     // If we get here, unknown command
