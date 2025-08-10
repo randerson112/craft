@@ -1,4 +1,5 @@
 #include "gen.h"
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,13 +14,29 @@ int generateHeader(const char* filename, const char* cwd)
     snprintf(headerMacro, sizeof(headerMacro), "%s_HPP", filename);
     
     // Convert to uppercase for macro name
-    for (int i = 0; headerMacro[i] != '\0'; i++) {
+    for (int i = 0; headerMacro[i] != '\0'; i++)
+    {
         headerMacro[i] = toupper(headerMacro[i]);
     }
 
-    // Get full path to file based on cwd
+    // Check if include directory exists
+    char includePath[256];
+    snprintf(includePath, sizeof(includePath), "%s/include", cwd);
+    
+    // Determine where to place the header file
     char fullPath[256];
-    snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", cwd, filename);
+    if (fileExists(includePath))
+    {
+        // Include directory exists, place header there
+        snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", includePath, filename);
+        printf("Placing header in include directory\n");
+    }
+    else
+    {
+        // Include directory doesn't exist, place in current directory
+        snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", cwd, filename);
+        printf("Placing header in current directory\n");
+    }
 
     // Create header file with given file name
     FILE* header = fopen(fullPath, "w");

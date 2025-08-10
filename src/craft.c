@@ -25,7 +25,8 @@ int compileFile(const char* sourceFile, const char* outputFile)
     size_t commandSize = strlen(COMPILER) + strlen(sourceFile) + strlen(" -o ") + strlen(outputFile) + 1;
     char* command = malloc(commandSize);
     
-    if (command == NULL) {
+    if (command == NULL)
+    {
         fprintf(stderr, "Memory allocation failed!\n");
         return -1;
     }
@@ -58,7 +59,8 @@ int runFile(const char* exeFile)
     size_t commandSize = strlen(RUNPREFIX) + strlen(exeFile) + strlen(RUNSUFFIX) + 1;
     char* runCommand = malloc(commandSize);
     
-    if (runCommand == NULL) {
+    if (runCommand == NULL)
+    {
         fprintf(stderr, "Memory allocation failed!\n");
         return -1;
     }
@@ -159,12 +161,17 @@ int main(int argc, char* argv[])
     {
         if (argc < 3)
         {
+            printf("No file given to generate\n");
+            printf("Usage:\n");
+            printf("craft gen <header file>\n");
             return -1;   
         }
 
+        // Get file name
         char filename[256];
         stripExtension(argv[2], filename);
 
+        // Generate file
         return generateHeader(filename, cwd);
     }
 
