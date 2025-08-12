@@ -163,16 +163,23 @@ int main(int argc, char* argv[])
         {
             printf("No file given to generate\n");
             printf("Usage:\n");
-            printf("craft gen <header file>\n");
+            printf("craft gen <header file>.hpp\n");
+            printf("craft gen <source file>.cpp\n");
             return -1;   
         }
 
+        char* file = argv[2];
+
         // Get file name
-        char filename[256];
-        stripExtension(argv[2], filename);
+        char filename[64];
+        stripExtension(file, filename);
+
+        // Get file extension
+        char extension[8];
+        getExtension(file, extension, sizeof(extension));
 
         // Generate file
-        return generateHeader(filename, cwd);
+        return gen(filename, extension, cwd);
     }
 
     // If we get here, unknown command

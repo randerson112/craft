@@ -5,6 +5,28 @@
 #include <string.h>
 #include <ctype.h>
 
+int gen(const char* filename, const char* extension, const char* cwd)
+{
+    // Generate hpp
+    if (strcmp(extension, "hpp") == 0)
+    {
+        return generateHeader(filename, cwd);
+    }
+
+    // Generate cpp
+    else if (strcmp(extension, "cpp") == 0)
+    {
+        return generateSource(filename, cwd);
+    }
+
+    // Extension not recognized
+    else
+    {
+        fprintf(stderr, "File extension not supported\n");
+        return -1;
+    }
+}
+
 int generateHeader(const char* filename, const char* cwd)
 {
     printf("Generating header file: %s.hpp\n", filename);
@@ -57,13 +79,83 @@ int generateHeader(const char* filename, const char* cwd)
     return 0;
 }
 
-// TODO: Implement source file generation
-// - Create .cpp file with given filename
-// - Add include statement for corresponding header
-// - Add basic function stubs or class implementation
 int generateSource(const char* filename, const char* cwd)
 {
-    printf("Generating source file: %s\n", filename);
+    printf("Generating source file: %s.cpp\n", filename);
+
+    // Check if corresponding header file exists
+    char headerPath[256];
+    char includeHeaderPath[256];
+    
+    // Check in current directory first
+    snprintf(headerPath, sizeof(headerPath), "%s/%s.hpp", cwd, filename);
+    
+    // Check in include directory if it exists
+    char includeDir[256];
+    snprintf(includeDir, sizeof(includeDir), "%s/include", cwd);
+    snprintf(includeHeaderPath, sizeof(includeHeaderPath), "%s/%s.hpp", includeDir, filename);
+    
+    // Determine which header to include
+    char* headerToInclude = NULL;
+    if (fileExists(headerPath))
+    {
+        headerToInclude = headerPath;
+        printf("Matching header found in current directory\n");
+    }
+    else if (fileExists(includeDir) && fileExists(includeHeaderPath))
+    {
+        headerToInclude = includeHeaderPath;
+        printf("Matching header found in include directory\n");
+    }
+    else
+    {
+        printf("No matching header file found\n");
+        // Still creates a default source file with no include
+    }
+
+    // Check if src directory exists
+    char sourcePath[256];
+    snprintf(sourcePath, sizeof(sourcePath), "%s/src", cwd);
+
+    // Determine where to place source file
+    char fullPath[256];
+    if (fileExists(sourcePath))
+    {
+        snprintf(fullPath, sizeof(fullPath), "%s/%s.cpp", sourcePath, filename);
+        printf("Placing source file in src directory\n");
+    }
+    else
+    {
+        snprintf(fullPath, sizeof(fullPath), "%s/%s.cpp", cwd, filename);
+        printf("Placing source file in current directory\n");
+    }
+    
+    // Create source file
+    FILE* source = fopen(fullPath, "w");
+    if (source == NULL)
+    {
+        fprintf(stderr, "Error creating source file: %s.cpp\n", filename);
+        return -1;
+    }
+
+    // Write source file contents
+    if (headerToInclude != NULL)
+    {
+        // Source file contents with corresponding include
+        fprintf(source, "#include \"%s.hpp\"\n\n", filename);
+        fprintf(source, "// Add your implementation here\n");
+    }
+    else
+    {
+        // Default source file contents if no corresponding header
+        fprintf(source, "#include <iostream>\n\n");
+        fprintf(source, "int main(int argc, char* argv[]) {\n");
+        fprintf(source, "   std::cout << \"Hello World\" << std::endl;\n");
+        fprintf(source, "}");
+    }
+
+    fclose(source);
+    printf("%s.cpp successfully generated\n", filename);
     return 0;
 }
 

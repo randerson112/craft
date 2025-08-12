@@ -1,6 +1,9 @@
 #ifndef GEN_H
 #define GEN_H
 
+// Sorts into respective generator function based on file extension
+int gen(const char* filename, const char* extension, const char* cwd);
+
 // Generates a header file in the current working directory
 int generateHeader(const char* filename, const char* cwd);
 
