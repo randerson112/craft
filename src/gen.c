@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <dirent.h>
 
 int gen(const char* filename, const char* extension, const char* cwd)
 {
@@ -17,6 +18,12 @@ int gen(const char* filename, const char* extension, const char* cwd)
     else if (strcmp(extension, "cpp") == 0)
     {
         return generateSource(filename, cwd);
+    }
+
+    // Generate CMakeLists.txt
+    else if (strcmp(filename, "CMakeLists") == 0 && strcmp(extension, "txt") == 0)
+    {
+        return generateCMakeLists(cwd);
     }
 
     // Extension not recognized
@@ -159,14 +166,86 @@ int generateSource(const char* filename, const char* cwd)
     return 0;
 }
 
-// TODO: Implement CMakeLists.txt generation
-// - Create CMakeLists.txt file in current working directory
-// - Add project name and version
-// - Add executable target
-// - Add source files
-// - Add include directories
 int generateCMakeLists(const char* cwd)
 {
     printf("Generating CMakeLists.txt\n");
+
+    // List of source files
+    char* sourceFiles[64];
+    int i = 0;
+    
+    // Check for source files in current directory
+    DIR* dir = opendir(cwd);
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL && i < 63)
+    {
+        if (strstr(entry->d_name, ".cpp") != NULL)
+        {
+            // Add source file to list
+            sourceFiles[i] = strdup(entry->d_name);
+            i++;
+        }
+    }
+    closedir(dir);
+
+    // Check for source files in src directory
+    char srcDir[256];
+    snprintf(srcDir, sizeof(srcDir), "%s/src", cwd);
+
+    if (fileExists(srcDir))
+    {
+        DIR* dir = opendir(srcDir);
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL && i < 63)
+        {
+            if (strstr(entry->d_name, ".cpp") != NULL)
+            {
+                // Add src/ prefix to filename before adding to list
+                char srcFile[256];
+                snprintf(srcFile, sizeof(srcFile), "src/%s", entry->d_name);
+                sourceFiles[i] = strdup(srcFile);
+                i++;
+            }
+        }
+        closedir(dir);
+    }
+
+    // Generate file content
+    char cmakePath[256];
+    snprintf(cmakePath, sizeof(cmakePath), "%s/CMakeLists.txt", cwd);
+
+    FILE* cmakeFile = fopen(cmakePath, "w");
+    if (cmakeFile == NULL)
+    {
+        fprintf(stderr, "Error creating CMakeLists.txt\n");
+        return -1;
+    }
+
+    // Project settings
+    fprintf(cmakeFile, "cmake_minimum_required(VERSION 3.10)\n");
+    fprintf(cmakeFile, "project(ProjectName)\n\n");
+    fprintf(cmakeFile, "set(CMAKE_CXX_STANDARD 17)\n\n");
+
+    // Include directories
+    char includePath[256];
+    snprintf(includePath, sizeof(includePath), "%s/include", cwd);
+
+    if (fileExists(includePath))
+    {
+        fprintf(cmakeFile, "include_directories(include)\n\n");
+    }
+
+    fprintf(cmakeFile, "add_executable(projectExe\n");
+
+    // Add source files
+    for (int j = 0; j < i; j++)
+    {
+        fprintf(cmakeFile, "    %s\n", sourceFiles[j]);
+    }
+    fprintf(cmakeFile, ")\n");
+    
+    fclose(cmakeFile);
+    printf("CMakeLists.txt successfully generated\n");
+
     return 0;
 }

@@ -100,8 +100,11 @@ int main(int argc, char* argv[])
         printf("Missing command.\n");
         printf("What would you like craft to do?\n");
         printf("Usage:\n");
-        printf("craft compile <source file>\n");
-        printf("craft run <executable>\n");
+        printf("craft compile <source file>\n\n");
+        printf("craft run <executable>\n\n");
+        printf("craft gen <header>.hpp\n");
+        printf("          <source>.cpp\n");
+        printf("          CMakeLists.txt\n");
         return -1;
     }
 
@@ -165,6 +168,7 @@ int main(int argc, char* argv[])
             printf("Usage:\n");
             printf("craft gen <header file>.hpp\n");
             printf("craft gen <source file>.cpp\n");
+            printf("craft gen CMakeLists.txt\n");
             return -1;   
         }
 
@@ -185,7 +189,10 @@ int main(int argc, char* argv[])
     // If we get here, unknown command
     printf("Unknown command: %s\n", argv[1]);
     printf("Usage:\n");
-    printf("craft compile <source file>\n");
-    printf("craft run <executable>\n");
+    printf("craft compile <source file>\n\n");
+    printf("craft run <executable>\n\n");
+    printf("craft gen <header>.hpp\n");
+    printf("          <source>.cpp\n");
+    printf("          CMakeLists.txt\n");
     return -1;
 }
