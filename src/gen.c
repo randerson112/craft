@@ -221,9 +221,25 @@ int generateCMakeLists(const char* cwd)
         return -1;
     }
 
+    // Make project and executable name based on cwd
+    char cwdName[64];
+    char* name = strrchr(cwd, '/');
+    snprintf(cwdName, sizeof(cwdName), "%s", name + 1);
+    for (int i = 0; i < sizeof(cwdName); i++)
+    {
+        cwdName[i] = tolower(cwdName[i]);
+    }
+    
+    char projectName[64];
+    strcpy(projectName, cwdName);
+    projectName[0] = toupper(projectName[0]);
+
+    char executableName[64];
+    strcpy(executableName, cwdName);
+
     // Project settings
     fprintf(cmakeFile, "cmake_minimum_required(VERSION 3.10)\n");
-    fprintf(cmakeFile, "project(ProjectName)\n\n");
+    fprintf(cmakeFile, "project(%s)\n\n", projectName);
     fprintf(cmakeFile, "set(CMAKE_CXX_STANDARD 17)\n\n");
 
     // Include directories
@@ -235,7 +251,7 @@ int generateCMakeLists(const char* cwd)
         fprintf(cmakeFile, "include_directories(include)\n\n");
     }
 
-    fprintf(cmakeFile, "add_executable(projectExe\n");
+    fprintf(cmakeFile, "add_executable(%s\n", executableName);
 
     // Add source files
     for (int j = 0; j < i; j++)
