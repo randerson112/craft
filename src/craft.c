@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "gen.h"
 #include "project.h"
+#include "build.h"
 
 // define compiler and run prefix/suffix for each platform
 #ifdef __APPLE__
@@ -106,7 +107,8 @@ int main(int argc, char* argv[])
         printf("craft run <executable>\n\n");
         printf("craft gen <header>.hpp\n");
         printf("          <source>.cpp\n");
-        printf("          CMakeLists.txt\n");
+        printf("          CMakeLists.txt\n\n");
+        printf("craft build\n");
         return -1;
     }
 
@@ -204,6 +206,12 @@ int main(int argc, char* argv[])
         return createNewProject(cwd, projectName);
     }
 
+    if (strcmp(argv[1], "build") == 0)
+    {
+        // Build project in current directory
+        return buildProject(cwd);
+    }
+
     // If we get here, unknown command
     printf("Unknown command: %s\n", argv[1]);
     printf("Usage:\n");
@@ -212,6 +220,8 @@ int main(int argc, char* argv[])
     printf("craft run <executable>\n\n");
     printf("craft gen <header>.hpp\n");
     printf("          <source>.cpp\n");
-    printf("          CMakeLists.txt\n");
+    printf("          CMakeLists.txt\n\n");
+    printf("craft build\n");
+
     return -1;
 }
