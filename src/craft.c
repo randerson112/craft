@@ -6,6 +6,7 @@
 #include "gen.h"
 #include "project.h"
 #include "build.h"
+#include "run.h"
 
 // define compiler and run prefix/suffix for each platform
 #ifdef __APPLE__
@@ -50,38 +51,6 @@ int compileFile(const char* sourceFile, const char* outputFile)
         // Compilation failed
         fprintf(stderr, "Compilation failed!\n");
         free(command);
-        return -1;
-    }
-}
-
-// Run a binary executable
-int runFile(const char* exeFile)
-{
-    // Calculate required buffer size for command
-    size_t commandSize = strlen(RUNPREFIX) + strlen(exeFile) + strlen(RUNSUFFIX) + 1;
-    char* runCommand = malloc(commandSize);
-    
-    if (runCommand == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed!\n");
-        return -1;
-    }
-    
-    snprintf(runCommand, commandSize, "%s%s%s", RUNPREFIX, exeFile, RUNSUFFIX);
-
-    printf("Running...\n");
-    if (system(runCommand) == 0)
-    {
-        // Run was successful
-        printf("Run successful!\n");
-        free(runCommand);
-        return 0;
-    }
-    else
-    {
-        // Run failed
-        fprintf(stderr, "Executable failed to run!\n");
-        free(runCommand);
         return -1;
     }
 }
@@ -161,7 +130,7 @@ int main(int argc, char* argv[])
 
         // Attempt to run the executable
         // Returns 0 if successful and -1 if failed
-        return runFile(executableName);
+        return runExecutable(cwd, executableName);
     }
 
     if (strcmp(argv[1], "gen") == 0)

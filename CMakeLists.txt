@@ -19,4 +19,5 @@ src/craft.c
 src/utils.c
 src/gen.c
 src/project.c
-src/build.c)
+src/build.c
+src/run.c)
