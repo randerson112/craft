@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "utils.h"
 #include "gen.h"
+#include "project.h"
 
 // define compiler and run prefix/suffix for each platform
 #ifdef __APPLE__
@@ -100,6 +101,7 @@ int main(int argc, char* argv[])
         printf("Missing command.\n");
         printf("What would you like craft to do?\n");
         printf("Usage:\n");
+        printf("craft project <project name>\n\n");
         printf("craft compile <source file>\n\n");
         printf("craft run <executable>\n\n");
         printf("craft gen <header>.hpp\n");
@@ -186,9 +188,26 @@ int main(int argc, char* argv[])
         return gen(filename, extension, cwd);
     }
 
+    if (strcmp(argv[1], "project") == 0)
+    {
+        if (argc < 3)
+        {
+            printf("No project name specified\n");
+            printf("Usage:\n");
+            printf("craft project <project name>\n");
+            return -1;
+        }
+
+        char* projectName = argv[2];
+
+        // Create new project with given name
+        return createNewProject(cwd, projectName);
+    }
+
     // If we get here, unknown command
     printf("Unknown command: %s\n", argv[1]);
     printf("Usage:\n");
+    printf("craft project <project name>\n\n");
     printf("craft compile <source file>\n\n");
     printf("craft run <executable>\n\n");
     printf("craft gen <header>.hpp\n");

@@ -17,4 +17,5 @@ include_directories(include)
 add_executable(${PROJECT_EXE}
 src/craft.c
 src/utils.c
-src/gen.c)
+src/gen.c
+src/project.c)
