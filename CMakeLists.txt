@@ -18,4 +18,5 @@ add_executable(${PROJECT_EXE}
 src/craft.c
 src/utils.c
 src/gen.c
-src/project.c)
+src/project.c
+src/build.c)
