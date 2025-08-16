@@ -20,4 +20,5 @@ src/utils.c
 src/gen.c
 src/project.c
 src/build.c
-src/run.c)
+src/run.c
+src/compile.c)

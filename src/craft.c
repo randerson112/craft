@@ -7,55 +7,21 @@
 #include "project.h"
 #include "build.h"
 #include "run.h"
+#include "compile.h"
 
-// define compiler and run prefix/suffix for each platform
-#ifdef __APPLE__
-#define COMPILER "clang++ "
-#define RUNPREFIX "./"
-#define RUNSUFFIX ""
-#endif
-
-#ifdef _WIN32
-#define COMPILER "g++ "
-#define RUNPREFIX ""
-#define RUNSUFFIX ".exe"
-#endif
-
-// Compile a C++ source file
-int compileFile(const char* sourceFile, const char* outputFile)
+// Prints basic craft command usage
+void printUsage()
 {
-    // Calculate required buffer size for command
-    size_t commandSize = strlen(COMPILER) + strlen(sourceFile) + strlen(" -o ") + strlen(outputFile) + 1;
-    char* command = malloc(commandSize);
-    
-    if (command == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed!\n");
-        return -1;
-    }
-    
-    // Write compile command
-    snprintf(command, commandSize, "%s%s -o %s", COMPILER, sourceFile, outputFile);
-
-    // Run the command to compile source file
-    printf("Compiling...\n");
-    if (system(command) == 0)
-    {
-        // Compilation successful
-        printf("Source file compiled successfully!\n");
-        free(command);
-        return 0;
-    }
-    else
-    {
-        // Compilation failed
-        fprintf(stderr, "Compilation failed!\n");
-        free(command);
-        return -1;
-    }
+    printf("Usage:\n");
+    printf("craft project <project name>\n\n");
+    printf("craft compile <source file>\n\n");
+    printf("craft run <executable>\n\n");
+    printf("craft gen <header>.hpp\n");
+    printf("          <source>.cpp\n");
+    printf("          CMakeLists.txt\n\n");
+    printf("craft build\n");
 }
 
-// Entry point
 int main(int argc, char* argv[])
 {
     // Retrive path of current working directory where craft is being called
@@ -66,23 +32,22 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    // No command given
     if (argc < 2)
     {
         printf("Missing command.\n");
         printf("What would you like craft to do?\n");
-        printf("Usage:\n");
-        printf("craft project <project name>\n\n");
-        printf("craft compile <source file>\n\n");
-        printf("craft run <executable>\n\n");
-        printf("craft gen <header>.hpp\n");
-        printf("          <source>.cpp\n");
-        printf("          CMakeLists.txt\n\n");
-        printf("craft build\n");
+        printUsage();
         return -1;
     }
 
-    if (strcmp(argv[1], "compile") == 0)
+    // Get command
+    const char* command = argv[1];
+
+    // Compile
+    if (strcmp(command, "compile") == 0)
     {
+        // No file specified for compile
         if (argc < 3)
         {
             printf("No source file specified.\n");
@@ -115,8 +80,10 @@ int main(int argc, char* argv[])
         return compileFile(sourceFile, outputFile);
     }
 
-    if (strcmp(argv[1], "run") == 0)
+    // Run
+    if (strcmp(command, "run") == 0)
     {
+        // No executable specified
         if (argc < 3)
         {
             printf("No executable specified.\n");
@@ -133,8 +100,10 @@ int main(int argc, char* argv[])
         return runExecutable(cwd, executableName);
     }
 
-    if (strcmp(argv[1], "gen") == 0)
+    // Generate
+    if (strcmp(command, "gen") == 0)
     {
+        // No file specified to generate
         if (argc < 3)
         {
             printf("No file given to generate\n");
@@ -145,7 +114,8 @@ int main(int argc, char* argv[])
             return -1;   
         }
 
-        char* file = argv[2];
+        // Get file to generate
+        const char* file = argv[2];
 
         // Get file name
         char filename[64];
@@ -156,11 +126,14 @@ int main(int argc, char* argv[])
         getExtension(file, extension, sizeof(extension));
 
         // Generate file
+        // Returns 0 if successful, -1 if failed
         return gen(filename, extension, cwd);
     }
 
-    if (strcmp(argv[1], "project") == 0)
+    // Project
+    if (strcmp(command, "project") == 0)
     {
+        // No project name specified
         if (argc < 3)
         {
             printf("No project name specified\n");
@@ -169,28 +142,24 @@ int main(int argc, char* argv[])
             return -1;
         }
 
-        char* projectName = argv[2];
+        // Get project name
+        const char* projectName = argv[2];
 
         // Create new project with given name
+        // Returns 0 if successful, -1 if failed
         return createNewProject(cwd, projectName);
     }
 
-    if (strcmp(argv[1], "build") == 0)
+    // Build
+    if (strcmp(command, "build") == 0)
     {
         // Build project in current directory
+        // Returns 0 if successful, -1 if failed
         return buildProject(cwd);
     }
 
     // If we get here, unknown command
     printf("Unknown command: %s\n", argv[1]);
-    printf("Usage:\n");
-    printf("craft project <project name>\n\n");
-    printf("craft compile <source file>\n\n");
-    printf("craft run <executable>\n\n");
-    printf("craft gen <header>.hpp\n");
-    printf("          <source>.cpp\n");
-    printf("          CMakeLists.txt\n\n");
-    printf("craft build\n");
-
+    printUsage();
     return -1;
 }
