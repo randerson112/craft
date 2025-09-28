@@ -54,7 +54,7 @@ int generateHeader(const char* filename, const char* cwd)
     
     // Determine where to place the header file
     char fullPath[256];
-    if (fileExists(includePath))
+    if (dirExists(includePath))
     {
         // Include directory exists, place header there
         snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", includePath, filename);
@@ -109,7 +109,7 @@ int generateSource(const char* filename, const char* cwd)
         headerToInclude = headerPath;
         printf("Matching header found in current directory\n");
     }
-    else if (fileExists(includeDir) && fileExists(includeHeaderPath))
+    else if (dirExists(includeDir) && fileExists(includeHeaderPath))
     {
         headerToInclude = includeHeaderPath;
         printf("Matching header found in include directory\n");
@@ -126,7 +126,7 @@ int generateSource(const char* filename, const char* cwd)
 
     // Determine where to place source file
     char fullPath[256];
-    if (fileExists(sourcePath))
+    if (dirExists(sourcePath))
     {
         snprintf(fullPath, sizeof(fullPath), "%s/%s.cpp", sourcePath, filename);
         printf("Placing source file in src directory\n");
@@ -192,7 +192,7 @@ int generateCMakeLists(const char* cwd)
     char srcDir[256];
     snprintf(srcDir, sizeof(srcDir), "%s/src", cwd);
 
-    if (fileExists(srcDir))
+    if (dirExists(srcDir))
     {
         DIR* dir = opendir(srcDir);
         struct dirent* entry;
@@ -246,7 +246,7 @@ int generateCMakeLists(const char* cwd)
     char includePath[256];
     snprintf(includePath, sizeof(includePath), "%s/include", cwd);
 
-    if (fileExists(includePath))
+    if (dirExists(includePath))
     {
         fprintf(cmakeFile, "include_directories(include)\n\n");
     }

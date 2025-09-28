@@ -6,19 +6,6 @@
 
 int buildProject(const char* cwd)
 {
-    // Create a build directory
-    char buildDir[256];
-    snprintf(buildDir, sizeof(buildDir), "%s/build", cwd);
-    if (mkdir(buildDir, 0755) == 0)
-    {
-        printf("Generated build directory\n");
-    }
-    else
-    {
-        fprintf(stderr, "Failed to create build directory\n");
-        return -1;
-    }
-
     // Check if CMakeLists.txt exists in current directory
     char cmakePath[256];
     snprintf(cmakePath, sizeof(cmakePath), "%s/CMakeLists.txt", cwd);
@@ -26,6 +13,26 @@ int buildProject(const char* cwd)
     {
         fprintf(stderr, "Could not find CMakeLists.txt in this directory\n");
         return -1;
+    }
+
+    // Create a build directory if it does not exist
+    char buildDir[256];
+    snprintf(buildDir, sizeof(buildDir), "%s/build", cwd);
+
+    if (!dirExists(buildDir))
+    {
+        if (mkdir(buildDir, 0755) == 0)
+        {
+            printf("Generated build directory\n");
+        }
+        else
+        {
+            fprintf(stderr, "Failed to create build directory\n");
+            return -1;
+        }
+    }
+    else {
+        printf("Build directory found\n");
     }
 
     // Run cmake to build project

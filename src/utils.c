@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <unistd.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include "string.h"
 
@@ -30,7 +31,28 @@ void getExtension(const char* file, char* extension, int extensionSize)
     }
 }
 
+// Check if a path exists and is a file
 int fileExists(const char* path)
 {
-    return access(path, F_OK) == 0;
+    struct stat statbuff;
+    if (stat(path, &statbuff) == 0 && S_ISREG(statbuff.st_mode)) {
+        // File exists
+        return 1;
+    }
+
+    // File does not exist
+    return 0;
+}
+
+// Check if a path exists and is a directory
+int dirExists(const char* path)
+{
+    struct stat statbuff;
+    if (stat(path, &statbuff) == 0 && S_ISDIR(statbuff.st_mode)) {
+        // Directory exists
+        return 1;
+    }
+    
+    // Directory does not exist
+    return 0;
 }
