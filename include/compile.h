@@ -14,6 +14,12 @@
 #define RUNSUFFIX ".exe"
 #endif
 
+#ifdef __linux__
+#define COMPILER "g++ "
+#define RUNPREFIX "./"
+#define RUNSUFFIX ""
+#endif
+
 // Compile a C++ source file
 int compileFile(const char* sourceFile, const char* outputFile);
 
