@@ -9,18 +9,33 @@
 #include "run.h"
 #include "compile.h"
 #include "init.h"
+#include "help.h"
 
-// Prints basic craft command usage
-void printUsage()
+// Prints craft info and usage
+void printInfo()
 {
-    printf("Usage:\n");
-    printf("craft project <project name>\n\n");
-    printf("craft compile <source file>\n\n");
-    printf("craft run <executable>\n\n");
-    printf("craft gen <header>.hpp\n");
-    printf("          <source>.cpp\n");
-    printf("          CMakeLists.txt\n\n");
-    printf("craft build\n");
+    fprintf(stdout, "Craft - A lightweight C++ development tool\n\n");
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft <COMMAND> [ARGS]\n\n");
+
+    fprintf(stdout, "Available Commands:\n");
+    fprintf(stdout, "    project <path>       Create a new project at the given path\n");
+    fprintf(stdout, "    init [path]          Initialize a new project in the current or specified directory\n");
+    fprintf(stdout, "    build                Build the project in the current directory\n");
+    fprintf(stdout, "    compile <src> [out]  Compile a single source file into an executable\n");
+    fprintf(stdout, "    run <exe>            Run a compiled executable\n");
+    fprintf(stdout, "    gen <file>           Generate files with starter boilerplate (.hpp, .cpp, CMakeLists.txt)\n\n");
+
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft project MyApp\n");
+    fprintf(stdout, "    craft init\n");
+    fprintf(stdout, "    craft build\n");
+    fprintf(stdout, "    craft compile main.cpp\n");
+    fprintf(stdout, "    craft run main\n");
+    fprintf(stdout, "    craft gen CMakeLists.txt\n\n");
+
+    fprintf(stdout, "Tip: Run 'craft help <command>' for more info on a specific command.\n");
+    fprintf(stdout, "     Run 'craft help' to see this message again.\n");
 }
 
 int main(int argc, char* argv[])
@@ -36,14 +51,29 @@ int main(int argc, char* argv[])
     // No command given
     if (argc < 2)
     {
-        printf("Missing command.\n");
-        printf("What would you like craft to do?\n");
-        printUsage();
-        return -1;
+        printInfo();
+        return 0;
     }
 
     // Get command
     const char* command = argv[1];
+
+    // Help
+    if (strcmp(command, "help") == 0)
+    {
+        // No command specified
+        if (argc < 3)
+        {
+            printInfo();
+            return 0;
+        }
+
+        // Get command to display help for
+        const char* helpCommand = argv[2];
+
+        // print details of command
+        return printCommandHelp(helpCommand);
+    }
 
     // Compile
     if (strcmp(command, "compile") == 0)
@@ -51,11 +81,9 @@ int main(int argc, char* argv[])
         // No file specified for compile
         if (argc < 3)
         {
-            printf("No source file specified.\n");
-            printf("Usage:\n");
-            printf("craft compile <source file>\n");
-            printf("or\n");
-            printf("craft compile <source file> <output file>\n");
+            fprintf(stderr, "Error: No source file specified.\n\n");
+            fprintf(stdout, "Usage: craft compile <source> [output]\n\n");
+            fprintf(stdout, "Run 'craft help compile' for more information.\n");
             return -1;
         }
 
@@ -87,9 +115,9 @@ int main(int argc, char* argv[])
         // No executable specified
         if (argc < 3)
         {
-            printf("No executable specified.\n");
-            printf("Usage:\n");
-            printf("craft run <executable>\n");
+            fprintf(stderr, "Error: No executable specified.\n\n");
+            fprintf(stdout, "Usage: craft run <executable>\n\n");
+            fprintf(stdout, "Run 'craft help run' for more information.\n");
             return -1;
         }
 
@@ -107,11 +135,9 @@ int main(int argc, char* argv[])
         // No file specified to generate
         if (argc < 3)
         {
-            printf("No file given to generate\n");
-            printf("Usage:\n");
-            printf("craft gen <header file>.hpp\n");
-            printf("craft gen <source file>.cpp\n");
-            printf("craft gen CMakeLists.txt\n");
+            fprintf(stderr, "Error: No file specified to generate.\n\n");
+            fprintf(stdout, "Usage: craft gen <file>\n\n");
+            fprintf(stdout, "Run 'craft help gen' for more information.\n");
             return -1;   
         }
 
@@ -137,9 +163,9 @@ int main(int argc, char* argv[])
         // No project path specified
         if (argc < 3)
         {
-            printf("No project path specified\n");
-            printf("Usage:\n");
-            printf("craft project <relative path> - Creates a new directory and project at path\n");
+            fprintf(stderr, "Error: No project path specified.\n\n");
+            fprintf(stdout, "Usage: craft project <path>\n\n");
+            fprintf(stdout, "Run 'craft help project' for more information.\n");
             return -1;
         }
 
@@ -176,7 +202,7 @@ int main(int argc, char* argv[])
     }
 
     // If we get here, unknown command
-    printf("Unknown command: %s\n", argv[1]);
-    printUsage();
+    fprintf(stderr, "Error: Unknown command: %s\n\n", argv[1]);
+    fprintf(stdout, "Tip: Run 'craft help' for command info and examples\n");
     return -1;
 }

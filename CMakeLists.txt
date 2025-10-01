@@ -22,4 +22,5 @@ src/project.c
 src/build.c
 src/run.c
 src/compile.c
-src/init.c)
+src/init.c
+src/help.c)
