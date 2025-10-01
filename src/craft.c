@@ -134,21 +134,21 @@ int main(int argc, char* argv[])
     // Project
     if (strcmp(command, "project") == 0)
     {
-        // No project name specified
+        // No project path specified
         if (argc < 3)
         {
-            printf("No project name specified\n");
+            printf("No project path specified\n");
             printf("Usage:\n");
-            printf("craft project <project name>\n");
+            printf("craft project <relative path> - Creates a new directory and project at path\n");
             return -1;
         }
 
-        // Get project name
-        const char* projectName = argv[2];
+        // Get project path
+        const char* path = argv[2];
 
-        // Create new project with given name
+        // Create new directory at path and project inside
         // Returns 0 if successful, -1 if failed
-        return createNewProject(cwd, projectName);
+        return createNewProject(cwd, path);
     }
 
     // Init
