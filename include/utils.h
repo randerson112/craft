@@ -13,4 +13,10 @@ int fileExists(const char* path);
 // Check if a directory exists
 int dirExists(const char* path);
 
+// Gets name of base directory from a full path
+const char* getBaseName(const char* path);
+
+// Creates starter project files and directorys at the given path
+int createCppProject(const char* path, const char* name);
+
 #endif

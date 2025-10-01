@@ -8,6 +8,7 @@
 #include "build.h"
 #include "run.h"
 #include "compile.h"
+#include "init.h"
 
 // Prints basic craft command usage
 void printUsage()
@@ -148,6 +149,22 @@ int main(int argc, char* argv[])
         // Create new project with given name
         // Returns 0 if successful, -1 if failed
         return createNewProject(cwd, projectName);
+    }
+
+    // Init
+    if (strcmp(command, "init") == 0)
+    {
+        // No path specified, initialize in current directory
+        if (argc < 3)
+        {
+            return initProjectInCwd(cwd);
+        }
+
+        // Get path argument
+        const char* path = argv[2];
+
+        // Init in specified directory
+        return initProjectAtPath(cwd, path);
     }
 
     // Build
