@@ -29,14 +29,47 @@ int gen(const char* filename, const char* extension, const char* cwd)
     // Extension not recognized
     else
     {
-        fprintf(stderr, "File extension not supported\n");
+        fprintf(stderr, "Error: File extension not supported\n");
         return -1;
     }
 }
 
 int generateHeader(const char* filename, const char* cwd)
 {
-    printf("Generating header file: %s.hpp\n", filename);
+    // Determine where to place the header file
+    char includePath[256];
+    snprintf(includePath, sizeof(includePath), "%s/include", cwd);
+    
+    char fullPath[256];
+    if (dirExists(includePath))
+    {
+        // Include directory exists, place header there
+        snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", includePath, filename);
+        fprintf(stdout, "Placing header in include directory\n");
+    }
+    else
+    {
+        // Include directory doesn't exist, place in current directory
+        snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", cwd, filename);
+        fprintf(stdout, "Placing header in current directory\n");
+    }
+
+    // Check if header with same name already exists
+    if (fileExists(fullPath))
+    {
+        fprintf(stderr, "Error: Header with that name already exists\n");
+        return -1;
+    }
+
+    // Create header file with given file name
+    fprintf(stdout, "Generating header file: %s.hpp\n", filename);
+
+    FILE* header = fopen(fullPath, "w");
+    if (header == NULL)
+    {
+        fprintf(stderr, "Error: Failed to create header file: %s.hpp\n", filename);
+        return -1;
+    }
 
     // Create header macro name
     char headerMacro[256];
@@ -48,33 +81,6 @@ int generateHeader(const char* filename, const char* cwd)
         headerMacro[i] = toupper(headerMacro[i]);
     }
 
-    // Check if include directory exists
-    char includePath[256];
-    snprintf(includePath, sizeof(includePath), "%s/include", cwd);
-    
-    // Determine where to place the header file
-    char fullPath[256];
-    if (dirExists(includePath))
-    {
-        // Include directory exists, place header there
-        snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", includePath, filename);
-        printf("Placing header in include directory\n");
-    }
-    else
-    {
-        // Include directory doesn't exist, place in current directory
-        snprintf(fullPath, sizeof(fullPath), "%s/%s.hpp", cwd, filename);
-        printf("Placing header in current directory\n");
-    }
-
-    // Create header file with given file name
-    FILE* header = fopen(fullPath, "w");
-    if (header == NULL)
-    {
-        fprintf(stderr, "Error creating header file: %s.hpp\n", filename);
-        return -1;
-    }
-
     // Write default contents to header file
     fprintf(header, "#ifndef %s\n", headerMacro);
     fprintf(header, "#define %s\n", headerMacro);
@@ -82,24 +88,20 @@ int generateHeader(const char* filename, const char* cwd)
     fprintf(header, "#endif // %s\n", headerMacro);
 
     fclose(header);
-    printf("%s.hpp successfully generated\n", filename);
+    fprintf(stdout, "%s.hpp successfully generated\n", filename);
     return 0;
 }
 
 int generateSource(const char* filename, const char* cwd)
 {
-    printf("Generating source file: %s.cpp\n", filename);
-
     // Check if corresponding header file exists
-    char headerPath[256];
-    char includeHeaderPath[256];
-    
-    // Check in current directory first
-    snprintf(headerPath, sizeof(headerPath), "%s/%s.hpp", cwd, filename);
-    
-    // Check in include directory if it exists
     char includeDir[256];
     snprintf(includeDir, sizeof(includeDir), "%s/include", cwd);
+
+    char headerPath[256];
+    snprintf(headerPath, sizeof(headerPath), "%s/%s.hpp", cwd, filename);
+
+    char includeHeaderPath[256];
     snprintf(includeHeaderPath, sizeof(includeHeaderPath), "%s/%s.hpp", includeDir, filename);
     
     // Determine which header to include
@@ -107,41 +109,49 @@ int generateSource(const char* filename, const char* cwd)
     if (fileExists(headerPath))
     {
         headerToInclude = headerPath;
-        printf("Matching header found in current directory\n");
+        fprintf(stdout, "Matching header found in current directory\n");
     }
     else if (dirExists(includeDir) && fileExists(includeHeaderPath))
     {
         headerToInclude = includeHeaderPath;
-        printf("Matching header found in include directory\n");
+        fprintf(stdout, "Matching header found in include directory\n");
     }
     else
     {
-        printf("No matching header file found\n");
+        fprintf(stdout, "No matching header file found\n");
         // Still creates a default source file with no include
     }
 
-    // Check if src directory exists
+    // Determine where to place source file
     char sourcePath[256];
     snprintf(sourcePath, sizeof(sourcePath), "%s/src", cwd);
 
-    // Determine where to place source file
     char fullPath[256];
     if (dirExists(sourcePath))
     {
         snprintf(fullPath, sizeof(fullPath), "%s/%s.cpp", sourcePath, filename);
-        printf("Placing source file in src directory\n");
+        fprintf(stdout, "Placing source file in src directory\n");
     }
     else
     {
         snprintf(fullPath, sizeof(fullPath), "%s/%s.cpp", cwd, filename);
-        printf("Placing source file in current directory\n");
+        fprintf(stdout, "Placing source file in current directory\n");
+    }
+
+    // Check if source file with same name already exists
+    if (fileExists(fullPath))
+    {
+        fprintf(stderr, "Error: Source file with that name already exists\n");
+        return -1;
     }
     
     // Create source file
+    fprintf(stdout, "Generating source file: %s.cpp\n", filename);
+
     FILE* source = fopen(fullPath, "w");
     if (source == NULL)
     {
-        fprintf(stderr, "Error creating source file: %s.cpp\n", filename);
+        fprintf(stderr, "Error: Failed to create source file: %s.cpp\n", filename);
         return -1;
     }
 
@@ -162,13 +172,31 @@ int generateSource(const char* filename, const char* cwd)
     }
 
     fclose(source);
-    printf("%s.cpp successfully generated\n", filename);
+    fprintf(stdout, "%s.cpp successfully generated\n", filename);
     return 0;
 }
 
 int generateCMakeLists(const char* cwd)
 {
-    printf("Generating CMakeLists.txt\n");
+    char cmakePath[256];
+    snprintf(cmakePath, sizeof(cmakePath), "%s/CMakeLists.txt", cwd);
+
+    // Check if CMakeLists.txt already exists
+    if (fileExists(cmakePath))
+    {
+        fprintf(stderr, "Error: CMakeLists.txt already exists in this directory\n");
+        return -1;
+    }
+
+    // Generate file content
+    fprintf(stdout, "Generating CMakeLists.txt\n");
+
+    FILE* cmakeFile = fopen(cmakePath, "w");
+    if (cmakeFile == NULL)
+    {
+        fprintf(stderr, "Error: Failed to create CMakeLists.txt\n");
+        return -1;
+    }
 
     // List of source files
     char* sourceFiles[64];
@@ -208,17 +236,6 @@ int generateCMakeLists(const char* cwd)
             }
         }
         closedir(dir);
-    }
-
-    // Generate file content
-    char cmakePath[256];
-    snprintf(cmakePath, sizeof(cmakePath), "%s/CMakeLists.txt", cwd);
-
-    FILE* cmakeFile = fopen(cmakePath, "w");
-    if (cmakeFile == NULL)
-    {
-        fprintf(stderr, "Error creating CMakeLists.txt\n");
-        return -1;
     }
 
     // Make project and executable name based on cwd
@@ -261,7 +278,7 @@ int generateCMakeLists(const char* cwd)
     fprintf(cmakeFile, ")\n");
     
     fclose(cmakeFile);
-    printf("CMakeLists.txt successfully generated\n");
+    fprintf(stdout, "CMakeLists.txt successfully generated\n");
 
     return 0;
 }
