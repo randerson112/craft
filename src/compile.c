@@ -12,7 +12,7 @@ int compileFile(const char* sourceFile, const char* outputFile)
     
     if (command == NULL)
     {
-        fprintf(stderr, "Memory allocation failed!\n");
+        fprintf(stderr, "Error: Memory allocation failed!\n");
         return -1;
     }
     
@@ -20,18 +20,18 @@ int compileFile(const char* sourceFile, const char* outputFile)
     snprintf(command, commandSize, "%s%s -o %s", COMPILER, sourceFile, outputFile);
 
     // Run the command to compile source file
-    printf("Compiling...\n");
+    fprintf(stdout, "Compiling...\n");
     if (system(command) == 0)
     {
         // Compilation successful
-        printf("Source file compiled successfully!\n");
+        fprintf(stdout, "Source file compiled successfully!\n");
         free(command);
         return 0;
     }
     else
     {
         // Compilation failed
-        fprintf(stderr, "Compilation failed!\n");
+        fprintf(stderr, "Error: Compilation failed!\n");
         free(command);
         return -1;
     }

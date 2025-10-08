@@ -78,11 +78,11 @@ int createCppProject(const char* path, const char* name)
     {
         if (mkdir(includeDir, 0755) == 0)
         {
-            printf("Generated include directory\n");
+            fprintf(stdout, "Generated include directory\n");
         }
         else
         {
-            fprintf(stderr, "Failed to create include directory\n");
+            fprintf(stderr, "Error: Failed to create include directory\n");
             return -1;
         }
     }
@@ -94,11 +94,11 @@ int createCppProject(const char* path, const char* name)
     {
         if (mkdir(srcDir, 0755) == 0)
         {
-            printf("Generated src directory\n");
+            fprintf(stdout, "Generated src directory\n");
         }
         else
         {
-            fprintf(stderr, "Failed to create src directory\n");
+            fprintf(stderr, "Error: Failed to create src directory\n");
             return -1;
         }
     }
@@ -112,7 +112,7 @@ int createCppProject(const char* path, const char* name)
         FILE* mainFile = fopen(mainFilePath, "w");
         if (mainFile == NULL)
         {
-            fprintf(stderr, "Failed to generate main.cpp\n");
+            fprintf(stderr, "Error: Failed to generate main.cpp\n");
             return -1;
         }
 
@@ -121,7 +121,7 @@ int createCppProject(const char* path, const char* name)
         fprintf(mainFile, "int main(int argc, char* argv[]) {\n");
         fprintf(mainFile, "   std::cout << \"This is my %s project!\" << std::endl;\n", name);
         fprintf(mainFile, "}");
-        printf("Generated main.cpp\n");
+        fprintf(stdout, "Generated main.cpp\n");
     }
 
     // Make default CMakeLists.txt if none exists
@@ -142,7 +142,7 @@ int createCppProject(const char* path, const char* name)
         FILE* cmakeFile = fopen(cmakePath, "w");
         if (cmakeFile == NULL)
         {
-            fprintf(stderr, "Failed to generate CMakeLists.txt\n");
+            fprintf(stderr, "Error: Failed to generate CMakeLists.txt\n");
             return -1;
         }
 
@@ -152,7 +152,7 @@ int createCppProject(const char* path, const char* name)
         fprintf(cmakeFile, "set(CMAKE_CXX_STANDARD 17)\n\n");
         fprintf(cmakeFile, "include_directories(include)\n\n");
         fprintf(cmakeFile, "add_executable(%s src/main.cpp)", executableName);
-        printf("Generated CMakeLists.txt\n");
+        fprintf(stdout, "Generated CMakeLists.txt\n");
     }
 
     return 0;

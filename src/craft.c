@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     char cwd[4096];
     if (getcwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "Error getting current working directory\n");
+        fprintf(stderr, "Error: Failed to getting current working directory\n");
         return -1;
     }
 

@@ -14,18 +14,18 @@ int createNewProject(const char* cwd, const char* path)
 
     if (dirExists(fullPath))
     {
-        fprintf(stderr, "Directory with that name already exists\n");
+        fprintf(stderr, "Error: Directory with that name already exists\n");
         return -1;
     }
 
     // Create a new directory
     if (mkdir(fullPath, 0755) == 0)
     {
-        printf("Generated project directory\n");
+        fprintf(stdout, "Generated project directory\n");
     }
     else
     {
-        fprintf(stderr, "Failed to create project directory\n");
+        fprintf(stderr, "Error: Failed to create project directory\n");
         return -1;
     }
 
@@ -33,7 +33,7 @@ int createNewProject(const char* cwd, const char* path)
     char resolvedPath[256];
     if (realpath(fullPath, resolvedPath) == NULL)
     {
-        fprintf(stderr, "Failed to resolve path\n");
+        fprintf(stderr, "Error: Failed to resolve path\n");
         return -1;
     }
 

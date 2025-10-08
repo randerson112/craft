@@ -28,23 +28,23 @@ int runExecutable(const char* cwd, const char* executableName)
     else
     {
         // Executable not found
-        fprintf(stderr, "Could not find executable: %s\n", executableName);
+        fprintf(stderr, "Error: Could not find executable: %s\n", executableName);
         return -1;
     }
 
     // Run executable
-    printf("Running executable: %s\n", executableName);
+    fprintf(stdout, "Running executable: %s\n", executableName);
 
     char command[512];
     snprintf(command, sizeof(command), "%s", validExecutablePath);
 
     if (system(command) != 0)
     {
-        fprintf(stderr, "Failed to run executable\n");
+        fprintf(stderr, "Error: Failed to run executable\n");
         return -1;
     }
 
     // Run successful
-    printf("Run successful\n");
+    fprintf(stdout, "Run successful\n");
     return 0;
 }

@@ -22,14 +22,14 @@ int initProjectAtPath(const char* cwd, const char* path)
     // Remove . and .. from path
     char resolvedPath[256];
     if (realpath(fullPath, resolvedPath) == NULL) {
-        fprintf(stderr, "Failed to resolve path\n");
+        fprintf(stderr, "Error: Failed to resolve path\n");
         return -1;
     }
 
     // Check if directory exists
     if (!dirExists(resolvedPath))
     {
-        fprintf(stderr, "Directory does not exist\n");
+        fprintf(stderr, "Error: Directory does not exist\n");
         return -1;
     }
 
