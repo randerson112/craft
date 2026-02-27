@@ -10,6 +10,7 @@
 #include "compile.h"
 #include "init.h"
 #include "help.h"
+#include "clean.h"
 
 // Prints craft info and usage
 void printInfo()
@@ -24,7 +25,8 @@ void printInfo()
     fprintf(stdout, "    build                Build the project in the current directory\n");
     fprintf(stdout, "    compile <src> [out]  Compile a single source file into an executable\n");
     fprintf(stdout, "    run <exe>            Run a compiled executable\n");
-    fprintf(stdout, "    gen <file>           Generate files with starter boilerplate (.hpp, .cpp, CMakeLists.txt)\n\n");
+    fprintf(stdout, "    gen <file>           Generate files with starter boilerplate (.hpp, .cpp, CMakeLists.txt)\n");
+    fprintf(stdout, "    clean                Remove the build directory and all compiled artifacts\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft project MyApp\n");
@@ -32,7 +34,8 @@ void printInfo()
     fprintf(stdout, "    craft build\n");
     fprintf(stdout, "    craft compile main.cpp\n");
     fprintf(stdout, "    craft run main\n");
-    fprintf(stdout, "    craft gen CMakeLists.txt\n\n");
+    fprintf(stdout, "    craft gen CMakeLists.txt\n");
+    fprintf(stdout, "    craft clean\n\n");
 
     fprintf(stdout, "Tip: Run 'craft help <command>' for more info on a specific command.\n");
     fprintf(stdout, "     Run 'craft help' to see this message again.\n");
@@ -73,6 +76,22 @@ int main(int argc, char* argv[])
 
         // print details of command
         return printCommandHelp(helpCommand);
+    }
+
+    // Clean
+    if (strcmp(command, "clean") == 0) {
+        
+        // To many arguments
+        if (argc > 2) {
+            fprintf(stderr, "Error: Too many arguments.\n\n");
+            fprintf(stdout, "Usage: craft clean\n\n");
+            fprintf(stdout, "Run 'craft help clean' for more information.\n");
+            return -1;
+        }
+
+        // Remove build directory
+        // Returns 0 if successful, -1 if failed
+        return clean(cwd);
     }
 
     // Compile

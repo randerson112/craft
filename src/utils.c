@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <dirent.h>
 
 void stripExtension(const char* file, char* strippedFile)
 {
@@ -56,6 +57,57 @@ int dirExists(const char* path)
     
     // Directory does not exist
     return 0;
+}
+
+// Removes a directory recursivley, keeps track of number of files deleted, and how many bytes
+int removeDirRecursive(const char* path, unsigned int* count, unsigned int* bytes) {
+    DIR* dir = opendir(path);
+    if (!dir) {
+        return -1;
+    }
+
+    struct dirent* entry;
+    char buffer[1024];
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        snprintf(buffer, sizeof(buffer), "%s/%s", path, entry->d_name);
+
+        struct stat statbuff;
+        stat(buffer, &statbuff);
+
+        *bytes += statbuff.st_size;
+        (*count)++;
+        if (S_ISDIR(statbuff.st_mode)) {
+            removeDirRecursive(buffer, count, bytes);
+        }
+        else {
+            remove(buffer);
+        }
+    }
+
+    closedir(dir);
+    return rmdir(path);
+}
+
+// Removes a directory without keeping track of counts
+int removeDir(const char* path) {
+    unsigned int count = 0;
+    unsigned int bytes = 0;
+    return removeDirRecursive(path, &count, &bytes);
+}
+
+// Removes a directory and keeps track of counts
+int removeDirCount(const char* path, unsigned int* count, unsigned int* bytes) {
+    struct stat statbuff;
+    stat(path, &statbuff);
+    *bytes += statbuff.st_size;
+    (*count)++;
+    
+    return removeDirRecursive(path, count, bytes);
 }
 
 const char* getBaseName(const char* path)
@@ -156,4 +208,24 @@ int createCppProject(const char* path, const char* name)
     }
 
     return 0;
+}
+
+// Formats a number of bytes into a string with appropriate conversion
+void formatBytes(unsigned int bytes, char* buffer, unsigned int bufferSize) {
+    // Gigabytes
+    if (bytes >= 1073741824) {
+        snprintf(buffer, bufferSize, "%.1f GiB", bytes / 1073741824.0);
+    }
+    // Megabytes
+    else if (bytes >= 1048576) {
+        snprintf(buffer, bufferSize, "%.1f MiB", bytes / 1048576.0);
+    }
+    // Kilobytes
+    else if (bytes >= 1024) {
+        snprintf(buffer, bufferSize, "%.1f KiB", bytes / 1024.0);
+    }
+    // Bytes
+    else {
+        snprintf(buffer, bufferSize, "%u B", bytes);
+    }
 }

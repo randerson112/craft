@@ -23,4 +23,5 @@ src/build.c
 src/run.c
 src/compile.c
 src/init.c
-src/help.c)
+src/help.c
+src/clean.c)
