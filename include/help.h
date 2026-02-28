@@ -5,9 +5,12 @@
 int help(const char* command_arg);
 
 // Prints craft general usage
-void printHelp();
+void printCraftInfo();
+
+// Prints a short help message
+void printBriefHelp();
 
 // Prints a brief usage example of a command
-int printBriefUsage(const char* command);
+int printBriefCommandUsage(const char* command);
 
 #endif

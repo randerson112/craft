@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void printHelp() {
+void printCraftInfo() {
     fprintf(stdout, "Craft - A lightweight C++ development tool\n\n");
     fprintf(stdout, "Usage:\n");
     fprintf(stdout, "    craft <COMMAND> [ARGS] [OPTIONS]\n\n");
@@ -29,7 +29,11 @@ void printHelp() {
     fprintf(stdout, "     Run 'craft help' to see this message again.\n");
 }
 
-int printBriefUsage(const char* command) {
+void printBriefHelp() {
+    fprintf(stdout, "Run 'craft help' to see all available commands.\n");
+}
+
+int printBriefCommandUsage(const char* command) {
     if (strcmp(command, "project") == 0) {
         fprintf(stdout, "Usage: craft project <path>\n\n");
         fprintf(stdout, "Run 'craft help project' for more information.\n");
@@ -214,6 +218,28 @@ int printCommandHelp(const char* command)
         fprintf(stdout, "    craft clean\n\n");
     }
 
+    else if (strcmp(command, "help") == 0) {
+        fprintf(stdout, "Command:\n");
+        fprintf(stdout, "    craft help - See usage information on a specific command or general Craft usage.\n\n");
+
+        fprintf(stdout, "Description:\n");
+        fprintf(stdout, "    The 'help' command displays usage information for Craft and its commands.\n");
+        fprintf(stdout, "    Running 'craft help' with no arguments prints the general usage overview,\n");
+        fprintf(stdout, "    listing all available commands. Running 'craft help' with a command name\n");
+        fprintf(stdout, "    prints detailed information about that specific command.\n\n");
+
+        fprintf(stdout, "Usage:\n");
+        fprintf(stdout, "    craft help [command]\n\n");
+
+        fprintf(stdout, "Arguments:\n");
+        fprintf(stdout, "    [command]   Optional command to get detailed information about.\n\n");
+
+        fprintf(stdout, "Examples:\n");
+        fprintf(stdout, "    craft help\n");
+        fprintf(stdout, "    craft help project\n");
+        fprintf(stdout, "    craft help gen\n");
+    }
+
     else
     {
         fprintf(stderr, "Error: Unknown command: %s\n", command);
@@ -227,7 +253,7 @@ int printCommandHelp(const char* command)
 int help(const char* command_arg) {
     // Check if optional command arg was given
     if (strlen(command_arg) == 0) {
-        printHelp();
+        printCraftInfo();
         return 0;
     }
     else {

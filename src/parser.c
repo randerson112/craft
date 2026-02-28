@@ -81,14 +81,13 @@ int command_is_valid(const char* command) {
 // Returns 0 if successful, -1 if parser encounters and error
 parse_result_t parse(int argc, char** argv, command_t* command_data) {
 	if (argc < 2) {
-		fprintf(stderr, "[Parse Error]: Missing command\n");
 		return PARSE_NO_COMMAND;
 	}
 
 	// Store command if valid
 	char* command = argv[1];
 	if (!command_is_valid(command)) {
-		fprintf(stderr, "[Parse Error]: '%s' is not a valid command\n", command);
+		fprintf(stderr, "[Parse Error]: '%s' is not a valid command\n\n", command);
 		return PARSE_INVALID_COMMAND;
 	}
 	strcpy(command_data->name, command);
@@ -105,7 +104,7 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 			// Throw error if last argument was an option that expected an argument
 			if (next_is_option_arg) {
 				char* last_option = argv[i - 1];
-				fprintf(stderr, "[Parse Error]: option '%s' expects an argument\n", last_option);
+				fprintf(stderr, "[Parse Error]: option '%s' expects an argument\n\n", last_option);
 				return PARSE_MISSING_OPTION_ARG;
 			}
 
@@ -120,14 +119,14 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 
 			// Check if command can have this option
 			if (!command_has_option(command, option)) {
-				fprintf(stderr, "[Parse Error]: '%s' is not a valid option for '%s' command\n", current, command);
+				fprintf(stderr, "[Parse Error]: '%s' is not a valid option for '%s' command\n\n", current, command);
 				return PARSE_INVALID_OPTION;
 			}
 
 			// Check if this option was already parsed
 			for (int i = 0; i < command_data->option_count; i++) {
 				if (strcmp(command_data->options[i].name, option) == 0) {
-					fprintf(stderr, "[Parse Error]: Duplicate option '%s'\n", current);
+					fprintf(stderr, "[Parse Error]: Duplicate option '%s'\n\n", current);
 					return PARSE_DUPLICATE_OPTION;
 				}
 			}
@@ -155,7 +154,7 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 
 				// Check if command has too many arguments
 				if (++command_data->arg_count > get_command_max_args(command)) {
-					fprintf(stderr, "[Parse Error]: Too many arguments for '%s' command\n", command);
+					fprintf(stderr, "[Parse Error]: Too many arguments for '%s' command\n\n", command);
 					return PARSE_TOO_MANY_ARGS;
 				}	
 			}
@@ -165,13 +164,13 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 	// Check if last command line argument was an option that expected an argument
 	if (next_is_option_arg) {
 		char* last_option = argv[argc - 1];
-		fprintf(stderr, "[Parse Error]: option '%s' expects an argument\n", last_option);
+		fprintf(stderr, "[Parse Error]: option '%s' expects an argument\n\n", last_option);
 		return PARSE_MISSING_OPTION_ARG;
 	}
 
 	// Check if command has enough arguments
 	if (command_data->arg_count < get_command_min_args(command)) {
-		fprintf(stderr, "[Parse Error]: Missing arguments for '%s' command\n", command);
+		fprintf(stderr, "[Parse Error]: Missing arguments for '%s' command\n\n", command);
 		return PARSE_MISSING_ARGS;
 	}
 

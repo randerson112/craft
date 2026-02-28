@@ -26,8 +26,11 @@ int main(int argc, char* argv[])
             return dispatch(&command_data, cwd);
             
         case PARSE_NO_COMMAND:
+            printCraftInfo();
+            return 0;
+
         case PARSE_INVALID_COMMAND:
-            printHelp();
+            printBriefHelp();
             return -1;
 
         case PARSE_MISSING_ARGS:
@@ -35,7 +38,7 @@ int main(int argc, char* argv[])
         case PARSE_INVALID_OPTION:
         case PARSE_MISSING_OPTION_ARG:
         case PARSE_DUPLICATE_OPTION:
-            printBriefUsage(command_data.name);
+            printBriefCommandUsage(command_data.name);
             return -1;
     }
 }
