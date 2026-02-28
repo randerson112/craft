@@ -24,4 +24,5 @@ src/run.c
 src/compile.c
 src/init.c
 src/help.c
-src/clean.c)
+src/clean.c
+src/parser.c)

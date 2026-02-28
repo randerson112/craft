@@ -2,6 +2,71 @@
 #include <stdio.h>
 #include <string.h>
 
+void printHelp() {
+    fprintf(stdout, "Craft - A lightweight C++ development tool\n\n");
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft <COMMAND> [ARGS] [OPTIONS]\n\n");
+
+    fprintf(stdout, "Available Commands:\n");
+    fprintf(stdout, "    project <path>       Create a new project at the given path\n");
+    fprintf(stdout, "    init [path]          Initialize a new project in the current or specified directory\n");
+    fprintf(stdout, "    build                Build the project in the current directory\n");
+    fprintf(stdout, "    compile <src> [out]  Compile a single source file into an executable\n");
+    fprintf(stdout, "    run <exe>            Run a compiled executable\n");
+    fprintf(stdout, "    gen <file>           Generate files with starter boilerplate (.hpp, .cpp, CMakeLists.txt)\n");
+    fprintf(stdout, "    clean                Remove the build directory and all compiled artifacts\n\n");
+
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft project MyApp\n");
+    fprintf(stdout, "    craft init\n");
+    fprintf(stdout, "    craft build\n");
+    fprintf(stdout, "    craft compile main.cpp\n");
+    fprintf(stdout, "    craft run main\n");
+    fprintf(stdout, "    craft gen CMakeLists.txt\n");
+    fprintf(stdout, "    craft clean\n\n");
+
+    fprintf(stdout, "Tip: Run 'craft help <command>' for more info on a specific command.\n");
+    fprintf(stdout, "     Run 'craft help' to see this message again.\n");
+}
+
+int printBriefUsage(const char* command) {
+    if (strcmp(command, "project") == 0) {
+        fprintf(stdout, "Usage: craft project <path>\n\n");
+        fprintf(stdout, "Run 'craft help project' for more information.\n");
+    }
+    else if (strcmp(command, "init") == 0) {
+        fprintf(stdout, "Usage: craft init [path]\n\n");
+        fprintf(stdout, "Run 'craft help init' for more information.\n");
+    }
+    else if (strcmp(command, "build") == 0) {
+        fprintf(stdout, "Usage: craft build\n\n");
+        fprintf(stdout, "Run 'craft help build' for more information.\n");
+    }
+    else if (strcmp(command, "compile") == 0) {
+        fprintf(stdout, "Usage: craft compile <source> [output]\n\n");
+        fprintf(stdout, "Run 'craft help compile' for more information.\n");
+    }
+    else if (strcmp(command, "run") == 0) {
+        fprintf(stdout, "Usage: craft run <executable>\n\n");
+        fprintf(stdout, "Run 'craft help run' for more information.\n");
+    }
+    else if (strcmp(command, "gen") == 0) {
+        fprintf(stdout, "Usage: craft gen <file>\n\n");
+        fprintf(stdout, "Run 'craft help gen' for more information.\n");
+    }
+    else if (strcmp(command, "clean") == 0) {
+        fprintf(stdout, "Usage: craft clean\n\n");
+        fprintf(stdout, "Run 'craft help clean' for more information.\n");
+    }
+    else {
+        fprintf(stderr, "Error: Unknown command: %s\n", command);
+        fprintf(stdout, "Run 'craft help' to see all available commands.\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 int printCommandHelp(const char* command)
 {
     if (strcmp(command, "project") == 0)

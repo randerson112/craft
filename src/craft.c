@@ -12,35 +12,6 @@
 #include "help.h"
 #include "clean.h"
 
-// Prints craft info and usage
-void printInfo()
-{
-    fprintf(stdout, "Craft - A lightweight C++ development tool\n\n");
-    fprintf(stdout, "Usage:\n");
-    fprintf(stdout, "    craft <COMMAND> [ARGS]\n\n");
-
-    fprintf(stdout, "Available Commands:\n");
-    fprintf(stdout, "    project <path>       Create a new project at the given path\n");
-    fprintf(stdout, "    init [path]          Initialize a new project in the current or specified directory\n");
-    fprintf(stdout, "    build                Build the project in the current directory\n");
-    fprintf(stdout, "    compile <src> [out]  Compile a single source file into an executable\n");
-    fprintf(stdout, "    run <exe>            Run a compiled executable\n");
-    fprintf(stdout, "    gen <file>           Generate files with starter boilerplate (.hpp, .cpp, CMakeLists.txt)\n");
-    fprintf(stdout, "    clean                Remove the build directory and all compiled artifacts\n\n");
-
-    fprintf(stdout, "Examples:\n");
-    fprintf(stdout, "    craft project MyApp\n");
-    fprintf(stdout, "    craft init\n");
-    fprintf(stdout, "    craft build\n");
-    fprintf(stdout, "    craft compile main.cpp\n");
-    fprintf(stdout, "    craft run main\n");
-    fprintf(stdout, "    craft gen CMakeLists.txt\n");
-    fprintf(stdout, "    craft clean\n\n");
-
-    fprintf(stdout, "Tip: Run 'craft help <command>' for more info on a specific command.\n");
-    fprintf(stdout, "     Run 'craft help' to see this message again.\n");
-}
-
 int main(int argc, char* argv[])
 {
     // Retrive path of current working directory where craft is being called
@@ -54,7 +25,7 @@ int main(int argc, char* argv[])
     // No command given
     if (argc < 2)
     {
-        printInfo();
+        printHelp();
         return 0;
     }
 
@@ -67,7 +38,7 @@ int main(int argc, char* argv[])
         // No command specified
         if (argc < 3)
         {
-            printInfo();
+            printHelp();
             return 0;
         }
 

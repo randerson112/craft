@@ -1,0 +1,69 @@
+#ifndef PARSER_H
+#define PARSER_H
+
+#define NUM_COMMANDS 8
+#define NUM_OPTIONS 1
+
+typedef enum {
+    PARSE_SUCCESS,
+    PARSE_NO_COMMAND,
+    PARSE_INVALID_COMMAND,
+    PARSE_MISSING_ARGS,
+    PARSE_TOO_MANY_ARGS,
+    PARSE_INVALID_OPTION,
+    PARSE_DUPLICATE_OPTION,
+    PARSE_MISSING_OPTION_ARG
+} parse_result_t;
+
+// Option struct to store name of option and its arg if applicable
+typedef struct {
+	char name[16];
+	char arg[32];
+} option_t;
+
+// Stores info about an option
+typedef struct {
+	char name[16];
+	int has_arg;
+} option_info_t;
+
+// Command struct to store command name, args, and options with their args
+typedef struct {
+	char name[16];
+	char args[8][32];
+	int arg_count;
+	option_t options[8];
+	int option_count;
+} command_t;
+
+// Stores info about a command
+typedef struct {
+	char name[16];
+	char valid_options[8][16];
+	int valid_options_count;
+	int min_args;
+	int max_args;
+} command_info_t;
+
+// Info for all valid commands
+const command_info_t commands_info[] = {
+	{"project", {"template"}, 1, 1, 1},
+	{"init", {"template"}, 1, 0, 1},
+	{"build", {{0}}, 0, 0, 0},
+	{"run", {{0}}, 0, 1, 1},
+	{"clean", {{0}}, 0, 0, 0},
+	{"compile", {{0}}, 0, 1, 2},
+	{"gen", {{0}}, 0, 1, 1},
+	{"help", {{0}}, 0, 0, 1}
+};
+
+// Info for all valid options
+const option_info_t options_info[] = {
+	{"template", 1}
+};
+
+// Parses the command line arguments into a command struct
+// Returns an enum describing the parse result
+parse_result_t parse(int argc, char** argv, command_t* command_data);
+
+#endif
