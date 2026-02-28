@@ -15,7 +15,7 @@ include_directories(include)
 
 # create executable with source files
 add_executable(${PROJECT_EXE}
-src/craft.c
+src/main.c
 src/utils.c
 src/gen.c
 src/project.c
@@ -25,4 +25,5 @@ src/compile.c
 src/init.c
 src/help.c
 src/clean.c
-src/parser.c)
+src/parser.c
+src/dispatcher.c)

@@ -4,6 +4,7 @@
 #include "stdlib.h"
 #include "sys/stat.h"
 
+// Builds a project by creating a build directory and running cmake
 int buildProject(const char* cwd)
 {
     // Check if CMakeLists.txt exists in current directory
@@ -49,4 +50,8 @@ int buildProject(const char* cwd)
     // Build successful
     fprintf(stdout, "Project built successfully\n");
     return 0;
+}
+
+int build(const char* cwd) {
+    return buildProject(cwd);
 }

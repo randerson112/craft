@@ -2,6 +2,21 @@
 #include <stdio.h>
 #include <string.h>
 
+const command_info_t commands_info[] = {
+	{"project", {"template"}, 1, 1, 1},
+	{"init", {"template"}, 1, 0, 1},
+	{"build", {{0}}, 0, 0, 0},
+	{"run", {{0}}, 0, 1, 1},
+	{"clean", {{0}}, 0, 0, 0},
+	{"compile", {{0}}, 0, 1, 2},
+	{"gen", {{0}}, 0, 1, 1},
+	{"help", {{0}}, 0, 0, 1}
+};
+
+const option_info_t options_info[] = {
+	{"template", 1}
+};
+
 // Checks if an option is valid for a command
 // Assumes the command is a valid command
 int command_has_option(const char* command, const char* option) {

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "utils.h"
 
+// Creates a new project in the current directory
 int initProjectInCwd(const char* cwd)
 {
     // Get name of base directory
@@ -13,6 +14,7 @@ int initProjectInCwd(const char* cwd)
     return createCppProject(cwd, projectName);
 }
 
+// Creates a new project in an existing directory relative to the current directory
 int initProjectAtPath(const char* cwd, const char* path)
 {
     // Get full path to specified directory
@@ -38,4 +40,13 @@ int initProjectAtPath(const char* cwd, const char* path)
     
     // Create a new project in that directory with same name
     return createCppProject(fullPath, projectName);
+}
+
+int init(const char* path_arg, const char* cwd) {
+    if (strlen(path_arg) == 0) {
+        return initProjectInCwd(cwd);
+    }
+    else {
+        return initProjectAtPath(cwd, path_arg);
+    }
 }

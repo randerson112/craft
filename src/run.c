@@ -48,3 +48,7 @@ int runExecutable(const char* cwd, const char* executableName)
     fprintf(stdout, "Run successful\n");
     return 0;
 }
+
+int run(const char* executable_name_arg, const char* cwd) {
+    return runExecutable(cwd, executable_name_arg);
+}

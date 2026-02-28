@@ -1,9 +1,11 @@
 #include "compile.h"
+#include "utils.h"
 #include "stdio.h"
 #include "ctype.h"
 #include "stdlib.h"
 #include "string.h"
 
+// Compiles a source file and writes the executable to the output file
 int compileFile(const char* sourceFile, const char* outputFile)
 {
     // Calculate required buffer size for command
@@ -35,4 +37,24 @@ int compileFile(const char* sourceFile, const char* outputFile)
         free(command);
         return -1;
     }
+}
+
+int compile(const char* source_arg, char* output_arg) {
+    // Get optional output file name
+    char outputFile[256];
+    if (strlen(output_arg) == 0)
+    {
+        // Output file not specified, create default one
+        stripExtension(source_arg, output_arg);
+    }
+    else
+    {
+        // Get specified output file
+        strncpy(outputFile, output_arg, sizeof(outputFile) - 1);
+        outputFile[sizeof(outputFile) - 1] = '\0';
+    }
+
+    // Compile
+    // Returns 0 if successful and -1 if failed
+    return compileFile(source_arg, outputFile);
 }

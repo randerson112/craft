@@ -6,34 +6,7 @@
 #include <ctype.h>
 #include <dirent.h>
 
-int gen(const char* filename, const char* extension, const char* cwd)
-{
-    // Generate hpp
-    if (strcmp(extension, "hpp") == 0)
-    {
-        return generateHeader(filename, cwd);
-    }
-
-    // Generate cpp
-    else if (strcmp(extension, "cpp") == 0)
-    {
-        return generateSource(filename, cwd);
-    }
-
-    // Generate CMakeLists.txt
-    else if (strcmp(filename, "CMakeLists") == 0 && strcmp(extension, "txt") == 0)
-    {
-        return generateCMakeLists(cwd);
-    }
-
-    // Extension not recognized
-    else
-    {
-        fprintf(stderr, "Error: File extension not supported\n");
-        return -1;
-    }
-}
-
+// Generates a header file with starter code, placing it in include directory or current directory
 int generateHeader(const char* filename, const char* cwd)
 {
     // Determine where to place the header file
@@ -92,6 +65,7 @@ int generateHeader(const char* filename, const char* cwd)
     return 0;
 }
 
+// Generates a source file with starter code, placing it in src directory or current directory
 int generateSource(const char* filename, const char* cwd)
 {
     // Check if corresponding header file exists
@@ -176,6 +150,7 @@ int generateSource(const char* filename, const char* cwd)
     return 0;
 }
 
+// Generates a CMakeLists.txt with starter code, placing it in current directory
 int generateCMakeLists(const char* cwd)
 {
     char cmakePath[256];
@@ -281,4 +256,40 @@ int generateCMakeLists(const char* cwd)
     fprintf(stdout, "CMakeLists.txt successfully generated\n");
 
     return 0;
+}
+
+int gen(const char* file_arg, const char* cwd)
+{
+    // Get file name
+    char filename[64];
+    stripExtension(file_arg, filename);
+
+    // Get file extension
+    char extension[8];
+    getExtension(file_arg, extension, sizeof(extension));
+
+    // Generate hpp
+    if (strcmp(extension, "hpp") == 0)
+    {
+        return generateHeader(filename, cwd);
+    }
+
+    // Generate cpp
+    else if (strcmp(extension, "cpp") == 0)
+    {
+        return generateSource(filename, cwd);
+    }
+
+    // Generate CMakeLists.txt
+    else if (strcmp(filename, "CMakeLists") == 0 && strcmp(extension, "txt") == 0)
+    {
+        return generateCMakeLists(cwd);
+    }
+
+    // Extension not recognized
+    else
+    {
+        fprintf(stderr, "Error: File extension not supported\n");
+        return -1;
+    }
 }

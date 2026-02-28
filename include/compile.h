@@ -20,7 +20,7 @@
 #define RUNSUFFIX ""
 #endif
 
-// Compile a C++ source file
-int compileFile(const char* sourceFile, const char* outputFile);
+// compile command handler
+int compile(const char* source_arg, char* output_arg);
 
 #endif // COMPILE_H

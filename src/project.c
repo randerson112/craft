@@ -43,3 +43,7 @@ int createNewProject(const char* cwd, const char* path)
     // Create project inside that directory
     return createCppProject(resolvedPath, projectName);
 }
+
+int project(const char* project_name_arg, const char* cwd) {
+    return createNewProject(cwd, project_name_arg);
+}

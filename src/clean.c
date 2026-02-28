@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 // Removes the build directory in the current directory
-int clean(const char* cwd) {
+int remove_build_dir(const char* cwd) {
     char buildDir[256];
     snprintf(buildDir, sizeof(buildDir), "%s/build", cwd);
 
@@ -28,4 +28,8 @@ int clean(const char* cwd) {
     formatBytes(bytesRemoved, buff, sizeof(buff));
     fprintf(stdout, "Removed %u files, %s total.\n", filesRemoved, buff);
     return 0;
+}
+
+int clean(const char* cwd) {
+    return remove_build_dir(cwd);
 }

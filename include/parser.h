@@ -46,21 +46,10 @@ typedef struct {
 } command_info_t;
 
 // Info for all valid commands
-const command_info_t commands_info[] = {
-	{"project", {"template"}, 1, 1, 1},
-	{"init", {"template"}, 1, 0, 1},
-	{"build", {{0}}, 0, 0, 0},
-	{"run", {{0}}, 0, 1, 1},
-	{"clean", {{0}}, 0, 0, 0},
-	{"compile", {{0}}, 0, 1, 2},
-	{"gen", {{0}}, 0, 1, 1},
-	{"help", {{0}}, 0, 0, 1}
-};
+const command_info_t commands_info[NUM_COMMANDS];
 
 // Info for all valid options
-const option_info_t options_info[] = {
-	{"template", 1}
-};
+const option_info_t options_info[NUM_OPTIONS];
 
 // Parses the command line arguments into a command struct
 // Returns an enum describing the parse result

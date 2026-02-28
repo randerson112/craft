@@ -223,3 +223,14 @@ int printCommandHelp(const char* command)
 
     return 0;
 }
+
+int help(const char* command_arg) {
+    // Check if optional command arg was given
+    if (strlen(command_arg) == 0) {
+        printHelp();
+        return 0;
+    }
+    else {
+        return printCommandHelp(command_arg);
+    }
+}

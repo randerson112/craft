@@ -1,7 +1,7 @@
 #ifndef RUN_H
 #define RUN_H
 
-// Runs given executable, checking build directory and current directory
-int runExecutable(const char* cwd, const char* executableName);
+// Run command handler
+int run(const char* executable_name_arg, const char* cwd);
 
 #endif // RUN_H
