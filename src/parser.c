@@ -2,20 +2,25 @@
 #include <stdio.h>
 #include <string.h>
 
+static const char* project_options[] = {"template", "lang"};
+static const char* init_options[] = {"template", "lang"};
+
 const command_info_t commands_info[] = {
-	{"project", {"template", "lang"}, 2, 1, 1},
-	{"init", {"template", "lang"}, 2, 0, 1},
-	{"build", {{0}}, 0, 0, 0},
-	{"run", {{0}}, 0, 1, 1},
-	{"clean", {{0}}, 0, 0, 0},
-	{"compile", {{0}}, 0, 1, 2},
-	{"gen", {{0}}, 0, 1, 1},
-	{"help", {{0}}, 0, 0, 1}
+	{"project", project_options, 2, 1, 1},
+	{"init", init_options, 2, 0, 1},
+	{"build", NULL, 0, 0, 0},
+	{"run", NULL, 0, 1, 1},
+	{"clean", NULL, 0, 0, 0},
+	{"compile", NULL, 0, 1, 2},
+	{"gen", NULL, 0, 1, 1},
+	{"help", NULL, 0, 0, 1}
 };
 
+static const char* lang_args[] = {"c", "cpp"};
+
 const option_info_t options_info[] = {
-	{"template", 1},
-	{"lang", 1}
+	{"template", 1, NULL, 0},
+	{"lang", 1, lang_args, 2}
 };
 
 // Checks if an option is valid for a command
@@ -29,8 +34,32 @@ int command_has_option(const char* command, const char* option) {
 		}
 	}
 
-	for (int i = 0; i < commands_info[command_index].valid_options_count; i++) {
-		if (strcmp(commands_info[command_index].valid_options[i], option) == 0) {
+	command_info_t command_info = commands_info[command_index];
+
+	for (int i = 0; i < command_info.valid_options_count; i++) {
+		if (strcmp(command_info.valid_options[i], option) == 0) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+// Checks if an arg is valid for an option
+// Assumes the option is a valid option
+int option_has_arg(const char* option, const char* arg) {
+	int option_index = 0;
+	for (int i = 0; i < NUM_OPTIONS; i++) {
+		if (strcmp(options_info[i].name, option) == 0) {
+			option_index = i;
+			break;
+		}
+	}
+
+	option_info_t option_info = options_info[option_index];
+
+	for (int i = 0; i < option_info.valid_args_count; i++) {
+		if (strcmp(option_info.valid_args[i], arg) == 0) {
 			return 1;
 		}
 	}
@@ -59,7 +88,7 @@ int get_command_max_args(const char* command) {
 }
 
 // Checks if an option takes an argument or not
-int option_has_arg(const char* option) {
+int option_expects_arg(const char* option) {
 	for (int i = 0; i < NUM_OPTIONS; i++) {
 		if (strcmp(options_info[i].name, option) == 0) {
 			return options_info[i].has_arg;
@@ -134,7 +163,7 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 
 			// Store option and check if it expects an arg
 			strcpy(command_data->options[command_data->option_count].name, option);
-			if (option_has_arg(option)) {
+			if (option_expects_arg(option)) {
 				next_is_option_arg = 1;
 			}
 			command_data->option_count++;
@@ -146,7 +175,15 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 
 			// Option arg
 			if (next_is_option_arg) {
-				strcpy(command_data->options[command_data->option_count - 1].arg, arg);
+				option_t last_option = command_data->options[command_data->option_count - 1];
+
+				// Check if argument is valid for the option
+				if (!option_has_arg(last_option.name, arg))  {
+					fprintf(stderr, "[Parse Error]: '%s' is not a valid argument for option '%s'\n\n", arg, last_option.name);
+					return PARSE_INVALID_OPTION_ARG;
+				}
+
+				strcpy(last_option.arg, arg);
 				next_is_option_arg = 0;
 			}
 			// Command arg

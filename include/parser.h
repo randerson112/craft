@@ -12,7 +12,8 @@ typedef enum {
     PARSE_TOO_MANY_ARGS,
     PARSE_INVALID_OPTION,
     PARSE_DUPLICATE_OPTION,
-    PARSE_MISSING_OPTION_ARG
+    PARSE_MISSING_OPTION_ARG,
+	PARSE_INVALID_OPTION_ARG
 } parse_result_t;
 
 // Option struct to store name of option and its arg if applicable
@@ -23,8 +24,10 @@ typedef struct {
 
 // Stores info about an option
 typedef struct {
-	char name[16];
-	int has_arg;
+	const char* name;
+	const int has_arg;
+	const char** valid_args;
+	const int valid_args_count;
 } option_info_t;
 
 // Command struct to store command name, args, and options with their args
@@ -38,18 +41,18 @@ typedef struct {
 
 // Stores info about a command
 typedef struct {
-	char name[16];
-	char valid_options[8][16];
-	int valid_options_count;
-	int min_args;
-	int max_args;
+	const char* name;
+	const char** valid_options;
+	const int valid_options_count;
+	const int min_args;
+	const int max_args;
 } command_info_t;
 
 // Info for all valid commands
-const command_info_t commands_info[NUM_COMMANDS];
+extern const command_info_t commands_info[];
 
 // Info for all valid options
-const option_info_t options_info[NUM_OPTIONS];
+extern const option_info_t options_info[];
 
 // Parses the command line arguments into a command struct
 // Returns an enum describing the parse result

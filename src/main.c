@@ -33,11 +33,7 @@ int main(int argc, char* argv[])
             printBriefHelp();
             return -1;
 
-        case PARSE_MISSING_ARGS:
-        case PARSE_TOO_MANY_ARGS:
-        case PARSE_INVALID_OPTION:
-        case PARSE_MISSING_OPTION_ARG:
-        case PARSE_DUPLICATE_OPTION:
+        default:
             printBriefCommandUsage(command_data.name);
             return -1;
     }
