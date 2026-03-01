@@ -19,8 +19,8 @@ const command_info_t commands_info[] = {
 static const char* lang_args[] = {"c", "cpp"};
 
 const option_info_t options_info[] = {
-	{"template", 1, NULL, 0},
-	{"lang", 1, lang_args, 2}
+	{"template", 't', 1, NULL, 0},
+	{"lang", 'l', 1, lang_args, 2}
 };
 
 // Checks if an option is valid for a command
@@ -45,6 +45,16 @@ int command_has_option(const char* command, const char* option) {
 	return 0;
 }
 
+// Returns the full name of an option from its shorthand if it has one
+const char* get_option_name_from_shorthand(const char shorthand) {
+    for (int i = 0; i < NUM_OPTIONS; i++) {
+        if (options_info[i].shorthand == shorthand) {
+            return options_info[i].name;
+        }
+    }
+    return NULL;
+}
+
 // Checks if an arg is valid for an option
 // Assumes the option is a valid option
 int option_has_arg(const char* option, const char* arg) {
@@ -57,6 +67,10 @@ int option_has_arg(const char* option, const char* arg) {
 	}
 
 	option_info_t option_info = options_info[option_index];
+
+	if (option_info.valid_args == NULL) {
+		return 1;
+	}
 
 	for (int i = 0; i < option_info.valid_args_count; i++) {
 		if (strcmp(option_info.valid_args[i], arg) == 0) {
@@ -139,12 +153,28 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 			}
 
 			// Strip dashes
-			char* option;
+			const char* option;
 			if (strncmp(current, "--", 2) == 0) {
 				option = current + 2;
+				if (strlen(option) == 0) {
+					fprintf(stderr, "[Parse Error]: Empty option '--'\n\n");
+					return PARSE_INVALID_OPTION;
+				}
 			}
 			else {
-				option = current + 1;
+				if (strlen(current) == 1) {
+					fprintf(stderr, "[Parse Error]: Empty option '-'\n\n");
+					return PARSE_INVALID_OPTION;	
+				}
+				if (strlen(current) > 2) {
+					fprintf(stderr, "[Parse Error]: Unknown option '%s', did you mean '--%s'?\n\n", current, current + 1);
+					return PARSE_INVALID_OPTION;
+				}
+				option = get_option_name_from_shorthand(current[1]);
+				if (!option) {
+					fprintf(stderr, "[Parse Error]: Unknown option '%s'\n\n", current);
+					return PARSE_INVALID_OPTION;
+				}
 			}
 
 			// Check if command can have this option
@@ -154,8 +184,8 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 			}
 
 			// Check if this option was already parsed
-			for (int i = 0; i < command_data->option_count; i++) {
-				if (strcmp(command_data->options[i].name, option) == 0) {
+			for (int j = 0; j < command_data->option_count; j++) {
+				if (strcmp(command_data->options[j].name, option) == 0) {
 					fprintf(stderr, "[Parse Error]: Duplicate option '%s'\n\n", current);
 					return PARSE_DUPLICATE_OPTION;
 				}
@@ -175,15 +205,15 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 
 			// Option arg
 			if (next_is_option_arg) {
-				option_t last_option = command_data->options[command_data->option_count - 1];
+				option_t* last_option = &command_data->options[command_data->option_count - 1];
 
 				// Check if argument is valid for the option
-				if (!option_has_arg(last_option.name, arg))  {
-					fprintf(stderr, "[Parse Error]: '%s' is not a valid argument for option '%s'\n\n", arg, last_option.name);
+				if (!option_has_arg(last_option->name, arg))  {
+					fprintf(stderr, "[Parse Error]: '%s' is not a valid argument for option '%s'\n\n", arg, last_option->name);
 					return PARSE_INVALID_OPTION_ARG;
 				}
 
-				strcpy(last_option.arg, arg);
+				strcpy(last_option->arg, arg);
 				next_is_option_arg = 0;
 			}
 			// Command arg

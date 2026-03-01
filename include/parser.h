@@ -25,6 +25,7 @@ typedef struct {
 // Stores info about an option
 typedef struct {
 	const char* name;
+	const char shorthand;
 	const int has_arg;
 	const char** valid_args;
 	const int valid_args_count;
