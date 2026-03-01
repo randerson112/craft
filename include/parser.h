@@ -2,7 +2,7 @@
 #define PARSER_H
 
 #define NUM_COMMANDS 8
-#define NUM_OPTIONS 1
+#define NUM_OPTIONS 2
 
 typedef enum {
     PARSE_SUCCESS,

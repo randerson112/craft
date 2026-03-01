@@ -3,8 +3,8 @@
 #include <string.h>
 
 const command_info_t commands_info[] = {
-	{"project", {"template"}, 1, 1, 1},
-	{"init", {"template"}, 1, 0, 1},
+	{"project", {"template", "lang"}, 2, 1, 1},
+	{"init", {"template", "lang"}, 2, 0, 1},
 	{"build", {{0}}, 0, 0, 0},
 	{"run", {{0}}, 0, 1, 1},
 	{"clean", {{0}}, 0, 0, 0},
@@ -14,7 +14,8 @@ const command_info_t commands_info[] = {
 };
 
 const option_info_t options_info[] = {
-	{"template", 1}
+	{"template", 1},
+	{"lang", 1}
 };
 
 // Checks if an option is valid for a command

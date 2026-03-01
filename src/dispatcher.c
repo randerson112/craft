@@ -13,9 +13,7 @@ int dispatch(command_t* command_data, const char* cwd) {
     const char* command = command_data->name;
 
     if (strcmp(command, "project") == 0) {
-        const char* project_name = command_data->args[0];
-
-        return project(project_name, cwd);
+        return project(command_data, cwd);
     }
     
     if (strcmp(command, "init") == 0) {

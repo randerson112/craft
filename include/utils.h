@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <unistd.h>
+
 // Strips extension off a file and writes it to stripped file buffer
 void stripExtension(const char* file, char* strippedFile);
 
@@ -30,5 +32,14 @@ int createCppProject(const char* path, const char* name);
 
 // Formats a number of bytes into a string with appropriate conversion
 void formatBytes(unsigned int bytes, char* buffer, unsigned int bufferSize);
+
+// Copy all contents of a directory into another directory recursively
+int copy_dir_contents(const char* source_dir, const char* dest_dir);
+
+// Copy file contents to another file
+int copy_file(const char* source, const char* dest);
+
+// Gets the path to craft config directory
+int get_craft_home(char* buffer, size_t buffer_size);
 
 #endif

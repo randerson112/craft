@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdlib.h>
 
 void stripExtension(const char* file, char* strippedFile)
 {
@@ -228,4 +229,85 @@ void formatBytes(unsigned int bytes, char* buffer, unsigned int bufferSize) {
     else {
         snprintf(buffer, bufferSize, "%u B", bytes);
     }
+}
+
+int copy_dir_contents(const char* source_dir, const char* dest_dir) {
+
+    // Open source directory
+    DIR* dir = opendir(source_dir);
+    if (!dir) {
+        fprintf(stderr, "Error: Failed to copy directory contents.\n");
+        return -1;
+    }
+
+    // Read all entries in directory
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        // Get the full path to source entry and destination entry
+        char source_path[1024];
+        char dest_path[1024];
+        snprintf(source_path, sizeof(source_path), "%s/%s", source_dir, entry->d_name);
+        snprintf(dest_path, sizeof(dest_path), "%s/%s", dest_dir, entry->d_name);
+
+        struct stat statbuff;
+        stat(source_path, &statbuff);
+
+        // If entry is directory, copy contents recursively
+        if (S_ISDIR(statbuff.st_mode)) {
+            mkdir(dest_path, 0755);
+            copy_dir_contents(source_path, dest_path);
+        }
+        // Entry is a file, copy contents to destination
+        else {
+            copy_file(source_path, dest_path);
+        }
+    }
+
+    // Close source directory
+    closedir(dir);
+    return 0;
+}
+
+int copy_file(const char* source, const char* dest) {
+
+    // Open files
+    FILE* in = fopen(source, "rb");
+    FILE* out = fopen(dest, "wb");
+    if (!in || !out) {
+        fprintf(stderr, "Error: Failed to copy file.\n");
+        return -1;
+    }
+
+    // Read bits from file and write to destination file
+    char buffer[4096];
+    size_t bytes;
+    while ((bytes = fread(buffer, 1, sizeof(buffer), in)) > 0) {
+        fwrite(buffer, 1, bytes, out);
+    }
+
+    // Close files
+    fclose(in);
+    fclose(out);
+    return 0;
+}
+
+int get_craft_home(char* buffer, size_t buffer_size) {
+    char* craft_home = getenv("CRAFT_HOME");
+    if (craft_home) {
+        snprintf(buffer, buffer_size, "%s", craft_home);
+        return 0;
+    }
+
+    char* user_home = getenv("HOME");
+    if (user_home) {
+        snprintf(buffer, buffer_size, "%s/.craft", user_home);
+        return 0;
+    }
+
+    fprintf(stderr, "Error: Could not locate craft directory.\n");
+    return -1;
 }
