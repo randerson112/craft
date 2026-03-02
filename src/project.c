@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "utils.h"
 
+// Creates a project by copying template structure to project path
 int create_project_from_template(const char* path, const char* template, const char* lang) {
     char template_dir[256];
 
@@ -30,6 +31,7 @@ int create_project_from_template(const char* path, const char* template, const c
     return copy_dir_contents(template_dir, path);
 }
 
+// Gets the full path to the new project directory from the cwd and relative path
 int get_project_path(const char* cwd, const char* rel_path, char* buffer)
 {
     // Check if directory at path already exists

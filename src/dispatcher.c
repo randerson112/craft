@@ -17,9 +17,7 @@ int dispatch(command_t* command_data, const char* cwd) {
     }
     
     if (strcmp(command, "init") == 0) {
-        const char* path = command_data->args[0];
-
-        return init(path, cwd);
+        return init(command_data, cwd);
     }
     
     if (strcmp(command, "build") == 0) {
