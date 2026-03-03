@@ -1,13 +1,15 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#define NUM_COMMANDS 8
-#define NUM_OPTIONS 2
+#define NUM_COMMANDS 9
+#define NUM_OPTIONS 4
 
 typedef enum {
     PARSE_SUCCESS,
-    PARSE_NO_COMMAND,
+    PARSE_MISSING_COMMAND,
     PARSE_INVALID_COMMAND,
+	PARSE_MISSING_SUBCOMMAND,
+	PARSE_INVALID_SUBCOMMAND,
     PARSE_MISSING_ARGS,
     PARSE_TOO_MANY_ARGS,
     PARSE_INVALID_OPTION,
@@ -22,6 +24,36 @@ typedef struct {
 	char arg[32];
 } option_t;
 
+// Command struct to store command name, args, and options with their args
+typedef struct {
+	char name[16];
+	char subcommand[16];
+	char args[8][32];
+	int arg_count;
+	option_t options[8];
+	int option_count;
+} command_t;
+
+// Stores info about a subcommand
+typedef struct {
+	const char* name;
+	const char** valid_options;
+	const int valid_options_count;
+	const int min_args;
+	const int max_args;
+} subcommand_info_t;
+
+// Stores info about a command
+typedef struct {
+	const char* name;
+	const subcommand_info_t* subcommands;
+	const int subcommands_count;
+	const char** valid_options;
+	const int valid_options_count;
+	const int min_args;
+	const int max_args;
+} command_info_t;
+
 // Stores info about an option
 typedef struct {
 	const char* name;
@@ -30,24 +62,6 @@ typedef struct {
 	const char** valid_args;
 	const int valid_args_count;
 } option_info_t;
-
-// Command struct to store command name, args, and options with their args
-typedef struct {
-	char name[16];
-	char args[8][32];
-	int arg_count;
-	option_t options[8];
-	int option_count;
-} command_t;
-
-// Stores info about a command
-typedef struct {
-	const char* name;
-	const char** valid_options;
-	const int valid_options_count;
-	const int min_args;
-	const int max_args;
-} command_info_t;
 
 // Info for all valid commands
 extern const command_info_t commands_info[];

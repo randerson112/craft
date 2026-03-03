@@ -8,13 +8,14 @@ void printCraftInfo() {
     fprintf(stdout, "    craft <COMMAND> [ARGS] [OPTIONS]\n\n");
 
     fprintf(stdout, "Available Commands:\n");
-    fprintf(stdout, "    project <path>       Create a new project at the given path\n");
-    fprintf(stdout, "    init [path]          Initialize a new project in the current or specified directory\n");
-    fprintf(stdout, "    build                Build the project in the current directory\n");
-    fprintf(stdout, "    compile <src> [out]  Compile a single source file into an executable\n");
-    fprintf(stdout, "    run <exe>            Run a compiled executable\n");
-    fprintf(stdout, "    gen <file>           Generate files with starter boilerplate (.hpp, .cpp, CMakeLists.txt)\n");
-    fprintf(stdout, "    clean                Remove the build directory and all compiled artifacts\n\n");
+    fprintf(stdout, "    project <path>                Create a new project at the given path\n");
+    fprintf(stdout, "    init [path]                   Initialize a new project in the current or specified directory\n");
+    fprintf(stdout, "    build                         Build the project in the current directory\n");
+    fprintf(stdout, "    compile <src> [out]           Compile a single source file into an executable\n");
+    fprintf(stdout, "    run <exe>                     Run a compiled executable\n");
+    fprintf(stdout, "    gen <file>                    Generate files with starter boilerplate (.hpp, .cpp, CMakeLists.txt)\n");
+    fprintf(stdout, "    clean                         Remove the build directory and all compiled artifacts\n");
+    fprintf(stdout, "    template <subcommand> [args]  Manage custom project templates\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft project MyApp\n");
@@ -23,7 +24,8 @@ void printCraftInfo() {
     fprintf(stdout, "    craft compile main.cpp\n");
     fprintf(stdout, "    craft run main\n");
     fprintf(stdout, "    craft gen CMakeLists.txt\n");
-    fprintf(stdout, "    craft clean\n\n");
+    fprintf(stdout, "    craft clean\n");
+    fprintf(stdout, "    craft template save MyTemplate\n\n");
 
     fprintf(stdout, "Tip: Run 'craft help <command>' for more info on a specific command.\n");
     fprintf(stdout, "     Run 'craft help' to see this message again.\n");
@@ -61,6 +63,10 @@ int printBriefCommandUsage(const char* command) {
     else if (strcmp(command, "clean") == 0) {
         fprintf(stdout, "Usage: craft clean\n\n");
         fprintf(stdout, "Run 'craft help clean' for more information.\n");
+    }
+    else if (strcmp(command, "template") == 0) {
+        fprintf(stdout, "Usage: craft template <subcommand> [args]\n\n");
+        fprintf(stdout, "Run 'craft help template' for more information.\n");
     }
     else {
         fprintf(stderr, "Error: Unknown command: %s\n", command);
@@ -238,6 +244,38 @@ int printCommandHelp(const char* command)
         fprintf(stdout, "    craft help\n");
         fprintf(stdout, "    craft help project\n");
         fprintf(stdout, "    craft help gen\n");
+    }
+
+    else if (strcmp(command, "template") == 0) {
+        fprintf(stdout, "Command:\n");
+        fprintf(stdout, "    craft template - Manage custom project templates.\n\n");
+
+        fprintf(stdout, "Description:\n");
+        fprintf(stdout, "    The 'template' command allows you to create and manage reusable project\n");
+        fprintf(stdout, "    templates. Templates snapshot your current project structure and store\n");
+        fprintf(stdout, "    it inside the .craft directory. You can later use these templates with\n");
+        fprintf(stdout, "    the 'project' or 'init' commands using the '--template' option.\n\n");
+
+        fprintf(stdout, "Usage:\n");
+        fprintf(stdout, "    craft template <subcommand> [name]\n\n");
+
+        fprintf(stdout, "Subcommands:\n");
+        fprintf(stdout, "    save <name>      Save the current project structure as a template.\n");
+        fprintf(stdout, "    delete <name>    Delete a custom template.\n");
+        fprintf(stdout, "    update <name>    Replace an existing template with the current structure.\n");
+        fprintf(stdout, "    where <name>     Show the filesystem path to a template.\n");
+        fprintf(stdout, "    list             List all built-in and custom templates.\n\n");
+
+        fprintf(stdout, "Arguments:\n");
+        fprintf(stdout, "    <name>   The name of the template (required for save, delete, update,\n");
+        fprintf(stdout, "             and where).\n\n");
+
+        fprintf(stdout, "Examples:\n");
+        fprintf(stdout, "    craft template save MyTemplate\n");
+        fprintf(stdout, "    craft template update MyTemplate\n");
+        fprintf(stdout, "    craft template delete MyTemplate\n");
+        fprintf(stdout, "    craft template where MyTemplate\n");
+        fprintf(stdout, "    craft template list\n");
     }
 
     else

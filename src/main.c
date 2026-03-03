@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
         case PARSE_SUCCESS:
             return dispatch(&command_data, cwd);
             
-        case PARSE_NO_COMMAND:
+        case PARSE_MISSING_COMMAND:
             printCraftInfo();
             return 0;
 
