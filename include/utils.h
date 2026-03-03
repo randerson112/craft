@@ -42,4 +42,8 @@ int copy_file(const char* source, const char* dest);
 // Gets the path to craft config directory
 int get_craft_home(char* buffer, size_t buffer_size);
 
+// Generates a craft.toml file for a project at the given path
+// Note: Placeholder for now, just used for finding project root
+int generate_toml_file(const char* path);
+
 #endif

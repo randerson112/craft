@@ -311,3 +311,17 @@ int get_craft_home(char* buffer, size_t buffer_size) {
     fprintf(stderr, "Error: Could not locate craft directory.\n");
     return -1;
 }
+
+int generate_toml_file(const char* path) {
+    char toml_path[256];
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
+
+    FILE* file = fopen(toml_path, "w");
+    if (!file) {
+        fprintf(stderr, "[File Error]: Failed to create craft.toml file\n");
+        return -1;
+    }
+
+    fprintf(file, "[project]\nname = \"placeholder\"\n");
+    return 0;
+}

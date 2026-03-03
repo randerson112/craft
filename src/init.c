@@ -25,6 +25,7 @@ int init_project_from_template(const char* path, const char* template, const cha
     }
 
     // Copy template contents to init path
+    generate_toml_file(path);
     return copy_dir_contents(template_dir, path);
 }
 
