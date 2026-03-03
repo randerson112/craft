@@ -30,6 +30,14 @@ int remove_build_dir(const char* cwd) {
     return 0;
 }
 
-int clean(const char* cwd) {
+int clean() {
+    // Retrive path of current working directory where craft is being called
+    char cwd[4096];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        return -1;
+    }
+
     return remove_build_dir(cwd);
 }

@@ -49,6 +49,14 @@ int runExecutable(const char* cwd, const char* executableName)
     return 0;
 }
 
-int run(const char* executable_name_arg, const char* cwd) {
+int run(const char* executable_name_arg) {
+    // Retrive path of current working directory where craft is being called
+    char cwd[4096];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        return -1;
+    }
+    
     return runExecutable(cwd, executable_name_arg);
 }

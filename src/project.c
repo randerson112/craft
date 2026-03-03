@@ -48,7 +48,15 @@ int get_project_path(const char* cwd, const char* rel_path, char* buffer)
     return 0;
 }
 
-int project(command_t* command_data, const char* cwd) {
+int project(command_t* command_data) {
+    // Retrive path of current working directory where craft is being called
+    char cwd[4096];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        return -1;
+    }
+    
     const char* rel_project_path = command_data->args[0];
     const char* template = "executable";
     const char* language = "cpp";

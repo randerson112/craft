@@ -258,8 +258,16 @@ int generateCMakeLists(const char* cwd)
     return 0;
 }
 
-int gen(const char* file_arg, const char* cwd)
+int gen(const char* file_arg)
 {
+    // Retrive path of current working directory where craft is being called
+    char cwd[4096];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        return -1;
+    }
+    
     // Get file name
     char filename[64];
     stripExtension(file_arg, filename);

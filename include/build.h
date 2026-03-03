@@ -2,6 +2,6 @@
 #define BUILD_H
 
 // build command handler
-int build(const char* cwd);
+int build();
 
 #endif // BUILD_H

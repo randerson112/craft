@@ -9,19 +9,20 @@
 #include "help.h"
 #include "clean.h"
 
-int dispatch(command_t* command_data, const char* cwd) {
+int dispatch(command_t* command_data) {
+    // Get command
     const char* command = command_data->name;
 
     if (strcmp(command, "project") == 0) {
-        return project(command_data, cwd);
+        return project(command_data);
     }
     
     if (strcmp(command, "init") == 0) {
-        return init(command_data, cwd);
+        return init(command_data);
     }
     
     if (strcmp(command, "build") == 0) {
-        return build(cwd);
+        return build();
     }
     
     if (strcmp(command, "compile") == 0) {
@@ -34,17 +35,17 @@ int dispatch(command_t* command_data, const char* cwd) {
     if (strcmp(command, "run") == 0) {
         const char* executable_name = command_data->args[0];
 
-        return run(executable_name, cwd);
+        return run(executable_name);
     }
     
     if (strcmp(command, "gen") == 0) {
         const char* file = command_data->args[0];
 
-        return gen(file, cwd);
+        return gen(file);
     }
     
     if (strcmp(command, "clean") == 0) {
-        return clean(cwd);
+        return clean();
     }
     
     if (strcmp(command, "help") == 0) {

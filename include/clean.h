@@ -2,6 +2,6 @@
 #define CLEAN_H
 
 // clean command handler
-int clean(const char* cwd);
+int clean();
 
 #endif // CLEAN_H

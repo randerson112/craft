@@ -4,6 +4,6 @@
 #include "parser.h"
 
 // Project command handler
-int project(command_t* command_data, const char* cwd);
+int project(command_t* command_data);
 
 #endif // PROJECT_H

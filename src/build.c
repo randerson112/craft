@@ -52,6 +52,14 @@ int buildProject(const char* cwd)
     return 0;
 }
 
-int build(const char* cwd) {
+int build() {
+    // Retrive path of current working directory where craft is being called
+    char cwd[4096];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        return -1;
+    }
+
     return buildProject(cwd);
 }

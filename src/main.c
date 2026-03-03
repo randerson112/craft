@@ -8,14 +8,6 @@
 
 int main(int argc, char* argv[])
 {
-    // Retrive path of current working directory where craft is being called
-    char cwd[4096];
-    if (getcwd(cwd, sizeof(cwd)) == NULL)
-    {
-        fprintf(stderr, "[Main Error]: Failed to getting current working directory\n");
-        return -1;
-    }
-
     // Parse command line arguments
     command_t command_data = {0};
     parse_result_t result = parse(argc, argv, &command_data);
@@ -23,7 +15,7 @@ int main(int argc, char* argv[])
     // Dispatch command to respective function or print error message
     switch (result) {
         case PARSE_SUCCESS:
-            return dispatch(&command_data, cwd);
+            return dispatch(&command_data);
             
         case PARSE_MISSING_COMMAND:
             printCraftInfo();
