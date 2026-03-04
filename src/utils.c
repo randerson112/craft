@@ -80,8 +80,8 @@ int removeDirRecursive(const char* path, unsigned int* count, unsigned int* byte
         struct stat statbuff;
         stat(buffer, &statbuff);
 
-        *bytes += statbuff.st_size;
-        (*count)++;
+        if (bytes) *bytes += statbuff.st_size;
+        if (count) (*count)++;
         if (S_ISDIR(statbuff.st_mode)) {
             removeDirRecursive(buffer, count, bytes);
         }
@@ -96,9 +96,7 @@ int removeDirRecursive(const char* path, unsigned int* count, unsigned int* byte
 
 // Removes a directory without keeping track of counts
 int removeDir(const char* path) {
-    unsigned int count = 0;
-    unsigned int bytes = 0;
-    return removeDirRecursive(path, &count, &bytes);
+    return removeDirRecursive(path, NULL, NULL);
 }
 
 // Removes a directory and keeps track of counts
@@ -231,7 +229,7 @@ void formatBytes(unsigned int bytes, char* buffer, unsigned int bufferSize) {
     }
 }
 
-int copy_dir_contents(const char* source_dir, const char* dest_dir) {
+int copy_dir_contents(const char* source_dir, const char* dest_dir, const char** excludes, size_t exclude_count) {
 
     // Open source directory
     DIR* dir = opendir(source_dir);
@@ -247,6 +245,16 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir) {
             continue;
         }
 
+        // Check if file or dir should be excluded
+        int should_exclude = 0;
+        for (int i = 0; i < exclude_count; i++) {
+            if (strcmp(entry->d_name, excludes[i]) == 0) {
+                should_exclude = 1;
+                break;
+            }
+        }
+        if (should_exclude) continue;
+
         // Get the full path to source entry and destination entry
         char source_path[1024];
         char dest_path[1024];
@@ -259,7 +267,7 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir) {
         // If entry is directory, copy contents recursively
         if (S_ISDIR(statbuff.st_mode)) {
             mkdir(dest_path, 0755);
-            copy_dir_contents(source_path, dest_path);
+            copy_dir_contents(source_path, dest_path, excludes, exclude_count);
         }
         // Entry is a file, copy contents to destination
         else {
@@ -323,5 +331,59 @@ int generate_toml_file(const char* path) {
     }
 
     fprintf(file, "[project]\nname = \"placeholder\"\n");
+    return 0;
+}
+
+int get_project_root(const char* cwd, char* buffer, size_t buffer_size) {
+    char current_path[512];
+    strncpy(current_path, cwd, sizeof(current_path));
+
+    while (1) {
+        char toml_path[512];
+        snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", current_path);
+
+        // Check if craft.toml file exists in this directory
+        if (fileExists(toml_path)) {
+            strncpy(buffer, current_path, buffer_size);
+            return 0;
+        }
+
+        // Move up a directory
+        char* last_slash = strrchr(current_path, '/');
+        if (!last_slash || last_slash == current_path) {
+            fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+            return -1;
+        }
+        *last_slash = '\0';
+    }
+}
+
+int get_template_directory(char* buffer, size_t buffer_size, const char* type, const char* language, const char* name) {
+    // Get the path to craft home
+    char craft_home[512];
+    if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
+        return -1;
+    }
+
+    // Get base templates directory
+    if (!type) {
+        snprintf(buffer, buffer_size, "%s/templates", craft_home);
+        return 0;
+    }
+
+    // Get (builtin or custom) templates directory
+    if (!language) {
+        snprintf(buffer, buffer_size, "%s/templates/%s", craft_home, type);
+        return 0;
+    }
+
+    // Get (builtin or custom) (c or cpp) templates directory
+    if (!name) {
+        snprintf(buffer, buffer_size, "%s/templates/%s/%s", craft_home, type, language);
+        return 0;
+    }
+
+    // Get specific template directory
+    snprintf(buffer, buffer_size, "%s/templates/%s/%s/%s", craft_home, type, language, name);
     return 0;
 }

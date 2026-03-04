@@ -29,7 +29,7 @@ int create_project_from_template(const char* path, const char* template, const c
     // Make new project directory and copy template over
     mkdir(path, 0755);
     generate_toml_file(path);
-    return copy_dir_contents(template_dir, path);
+    return copy_dir_contents(template_dir, path, NULL, 0);
 }
 
 // Gets the full path to the new project directory from the cwd and relative path

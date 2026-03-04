@@ -33,8 +33,8 @@ int createCppProject(const char* path, const char* name);
 // Formats a number of bytes into a string with appropriate conversion
 void formatBytes(unsigned int bytes, char* buffer, unsigned int bufferSize);
 
-// Copy all contents of a directory into another directory recursively
-int copy_dir_contents(const char* source_dir, const char* dest_dir);
+// Copy all contents of a directory into another directory recursively, excluding certain files if needed
+int copy_dir_contents(const char* source_dir, const char* dest_dir, const char** excludes, size_t exclude_count);
 
 // Copy file contents to another file
 int copy_file(const char* source, const char* dest);
@@ -45,5 +45,14 @@ int get_craft_home(char* buffer, size_t buffer_size);
 // Generates a craft.toml file for a project at the given path
 // Note: Placeholder for now, just used for finding project root
 int generate_toml_file(const char* path);
+
+// Gets the root path of a project by searching cwd and parent directories
+int get_project_root(const char* cwd, char* buffer, size_t buffer_size);
+
+// Gets the path to template directory
+// type: builtin or custom
+// language: c or cpp
+// name: name of template
+int get_template_directory(char* buffer, size_t buffer_size, const char* type, const char* language, const char* name);
 
 #endif

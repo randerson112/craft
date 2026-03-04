@@ -26,4 +26,5 @@ src/init.c
 src/help.c
 src/clean.c
 src/parser.c
-src/dispatcher.c)
+src/dispatcher.c
+src/template.c)

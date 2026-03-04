@@ -8,6 +8,7 @@
 #include "init.h"
 #include "help.h"
 #include "clean.h"
+#include "template.h"
 
 int dispatch(command_t* command_data) {
     // Get command
@@ -52,6 +53,10 @@ int dispatch(command_t* command_data) {
         const char* command = command_data->args[0];
 
         return help(command);
+    }
+
+    if (strcmp(command, "template") == 0) {
+        return handle_template(command_data);
     }
 
     return -1;
