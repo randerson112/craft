@@ -9,3 +9,4 @@ build/
 
 # Testing
 testing/
+craft.toml

@@ -7,9 +7,15 @@
 // Builds a project by creating a build directory and running cmake
 int buildProject(const char* cwd)
 {
-    // Check if CMakeLists.txt exists in current directory
+    // Get path to root of the project
+    char project_root[512];
+    if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+        return -1;
+    }
+
+    // Check if CMakeLists.txt exists in the project root
     char cmakePath[256];
-    snprintf(cmakePath, sizeof(cmakePath), "%s/CMakeLists.txt", cwd);
+    snprintf(cmakePath, sizeof(cmakePath), "%s/CMakeLists.txt", project_root);
     if (!fileExists(cmakePath))
     {
         fprintf(stderr, "Error: Could not find CMakeLists.txt in this directory\n");
@@ -18,8 +24,7 @@ int buildProject(const char* cwd)
 
     // Create a build directory if it does not exist
     char buildDir[256];
-    snprintf(buildDir, sizeof(buildDir), "%s/build", cwd);
-
+    snprintf(buildDir, sizeof(buildDir), "%s/build", project_root);
     if (!dirExists(buildDir))
     {
         if (mkdir(buildDir, 0755) == 0)

@@ -4,8 +4,15 @@
 
 // Removes the build directory in the current directory
 int remove_build_dir(const char* cwd) {
+
+    // Get the root of the project
+    char project_root[512];
+    if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+        return -1;
+    }
+
     char buildDir[256];
-    snprintf(buildDir, sizeof(buildDir), "%s/build", cwd);
+    snprintf(buildDir, sizeof(buildDir), "%s/build", project_root);
 
     // No build directory
     if (!dirExists(buildDir)) {

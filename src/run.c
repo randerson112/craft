@@ -5,12 +5,18 @@
 
 int runExecutable(const char* cwd, const char* executableName)
 {
+    // Get the root of the project where build directory is
+    char project_root[512];
+    if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+        return -1;
+    }
+
     // Check current and build directory for executable
     char executablePathCwd[256];
     char executablePathBuild[256];
 
     snprintf(executablePathCwd, sizeof(executablePathCwd), "%s/%s", cwd, executableName);
-    snprintf(executablePathBuild, sizeof(executablePathBuild), "%s/build/%s", cwd, executableName);
+    snprintf(executablePathBuild, sizeof(executablePathBuild), "%s/build/%s", project_root, executableName);
 
     char* validExecutablePath = NULL;
     if (fileExists(executablePathCwd))
