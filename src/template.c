@@ -4,6 +4,20 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
+#include "config.h"
+
+// Checks if a builtin template exists for a certain language
+// Prevents the user from creating custom templates with same name as a builtin
+int builtin_template_exists(const char* name, const char* language) {
+    char builtin_path[512];
+    get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
+
+    if (dirExists(builtin_path)) {
+        return 1;
+    }
+
+    return 0;
+}
 
 // Saves the current project structure as a template with the given name
 static int handle_save(command_t* command_data) {
@@ -15,8 +29,20 @@ static int handle_save(command_t* command_data) {
         return -1;
     }
 
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
     const char* name = command_data->args[0];
-    const char* language = "cpp";
+    const char* language = config.language;
+
+    // Check if there is a builtin template with same name
+    if (builtin_template_exists(name, language)) {
+        fprintf(stderr, "Naming Error: Builtin template '%s' already exists for language '%s'\n", name, language);
+        return -1;
+    }
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "lang") == 0) {
@@ -50,8 +76,14 @@ static int handle_update(command_t* command_data) {
         return -1;
     }
 
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
     const char* name = command_data->args[0];
-    const char* language = "cpp";
+    const char* language = config.language;
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "lang") == 0) {
@@ -82,8 +114,15 @@ static int handle_update(command_t* command_data) {
 
 // Deletes a template by name
 static int handle_delete(command_t* command_data) {
+
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
     const char* name = command_data->args[0];
-    const char* language = "cpp";
+    const char* language = config.language;
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "lang") == 0) {
@@ -128,8 +167,15 @@ static int handle_where(command_t* command_data) {
 
 // Shows a listing of all builtin and custom templates
 static int handle_list(command_t* command_data) {
-    const char* language = "cpp";
-    const char* other_language = "c";
+
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
+    const char* language = config.language;
+    const char* other_language;
     int show_all = 0;
 
     for (int i = 0; i < command_data->option_count; i++) {
