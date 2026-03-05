@@ -19,6 +19,12 @@ static const subcommand_info_t template_subcommands[] = {
 	{"where", where_options, 1, 1, 1}
 };
 
+static const subcommand_info_t config_subcommands[] = {
+	{"set", NULL, 0, 2, 2},
+	{"get", NULL, 0, 1, 1},
+	{"list", NULL, 0, 0, 0}
+};
+
 const command_info_t commands_info[] = {
 	{"project", NULL, 0, project_options, 2, 1, 1},
 	{"init", NULL, 0, init_options, 2, 0, 1},
@@ -28,7 +34,8 @@ const command_info_t commands_info[] = {
 	{"compile", NULL, 0, NULL, 0, 1, 2},
 	{"gen", NULL, 0, NULL, 0, 1, 1},
 	{"help", NULL, 0, NULL, 0, 0, 1},
-	{"template", template_subcommands, 5, NULL, 0, 0, 0}
+	{"template", template_subcommands, 5, NULL, 0, 0, 0},
+	{"config", config_subcommands, 3, NULL, 0, 0, 0}
 };
 
 static const char* lang_args[] = {"c", "cpp"};

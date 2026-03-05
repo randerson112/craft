@@ -6,4 +6,7 @@
 // Template command handler
 int handle_template(command_t* command_data);
 
+// Checks if a template exists for a certain lenaguage, builtin or custom
+int template_exists(const char* template, const char* language);
+
 #endif

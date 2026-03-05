@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "tomlc17.h"
 #include <stdio.h>
+#include "parser.h"
 
 typedef struct {
     char language[8];
@@ -28,5 +29,8 @@ int load_global_config(craft_config_t* config);
 
 // Generates a craft.toml file for a project based on project config values
 int generate_craft_toml(const char* project_path, project_config_t* config);
+
+// Config command handler
+int handle_config(command_t* command_data);
 
 #endif // CONFIG_H

@@ -239,6 +239,19 @@ static int handle_list(command_t* command_data) {
     return 0;
 }
 
+int template_exists(const char* name, const char* language) {
+    char builtin_path[512];
+    char custom_path[512];
+    get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
+    get_template_directory(custom_path, sizeof(custom_path), "custom", language, name);
+
+    if (dirExists(builtin_path) || dirExists(custom_path)) {
+        return 1;
+    }
+
+    return 0;
+}
+
 int handle_template(command_t* command_data) {
     const char* subcommand = command_data->subcommand;
 
