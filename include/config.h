@@ -1,0 +1,32 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#include "utils.h"
+#include "tomlc17.h"
+#include <stdio.h>
+
+typedef struct {
+    char language[8];
+    int c_standard;
+    int cpp_standard;
+    char template[16];
+} craft_config_t;
+
+typedef struct {
+    char name[32];
+    char version[16];
+    char language[8];
+    int standard;
+    char build_type[32];
+} project_config_t;
+
+// Default values to populate struct with if config file is lost or has errors
+extern const craft_config_t defaults;
+
+// Loads values from config.toml into a craft_config_t struct
+int load_global_config(craft_config_t* config);
+
+// Generates a craft.toml file for a project based on project config values
+int generate_craft_toml(const char* project_path, project_config_t* config);
+
+#endif // CONFIG_H

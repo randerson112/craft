@@ -10,9 +10,6 @@ set(CMAKE_C_STANDARD 99)
 #define executable name
 set(PROJECT_EXE craft)
 
-# define include directories
-include_directories(include)
-
 # create executable with source files
 add_executable(${PROJECT_EXE}
 src/main.c
@@ -27,4 +24,9 @@ src/help.c
 src/clean.c
 src/parser.c
 src/dispatcher.c
-src/template.c)
+src/template.c
+src/config.c)
+
+# define include directories
+target_include_directories(${PROJECT_EXE} PUBLIC include PRIVATE lib/tomlc17)
+target_link_libraries(${PROJECT_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/lib/tomlc17/libtomlc17.a)
