@@ -106,14 +106,85 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
     }
 
     fprintf(file, "[project]\n");
-    fprintf(file, "name = \"%s\"\n", config->name);
-    fprintf(file, "version = \"%s\"\n", config->version);
+    if (strlen(config->name) > 0) {
+        fprintf(file, "name = \"%s\"\n", config->name);
+    }
+    if (strlen(config->version) > 0) {
+        fprintf(file, "version = \"%s\"\n", config->version);
+    }
+    
     fprintf(file, "language = \"%s\"\n", config->language);
-    fprintf(file, "standard = %d\n", config->standard);
+
+    if (config->c_standard != 0) {
+        fprintf(file, "c_standard = %d\n", config->c_standard);
+    }
+    if (config->cpp_standard != 0) {
+        fprintf(file, "cpp_standard = %d\n", config->cpp_standard);
+    }
+
     fprintf(file, "\n[build]\n");
     fprintf(file, "type = \"%s\"\n", config->build_type);
 
     fclose(file);
+    return 0;
+}
+
+int load_project_config(project_config_t* config, const char* project_root) {
+
+    // Set defaults first in case craft.toml is missing values
+    strncpy(config->name, "MyProject", sizeof(config->name));
+    strncpy(config->version, "0.1.0", sizeof(config->version));
+    strncpy(config->language, "cpp", sizeof(config->language));
+    config->c_standard = 0;
+    config->cpp_standard = 0;
+    strncpy(config->build_type, "executable", sizeof(config->build_type));
+
+    // Get path to craft.toml
+    char toml_path[1024];
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_root);
+
+    if (!fileExists(toml_path)) {
+        fprintf(stderr, "Error: no craft.toml found in '%s'\n", project_root);
+        return -1;
+    }
+
+    // Open craft.toml and read config data
+    FILE* file = fopen(toml_path, "r");
+    if (!file) {
+        fprintf(stderr, "Error: could not open craft.toml\n");
+        return -1;
+    }
+
+    toml_result_t result = toml_parse_file(file);
+    fclose(file);
+
+    if (!result.ok) {
+        fprintf(stderr, "Error parsing craft.toml: %s\n", result.errmsg);
+        return -1;
+    }
+
+    toml_datum_t name = toml_seek(result.toptab, "project.name");
+    toml_datum_t version = toml_seek(result.toptab, "project.version");
+    toml_datum_t language = toml_seek(result.toptab, "project.language");
+    toml_datum_t c_standard = toml_seek(result.toptab, "project.c_standard");
+    toml_datum_t cpp_standard = toml_seek(result.toptab, "project.cpp_standard");
+    toml_datum_t build_type = toml_seek(result.toptab, "build.type");
+
+    // Store config values in the struct
+    if (name.type == TOML_STRING)
+        strncpy(config->name, name.u.s, sizeof(config->name));
+    if (version.type == TOML_STRING)
+        strncpy(config->version, version.u.s, sizeof(config->version));
+    if (language.type == TOML_STRING)
+        strncpy(config->language, language.u.s, sizeof(config->language));
+    if (c_standard.type == TOML_INT64)
+        config->c_standard = (int)c_standard.u.int64;
+    if (cpp_standard.type == TOML_INT64)
+        config->cpp_standard = (int)cpp_standard.u.int64;
+    if (build_type.type == TOML_STRING)
+        strncpy(config->build_type, build_type.u.s, sizeof(config->build_type));
+
+    toml_free(result);
     return 0;
 }
 

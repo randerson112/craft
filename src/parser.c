@@ -5,16 +5,14 @@
 static const char* project_options[] = {"template", "lang"};
 static const char* init_options[] = {"template", "lang"};
 
-static const char* save_options[] = {"lang"};
 static const char* delete_options[] = {"lang"};
-static const char* update_options[] = {"lang"};
 static const char* list_options[] = {"lang", "all"};
 static const char* where_options[] = {"lang"};
 
 static const subcommand_info_t template_subcommands[] = {
-	{"save", save_options, 1, 1, 1},
+	{"save", NULL, 0, 1, 1},
 	{"delete", delete_options, 1, 1, 1},
-	{"update", update_options, 1, 1, 1},
+	{"update", NULL, 0, 1, 1},
 	{"list", list_options, 2, 0, 0},
 	{"where", where_options, 1, 1, 1}
 };

@@ -84,7 +84,6 @@ int project(command_t* command_data) {
     const char* rel_project_path = command_data->args[0];
     const char* language = global_config.language;
     const char* template = global_config.template;
-    const char* build_type = NULL;
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "template") == 0) {
@@ -93,14 +92,9 @@ int project(command_t* command_data) {
         if (strcmp(command_data->options[i].name, "lang") == 0) {
             language = command_data->options[i].arg;
         }
-        if (strcmp(command_data->options[i].name, "type") == 0) {
-            build_type = command_data->options[i].arg;
-        }
     }
 
-    if (!build_type) {
-        build_type = infer_build_type(template);
-    }
+    const char* build_type = infer_build_type(template);
 
     // Create project files using template
     char project_path[256];
@@ -108,20 +102,21 @@ int project(command_t* command_data) {
         return -1;
     }
 
+    // Create the project
     if (create_project_from_template(project_path, template, language) != 0) {
         return -1;
     }
 
-    // Populate project config with values
+    // Load the config from the template and set the project name and version
     project_config_t project_config;
+    if (load_project_config(&project_config, project_path) != 0) {
+        return -1;
+    }
 
     char project_name[32];
-    get_project_name(rel_project_path, project_name, sizeof(project_name));
+    get_project_name(project_path, project_name, sizeof(project_name));
     strncpy(project_config.name, project_name, sizeof(project_config.name));
     strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
-    strncpy(project_config.language, language, sizeof(project_config.language));
-    project_config.standard = strcmp(language, "cpp") == 0 ? global_config.cpp_standard : global_config.c_standard;
-    strncpy(project_config.build_type, build_type, sizeof(project_config.build_type));
 
     // Generate craft.toml
     return generate_craft_toml(project_path, &project_config);

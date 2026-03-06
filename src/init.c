@@ -6,6 +6,18 @@
 #include "project.h"
 #include "config.h"
 
+// Checks if a Craft project exists at the path
+int project_exists(const char* path) {
+    char toml_path[512];
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
+
+    if (fileExists(toml_path)) {
+        return 1;
+    }
+
+    return 0;
+}
+
 // Creates a new project in an existing directory relative to the current directory
 int init_project_from_template(const char* path, const char* template, const char* lang) {
     char template_dir[256];
@@ -71,7 +83,6 @@ int init(command_t* command_data) {
     const char* rel_path = command_data->args[0];
     const char* language = global_config.language;
     const char* template = global_config.template;
-    const char* build_type = NULL;
 
     // Get option arguments if specified
     for (int i = 0; i < command_data->option_count; i++) {
@@ -82,14 +93,9 @@ int init(command_t* command_data) {
         if (strcmp(option->name, "lang") == 0) {
             language = option->arg;
         }
-        if (strcmp(option->name, "type") == 0) {
-            build_type = option->arg;
-        }
     }
 
-    if (!build_type) {
-        build_type = infer_build_type(template);
-    }
+    const char* build_type = infer_build_type(template);
 
     // Init a project at the given path
     char init_path[256];
@@ -97,21 +103,27 @@ int init(command_t* command_data) {
         return -1;
     }
 
+    // Check if a project already exists at the init path
+    if (project_exists(init_path)) {
+        fprintf(stderr, "Error: Craft project already exists at %s\n", rel_path);
+        return -1;
+    }
+
+    // Create the project
     if (init_project_from_template(init_path, template, language) != 0) {
         return -1;
     }
 
-    // Populate project config with values
+    // Load the config from the template and set the project name and version
     project_config_t project_config;
+    if (load_project_config(&project_config, init_path) != 0) {
+        return -1;
+    }
 
     char project_name[32];
     get_project_name(init_path, project_name, sizeof(project_name));
-
     strncpy(project_config.name, project_name, sizeof(project_config.name));
     strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
-    strncpy(project_config.language, language, sizeof(project_config.language));
-    project_config.standard = strcmp(language, "cpp") == 0 ? global_config.cpp_standard : global_config.c_standard;
-    strncpy(project_config.build_type, build_type, sizeof(project_config.build_type));
 
     // Generate craft.toml
     return generate_craft_toml(init_path, &project_config);

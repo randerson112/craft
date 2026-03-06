@@ -17,7 +17,8 @@ typedef struct {
     char name[32];
     char version[16];
     char language[8];
-    int standard;
+    int c_standard;
+    int cpp_standard;
     char build_type[32];
 } project_config_t;
 
@@ -26,6 +27,9 @@ extern const craft_config_t defaults;
 
 // Loads values from config.toml into a craft_config_t struct
 int load_global_config(craft_config_t* config);
+
+// Loads values from a project craft.toml into a project_config_t struct
+int load_project_config(project_config_t* config, const char* project_path);
 
 // Generates a craft.toml file for a project based on project config values
 int generate_craft_toml(const char* project_path, project_config_t* config);

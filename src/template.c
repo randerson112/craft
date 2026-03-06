@@ -29,9 +29,15 @@ static int handle_save(command_t* command_data) {
         return -1;
     }
 
-    // Load global config for default language
-    craft_config_t config;
-    if (load_global_config(&config) != 0) {
+    // Find project root
+    char project_root[512];
+    if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+        return -1;
+    }
+
+    // Load project config to get language
+    project_config_t config;
+    if (load_project_config(&config, project_root) != 0) {
         return -1;
     }
 
@@ -44,26 +50,23 @@ static int handle_save(command_t* command_data) {
         return -1;
     }
 
-    for (int i = 0; i < command_data->option_count; i++) {
-        if (strcmp(command_data->options[i].name, "lang") == 0) {
-            language = command_data->options[i].arg;
-        }
-    }
-
-    // Find project root
-    char project_root[512];
-    if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
-        return -1;
-    }
-
     // Get the path to where the template will be saved
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
 
     // Copy project contents to template, excluding craft.toml and build
     mkdir(template_dir, 0755);
-    const char* excludes[] = {"craft.toml", ".craft", "build"};
-    return copy_dir_contents(project_root, template_dir, excludes, 3);
+    const char* excludes[] = {".craft", "build"};
+    if (copy_dir_contents(project_root, template_dir, excludes, 2) != 0) {
+        return -1;
+    }
+
+    // Rewrite the craft.toml in the template without name and version
+    config.name[0] = '\0';
+    config.version[0] = '\0';
+    generate_craft_toml(template_dir, &config);
+
+    return 0;
 }
 
 // Updates an existing template with the current project structure
@@ -76,26 +79,20 @@ static int handle_update(command_t* command_data) {
         return -1;
     }
 
-    // Load global config for default language
-    craft_config_t config;
-    if (load_global_config(&config) != 0) {
-        return -1;
-    }
-
-    const char* name = command_data->args[0];
-    const char* language = config.language;
-
-    for (int i = 0; i < command_data->option_count; i++) {
-        if (strcmp(command_data->options[i].name, "lang") == 0) {
-            language = command_data->options[i].arg;
-        }
-    }
-
     // Find project root
     char project_root[512];
     if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
         return -1;
     }
+
+    // Load project config to get language
+    project_config_t config;
+    if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+
+    const char* name = command_data->args[0];
+    const char* language = config.language;
 
     // Get the path to where the template is saved
     char template_dir[512];
@@ -105,11 +102,20 @@ static int handle_update(command_t* command_data) {
         return -1;
     }
 
-    // Delete old template contents and copy project contents to template, excluding craft.toml and build
+    // Delete old template contents and copy project contents to template, excluding .craft and build
     removeDir(template_dir);
     mkdir(template_dir, 0755);
-    const char* excludes[] = {"craft.toml", ".craft", "build"};
-    return copy_dir_contents(project_root, template_dir, excludes, 3);
+    const char* excludes[] = {".craft", "build"};
+    if (copy_dir_contents(project_root, template_dir, excludes, 2) != 0) {
+        return -1;
+    }
+
+    // Rewrite the craft.toml in the template without name and version
+    config.name[0] = '\0';
+    config.version[0] = '\0';
+    generate_craft_toml(template_dir, &config);
+
+    return 0;
 }
 
 // Deletes a template by name
@@ -143,8 +149,15 @@ static int handle_delete(command_t* command_data) {
 }
 
 static int handle_where(command_t* command_data) {
+
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
     const char* name = command_data->args[0];
-    const char* language = "cpp";
+    const char* language = config.language;
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "lang") == 0) {
