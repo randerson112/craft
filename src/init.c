@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "project.h"
 #include "config.h"
+#include "cmake.h"
 
 // Checks if a Craft project exists at the path
 int project_exists(const char* path) {
@@ -126,5 +127,10 @@ int init(command_t* command_data) {
     strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
 
     // Generate craft.toml
-    return generate_craft_toml(init_path, &project_config);
+    if (generate_craft_toml(init_path, &project_config) != 0) {
+        return -1;
+    }
+
+    // Generate CMakeLists.txt based on project config
+    return generate_cmake(init_path, &project_config);
 }

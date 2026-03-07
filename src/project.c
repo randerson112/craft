@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "utils.h"
 #include "config.h"
+#include "cmake.h"
 
 // Creates a project by copying template structure to project path
 int create_project_from_template(const char* path, const char* template, const char* lang) {
@@ -119,5 +120,10 @@ int project(command_t* command_data) {
     strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
 
     // Generate craft.toml
-    return generate_craft_toml(project_path, &project_config);
+    if (generate_craft_toml(project_path, &project_config) != 0) {
+        return -1;
+    }
+
+    // Generate CMakeLists.txt based on configs
+    return generate_cmake(project_path, &project_config);
 }

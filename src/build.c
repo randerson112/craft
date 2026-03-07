@@ -3,6 +3,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "sys/stat.h"
+#include "config.h"
+#include "cmake.h"
 
 // Builds a project by creating a build directory and running cmake
 int buildProject(const char* cwd)
@@ -39,6 +41,18 @@ int buildProject(const char* cwd)
     }
     else {
         fprintf(stdout, "Build directory found\n");
+    }
+
+    // Regenerate CMakeLists.txt from craft.toml if needed
+    if (cmake_needs_regeneration(project_root)) {
+        project_config_t config;
+        load_project_config(&config, project_root);
+
+        if (validate_project_config(&config) != 0) {
+            return -1;
+        }
+
+        generate_cmake(project_root, &config);
     }
 
     // Run cmake to build project
