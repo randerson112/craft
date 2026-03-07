@@ -50,6 +50,12 @@ static int handle_save(command_t* command_data) {
         return -1;
     }
 
+    // Check if there is a custom template already with that name
+    if (template_exists(name, language)) {
+        fprintf(stderr, "Naming Error: Custom template '%s' already exists for language '%s'\n", name, language);
+        return -1;
+    }
+
     // Get the path to where the template will be saved
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
