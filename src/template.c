@@ -4,6 +4,20 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
+#include "config.h"
+
+// Checks if a builtin template exists for a certain language
+// Prevents the user from creating custom templates with same name as a builtin
+int builtin_template_exists(const char* name, const char* language) {
+    char builtin_path[512];
+    get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
+
+    if (dirExists(builtin_path)) {
+        return 1;
+    }
+
+    return 0;
+}
 
 // Saves the current project structure as a template with the given name
 static int handle_save(command_t* command_data) {
@@ -15,18 +29,30 @@ static int handle_save(command_t* command_data) {
         return -1;
     }
 
-    const char* name = command_data->args[0];
-    const char* language = "cpp";
-
-    for (int i = 0; i < command_data->option_count; i++) {
-        if (strcmp(command_data->options[i].name, "lang") == 0) {
-            language = command_data->options[i].arg;
-        }
-    }
-
     // Find project root
     char project_root[512];
     if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+        return -1;
+    }
+
+    // Load project config to get language
+    project_config_t config;
+    if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+
+    const char* name = command_data->args[0];
+    const char* language = config.language;
+
+    // Check if there is a builtin template with same name
+    if (builtin_template_exists(name, language)) {
+        fprintf(stderr, "Naming Error: Builtin template '%s' already exists for language '%s'\n", name, language);
+        return -1;
+    }
+
+    // Check if there is a custom template already with that name
+    if (template_exists(name, language)) {
+        fprintf(stderr, "Naming Error: Custom template '%s' already exists for language '%s'\n", name, language);
         return -1;
     }
 
@@ -36,8 +62,17 @@ static int handle_save(command_t* command_data) {
 
     // Copy project contents to template, excluding craft.toml and build
     mkdir(template_dir, 0755);
-    const char* excludes[] = {"craft.toml", ".craft", "build"};
-    return copy_dir_contents(project_root, template_dir, excludes, 3);
+    const char* excludes[] = {".craft", "build"};
+    if (copy_dir_contents(project_root, template_dir, excludes, 2) != 0) {
+        return -1;
+    }
+
+    // Rewrite the craft.toml in the template without name and version
+    config.name[0] = '\0';
+    config.version[0] = '\0';
+    generate_craft_toml(template_dir, &config);
+
+    return 0;
 }
 
 // Updates an existing template with the current project structure
@@ -50,20 +85,20 @@ static int handle_update(command_t* command_data) {
         return -1;
     }
 
-    const char* name = command_data->args[0];
-    const char* language = "cpp";
-
-    for (int i = 0; i < command_data->option_count; i++) {
-        if (strcmp(command_data->options[i].name, "lang") == 0) {
-            language = command_data->options[i].arg;
-        }
-    }
-
     // Find project root
     char project_root[512];
     if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
         return -1;
     }
+
+    // Load project config to get language
+    project_config_t config;
+    if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+
+    const char* name = command_data->args[0];
+    const char* language = config.language;
 
     // Get the path to where the template is saved
     char template_dir[512];
@@ -73,17 +108,33 @@ static int handle_update(command_t* command_data) {
         return -1;
     }
 
-    // Delete old template contents and copy project contents to template, excluding craft.toml and build
+    // Delete old template contents and copy project contents to template, excluding .craft and build
     removeDir(template_dir);
     mkdir(template_dir, 0755);
-    const char* excludes[] = {"craft.toml", ".craft", "build"};
-    return copy_dir_contents(project_root, template_dir, excludes, 3);
+    const char* excludes[] = {".craft", "build"};
+    if (copy_dir_contents(project_root, template_dir, excludes, 2) != 0) {
+        return -1;
+    }
+
+    // Rewrite the craft.toml in the template without name and version
+    config.name[0] = '\0';
+    config.version[0] = '\0';
+    generate_craft_toml(template_dir, &config);
+
+    return 0;
 }
 
 // Deletes a template by name
 static int handle_delete(command_t* command_data) {
+
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
     const char* name = command_data->args[0];
-    const char* language = "cpp";
+    const char* language = config.language;
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "lang") == 0) {
@@ -104,8 +155,15 @@ static int handle_delete(command_t* command_data) {
 }
 
 static int handle_where(command_t* command_data) {
+
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
     const char* name = command_data->args[0];
-    const char* language = "cpp";
+    const char* language = config.language;
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "lang") == 0) {
@@ -128,8 +186,15 @@ static int handle_where(command_t* command_data) {
 
 // Shows a listing of all builtin and custom templates
 static int handle_list(command_t* command_data) {
-    const char* language = "cpp";
-    const char* other_language = "c";
+
+    // Load global config for default language
+    craft_config_t config;
+    if (load_global_config(&config) != 0) {
+        return -1;
+    }
+
+    const char* language = config.language;
+    const char* other_language;
     int show_all = 0;
 
     for (int i = 0; i < command_data->option_count; i++) {
@@ -234,6 +299,19 @@ static int handle_list(command_t* command_data) {
             fprintf(stdout, "\t%s\n", entry->d_name);
         }
         closedir(c_dir);
+    }
+
+    return 0;
+}
+
+int template_exists(const char* name, const char* language) {
+    char builtin_path[512];
+    char custom_path[512];
+    get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
+    get_template_directory(custom_path, sizeof(custom_path), "custom", language, name);
+
+    if (dirExists(builtin_path) || dirExists(custom_path)) {
+        return 1;
     }
 
     return 0;

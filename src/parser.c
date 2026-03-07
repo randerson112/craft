@@ -5,18 +5,22 @@
 static const char* project_options[] = {"template", "lang"};
 static const char* init_options[] = {"template", "lang"};
 
-static const char* save_options[] = {"lang"};
 static const char* delete_options[] = {"lang"};
-static const char* update_options[] = {"lang"};
 static const char* list_options[] = {"lang", "all"};
 static const char* where_options[] = {"lang"};
 
 static const subcommand_info_t template_subcommands[] = {
-	{"save", save_options, 1, 1, 1},
+	{"save", NULL, 0, 1, 1},
 	{"delete", delete_options, 1, 1, 1},
-	{"update", update_options, 1, 1, 1},
+	{"update", NULL, 0, 1, 1},
 	{"list", list_options, 2, 0, 0},
 	{"where", where_options, 1, 1, 1}
+};
+
+static const subcommand_info_t config_subcommands[] = {
+	{"set", NULL, 0, 2, 2},
+	{"get", NULL, 0, 1, 1},
+	{"list", NULL, 0, 0, 0}
 };
 
 const command_info_t commands_info[] = {
@@ -28,7 +32,8 @@ const command_info_t commands_info[] = {
 	{"compile", NULL, 0, NULL, 0, 1, 2},
 	{"gen", NULL, 0, NULL, 0, 1, 1},
 	{"help", NULL, 0, NULL, 0, 0, 1},
-	{"template", template_subcommands, 5, NULL, 0, 0, 0}
+	{"template", template_subcommands, 5, NULL, 0, 0, 0},
+	{"config", config_subcommands, 3, NULL, 0, 0, 0}
 };
 
 static const char* lang_args[] = {"c", "cpp"};

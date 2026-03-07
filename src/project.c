@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include "utils.h"
+#include "config.h"
 
 // Creates a project by copying template structure to project path
 int create_project_from_template(const char* path, const char* template, const char* lang) {
@@ -28,7 +29,6 @@ int create_project_from_template(const char* path, const char* template, const c
 
     // Make new project directory and copy template over
     mkdir(path, 0755);
-    generate_toml_file(path);
     return copy_dir_contents(template_dir, path, NULL, 0);
 }
 
@@ -49,6 +49,25 @@ int get_project_path(const char* cwd, const char* rel_path, char* buffer)
     return 0;
 }
 
+void get_project_name(const char* path, char* buffer, size_t buffer_size) {
+    // Get the last component of the path
+    const char* last_slash = strrchr(path, '/');
+    const char* name = last_slash ? last_slash + 1 : path;
+
+    // Copy and capitalize first letter
+    strncpy(buffer, name, buffer_size);
+    if (buffer[0] != '\0')
+        buffer[0] = toupper(buffer[0]);
+}
+
+const char* infer_build_type(const char* template) {
+    if (strcmp(template, "executable") == 0)   return "executable";
+    if (strcmp(template, "static-library") == 0) return "static-library";
+    if (strcmp(template, "shared-library") == 0) return "shared-library";
+    if (strcmp(template, "header-only") == 0)  return "header-only";
+    return "executable";  // default for custom templates
+}
+
 int project(command_t* command_data) {
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
@@ -58,9 +77,13 @@ int project(command_t* command_data) {
         return -1;
     }
     
+    // Load global configs and set defaults
+    craft_config_t global_config;
+    load_global_config(&global_config);
+
     const char* rel_project_path = command_data->args[0];
-    const char* template = "executable";
-    const char* language = "cpp";
+    const char* language = global_config.language;
+    const char* template = global_config.template;
 
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "template") == 0) {
@@ -71,10 +94,30 @@ int project(command_t* command_data) {
         }
     }
 
+    const char* build_type = infer_build_type(template);
+
+    // Create project files using template
     char project_path[256];
-    if (get_project_path(cwd, rel_project_path, project_path) == 0) { 
-        return create_project_from_template(project_path, template, language);
+    if (get_project_path(cwd, rel_project_path, project_path) != 0) { 
+        return -1;
     }
-    
-    return -1;
+
+    // Create the project
+    if (create_project_from_template(project_path, template, language) != 0) {
+        return -1;
+    }
+
+    // Load the config from the template and set the project name and version
+    project_config_t project_config;
+    if (load_project_config(&project_config, project_path) != 0) {
+        return -1;
+    }
+
+    char project_name[32];
+    get_project_name(project_path, project_name, sizeof(project_name));
+    strncpy(project_config.name, project_name, sizeof(project_config.name));
+    strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
+
+    // Generate craft.toml
+    return generate_craft_toml(project_path, &project_config);
 }

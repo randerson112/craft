@@ -9,6 +9,7 @@
 #include "help.h"
 #include "clean.h"
 #include "template.h"
+#include "config.h"
 
 int dispatch(command_t* command_data) {
     // Get command
@@ -57,6 +58,10 @@ int dispatch(command_t* command_data) {
 
     if (strcmp(command, "template") == 0) {
         return handle_template(command_data);
+    }
+
+    if (strcmp(command, "config") == 0) {
+        return handle_config(command_data);
     }
 
     return -1;
