@@ -24,6 +24,20 @@ int buildProject(const char* cwd)
         return -1;
     }
 
+    // Regenerate CMakeLists.txt from craft.toml if needed
+    if (cmake_needs_regeneration(project_root)) {
+        project_config_t config;
+        if (load_project_config(&config, project_root) != 0) {
+            return -1;
+        }
+
+        if (validate_project_config(&config) != 0) {
+            return -1;
+        }
+
+        generate_cmake(project_root, &config);
+    }
+
     // Create a build directory if it does not exist
     char buildDir[256];
     snprintf(buildDir, sizeof(buildDir), "%s/build", project_root);
@@ -41,18 +55,6 @@ int buildProject(const char* cwd)
     }
     else {
         fprintf(stdout, "Build directory found\n");
-    }
-
-    // Regenerate CMakeLists.txt from craft.toml if needed
-    if (cmake_needs_regeneration(project_root)) {
-        project_config_t config;
-        load_project_config(&config, project_root);
-
-        if (validate_project_config(&config) != 0) {
-            return -1;
-        }
-
-        generate_cmake(project_root, &config);
     }
 
     // Run cmake to build project

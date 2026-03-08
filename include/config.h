@@ -20,7 +20,9 @@ typedef struct {
     char version[16];
     char language[8];
     int c_standard;
+    int has_c_standard;
     int cpp_standard;
+    int has_cpp_standard;
     
     // [build]
     char build_type[32];

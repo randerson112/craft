@@ -8,19 +8,14 @@
 #include "config.h"
 #include "cmake.h"
 
-// Creates a project by copying template structure to project path
 int create_project_from_template(const char* path, const char* template, const char* lang) {
     char template_dir[256];
 
-    // Get craft config directory
-    char craft_home[256];
-    get_craft_home(craft_home, sizeof(craft_home));
-
     // Check for template in custom templates
-    snprintf(template_dir, sizeof(template_dir), "%s/templates/custom/%s/%s", craft_home, lang, template);
+    get_template_directory(template_dir, sizeof(template_dir), "custom", lang, template);
     if (!dirExists(template_dir)) {
         // Check for template in builtin templates
-        snprintf(template_dir, sizeof(template_dir), "%s/templates/builtin/%s/%s", craft_home, lang, template);
+        get_template_directory(template_dir, sizeof(template_dir), "builtin", lang, template);
         if (!dirExists(template_dir)) {
             // Template not found
             fprintf(stderr, "Template '%s' not found for language '%s'\n", template, lang);
@@ -28,9 +23,32 @@ int create_project_from_template(const char* path, const char* template, const c
         }
     }
 
-    // Make new project directory and copy template over
-    mkdir(path, 0755);
-    return copy_dir_contents(template_dir, path, NULL, 0);
+    // Copy template over to project directory
+    copy_dir_contents(template_dir, path, NULL, 0);
+
+    // Load the project config from the craft.toml and set the project name and version
+    project_config_t project_config;
+    if (load_project_config(&project_config, path) != 0) {
+        return -1;
+    }
+
+    char project_name[32];
+    get_project_name(path, project_name, sizeof(project_name));
+    strncpy(project_config.name, project_name, sizeof(project_config.name));
+    strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
+
+    // Make sure project configs from the template are valid
+    if (validate_project_config(&project_config) != 0) {
+        return -1;
+    }
+
+    // Generate a new craft.toml with name and version
+    if (generate_craft_toml(path, &project_config) != 0) {
+        return -1;
+    }
+
+    // Generate starting CMakeLists.txt based on configs
+    return generate_cmake(path, &project_config);
 }
 
 // Gets the full path to the new project directory from the cwd and relative path
@@ -55,18 +73,8 @@ void get_project_name(const char* path, char* buffer, size_t buffer_size) {
     const char* last_slash = strrchr(path, '/');
     const char* name = last_slash ? last_slash + 1 : path;
 
-    // Copy and capitalize first letter
+    // Copy to buffer
     strncpy(buffer, name, buffer_size);
-    if (buffer[0] != '\0')
-        buffer[0] = toupper(buffer[0]);
-}
-
-const char* infer_build_type(const char* template) {
-    if (strcmp(template, "executable") == 0)   return "executable";
-    if (strcmp(template, "static-library") == 0) return "static-library";
-    if (strcmp(template, "shared-library") == 0) return "shared-library";
-    if (strcmp(template, "header-only") == 0)  return "header-only";
-    return "executable";  // default for custom templates
 }
 
 int project(command_t* command_data) {
@@ -86,6 +94,7 @@ int project(command_t* command_data) {
     const char* language = global_config.language;
     const char* template = global_config.template;
 
+    // Override defaults with option arguments
     for (int i = 0; i < command_data->option_count; i++) {
         if (strcmp(command_data->options[i].name, "template") == 0) {
             template = command_data->options[i].arg;
@@ -95,35 +104,13 @@ int project(command_t* command_data) {
         }
     }
 
-    const char* build_type = infer_build_type(template);
-
-    // Create project files using template
+    // Get path to project
     char project_path[256];
     if (get_project_path(cwd, rel_project_path, project_path) != 0) { 
         return -1;
     }
 
-    // Create the project
-    if (create_project_from_template(project_path, template, language) != 0) {
-        return -1;
-    }
-
-    // Load the config from the template and set the project name and version
-    project_config_t project_config;
-    if (load_project_config(&project_config, project_path) != 0) {
-        return -1;
-    }
-
-    char project_name[32];
-    get_project_name(project_path, project_name, sizeof(project_name));
-    strncpy(project_config.name, project_name, sizeof(project_config.name));
-    strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
-
-    // Generate craft.toml
-    if (generate_craft_toml(project_path, &project_config) != 0) {
-        return -1;
-    }
-
-    // Generate CMakeLists.txt based on configs
-    return generate_cmake(project_path, &project_config);
+    // Create new directory and create the project
+    mkdir(project_path, 0755);
+    return create_project_from_template(project_path, template, language);
 }

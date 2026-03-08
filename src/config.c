@@ -171,17 +171,8 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
 
 int load_project_config(project_config_t* config, const char* project_root) {
 
-    // Set defaults first in case craft.toml is missing values
-    strncpy(config->name, "MyProject", sizeof(config->name));
-    strncpy(config->version, "0.1.0", sizeof(config->version));
-    strncpy(config->language, "cpp", sizeof(config->language));
-    config->c_standard = 0;
-    config->cpp_standard = 0;
-    strncpy(config->build_type, "executable", sizeof(config->build_type));
-    config->include_dir_count = 0;
-    config->source_dir_count = 0;
-    config->lib_dir_count = 0;
-    config->lib_count = 0;
+    // Set all values to 0
+    memset(config, 0, sizeof(*config));
 
     // Get path to craft.toml
     char toml_path[1024];
@@ -225,10 +216,14 @@ int load_project_config(project_config_t* config, const char* project_root) {
         strncpy(config->version, version.u.s, sizeof(config->version));
     if (language.type == TOML_STRING)
         strncpy(config->language, language.u.s, sizeof(config->language));
-    if (c_standard.type == TOML_INT64)
+    if (c_standard.type == TOML_INT64) {
         config->c_standard = (int)c_standard.u.int64;
-    if (cpp_standard.type == TOML_INT64)
+        config->has_c_standard = 1;
+    }
+    if (cpp_standard.type == TOML_INT64) {
         config->cpp_standard = (int)cpp_standard.u.int64;
+        config->has_cpp_standard = 1;
+    }
 
     // Store build values
     if (build_type.type == TOML_STRING)
@@ -279,21 +274,58 @@ int load_project_config(project_config_t* config, const char* project_root) {
 }
 
 int validate_project_config(project_config_t* config) {
+    // Check if there is a project name
     if (strlen(config->name) == 0) {
-        fprintf(stderr, "Error: project name is missing from craft.toml\n");
+        fprintf(stderr, "[Config Error]: Project name is missing from craft.toml\n");
         return -1;
     }
-    if (strcmp(config->language, "c") != 0 && strcmp(config->language, "cpp") != 0) {
-        fprintf(stderr, "Error: invalid language '%s' in craft.toml\n", config->language);
+
+    // Check if there is a language and it is "c" or "cpp"
+    if (strlen(config->language) != 0) {
+        if (strcmp(config->language, "c") != 0 && strcmp(config->language, "cpp") != 0) {
+            fprintf(stderr, "[Config Error]: Invalid language '%s' in craft.toml\n", config->language);
+            return -1;
+        }
+    }
+    else {
+        fprintf(stderr, "[Config Error]: Language is missing from craft.toml\n");
         return -1;
     }
-    if (strcmp(config->build_type, "executable") != 0 &&
-        strcmp(config->build_type, "static-library") != 0 &&
-        strcmp(config->build_type, "shared-library") != 0 &&
-        strcmp(config->build_type, "header-only") != 0) {
-        fprintf(stderr, "Error: invalid build type '%s' in craft.toml\n", config->build_type);
+
+    // If c standard is present make sure it is valid
+    if (config->has_c_standard) {
+        int c_standard = config->c_standard;
+        if (c_standard != 89 && c_standard != 99 && c_standard != 11 && c_standard != 17 && c_standard != 23) {
+            fprintf(stderr, "[Config Error]: Invalid c standard '%d' in craft.toml\n", c_standard);
+            return -1;
+        }
+    }
+
+    // If cpp standard is present make sure it is valid
+    if (config->has_cpp_standard) {
+        int cpp_standard = config->cpp_standard;
+        if (cpp_standard != 11 && cpp_standard != 14 && cpp_standard != 17 && cpp_standard != 20 && cpp_standard != 23) {
+            fprintf(stderr, "[Config Error]: Invalid cpp standard '%d' in craft.toml\n", cpp_standard);
+            return -1;
+        }
+    }
+
+    // Check if there is a build type and it is one of the valid types
+    if (strlen(config->build_type) != 0) {
+        if (strcmp(config->build_type, "executable") != 0 &&
+            strcmp(config->build_type, "static-library") != 0 &&
+            strcmp(config->build_type, "shared-library") != 0 &&
+            strcmp(config->build_type, "header-only") != 0) {
+            fprintf(stderr, "[Config Error]: Invalid build type '%s' in craft.toml\n", config->build_type);
+            return -1;
+        }
+    }
+    else {
+        fprintf(stderr, "[Config Error]: Build type is missing from craft.toml\n");
         return -1;
     }
+
+    // Everything is valid
     return 0;
 }
 

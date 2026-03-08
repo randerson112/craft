@@ -35,9 +35,13 @@ static int handle_save(command_t* command_data) {
         return -1;
     }
 
-    // Load project config to get language
+    // Load project config and make sure it is valid
     project_config_t config;
     if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+
+    if (validate_project_config(&config) != 0) {
         return -1;
     }
 
@@ -91,9 +95,13 @@ static int handle_update(command_t* command_data) {
         return -1;
     }
 
-    // Load project config to get language
+    // Load project config and check if it is valid
     project_config_t config;
     if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+
+    if (validate_project_config(&config) != 0) {
         return -1;
     }
 

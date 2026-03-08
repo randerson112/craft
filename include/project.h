@@ -7,10 +7,10 @@
 // Project command handler
 int project(command_t* command_data);
 
-// Gets the name of a project by capitalizing the directory name
+// Gets the name of a project by taking the last name of the path
 void get_project_name(const char* path, char* buffer, size_t buffer_size);
 
-// Infer a build type based on the template if it is builtin, otherwise returns executable
-const char* infer_build_type(const char* template);
+// Creates a project by copying template structure to project path
+int create_project_from_template(const char* path, const char* template, const char* lang);
 
 #endif // PROJECT_H
