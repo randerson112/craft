@@ -23,7 +23,12 @@ int project_exists(const char* path) {
 int get_path_to_init(const char* cwd, const char* rel_path, char* buffer, size_t buffer_size) {
     // Get full path to specified directory
     char fullPath[256];
-    snprintf(fullPath, sizeof(fullPath), "%s/%s", cwd, rel_path);
+    if (rel_path) {
+        snprintf(fullPath, sizeof(fullPath), "%s/%s", cwd, rel_path);
+    }
+    else {
+        snprintf(fullPath, sizeof(fullPath), "%s", cwd);
+    }
 
     // Make sure directory exists
     if (!dirExists(fullPath))
@@ -50,7 +55,6 @@ int init(command_t* command_data) {
     craft_config_t global_config;
     load_global_config(&global_config);
     
-    const char* rel_path = command_data->args[0];
     const char* language = global_config.language;
     const char* template = global_config.template;
 
@@ -63,6 +67,11 @@ int init(command_t* command_data) {
         if (strcmp(option->name, "lang") == 0) {
             language = option->arg;
         }
+    }
+
+    const char* rel_path = NULL;
+    if (command_data->arg_count != 0) {
+        rel_path = command_data->args[0];
     }
 
     // Get path to where project is being initialized

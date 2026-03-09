@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <stdio.h>
 #include <string.h>
+#include "utils.h"
 
 static const char* project_options[] = {"template", "lang"};
 static const char* init_options[] = {"template", "lang"};
@@ -211,6 +212,79 @@ int command_is_valid(const char* command) {
 	return info != NULL;
 }
 
+// Prints a command suggestion if command was a few letters off
+void print_command_suggestion(const char* unknown) {
+
+	// Get array of command names
+	const char* valid_commands[NUM_COMMANDS];
+	for (int i = 0; i < NUM_COMMANDS; i++) {	
+		valid_commands[i] = commands_info[i].name;
+	}
+
+	// Print suggestion if unkown command is close enough
+	const char* suggestion = suggest(unknown, valid_commands, NUM_COMMANDS);
+	if (suggestion) {
+		fprintf(stderr, "Did you mean '%s'?\n\n", suggestion);
+	}
+}
+
+// Prints a subcommand suggestion for a command if subcommand was a few letters off
+void print_subcommand_suggestion(const char* command, const char* unknown) {
+
+	// Get array of subcommand names for command
+	const command_info_t* command_info = get_command_info(command);
+	const int count = command_info->subcommands_count;
+
+	const char* valid_subcommands[count];
+	for (int i = 0; i < count; i++) {
+		valid_subcommands[i] = command_info->subcommands[i].name;
+	}
+
+	// Print suggestion if unknown subcommand is close enough
+	const char* suggestion = suggest(unknown, valid_subcommands, count);
+	if (suggestion) {
+		fprintf(stderr, "Did you mean '%s'?\n\n", suggestion);
+	}
+}
+
+// Prints an option suggestion for a command if option was a few letters off
+void print_command_option_suggestion(const char* command, const char* unknown) {
+
+	// Get array of options for command
+	const command_info_t* command_info = get_command_info(command);
+	const int count = command_info->valid_options_count;
+
+	const char* valid_options[count];
+	for (int i = 0; i < count; i++) {
+		valid_options[i] = command_info->valid_options[i];
+	}
+
+	// Print suggestion if unknown option is close enough
+	const char* suggestion = suggest(unknown, valid_options, count);
+	if (suggestion) {
+		fprintf(stderr, "Did you mean '--%s'?\n\n", suggestion);
+	}
+}
+
+// Prints an option suggestion for subcommand if option was a few letters off 
+void print_subcommand_option_suggestion(const char* command, const char* subcommand, const char* unknown) {
+
+	// Get array of options for subcommand
+	const subcommand_info_t* subcommand_info = get_subcommand_info(command, subcommand);
+	const int count = subcommand_info->valid_options_count;
+
+	const char* valid_options[count];
+	for (int i = 0; i < count; i++) {
+		valid_options[i] = subcommand_info->valid_options[i];
+	}
+
+	// Print suggestion if unknown option is close enough
+	const char* suggestion = suggest(unknown, valid_options, count);
+	if (suggestion) {
+		fprintf(stderr, "Did you mean '--%s'\n\n", suggestion);
+	}
+}
+
 // Parses the command line arguments into a command struct
 // Returns 0 if successful, -1 if parser encounters and error
 parse_result_t parse(int argc, char** argv, command_t* command_data) {
@@ -222,6 +296,7 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 	const char* command = argv[1];
 	if (!command_is_valid(command)) {
 		fprintf(stderr, "[Parse Error]: '%s' is not a valid command\n\n", command);
+		print_command_suggestion(command);
 		return PARSE_INVALID_COMMAND;
 	}
 	strcpy(command_data->name, command);
@@ -285,12 +360,14 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 			if (subcommand_present) {
 				if (!subcommand_has_option(command, command_data->subcommand, option)) {
 					fprintf(stderr, "[Parse Error]: '%s' is not a valid option for %s subcommand '%s'\n\n", option, command, command_data->subcommand);
+					print_subcommand_option_suggestion(command, command_data->subcommand, option);
 					return PARSE_INVALID_OPTION;
 				}
 			}
 			else {
 				if (!command_has_option(command, option)) {
 					fprintf(stderr, "[Parse Error]: '%s' is not a valid option for '%s' command\n\n", current, command);
+					print_command_option_suggestion(command, option);
 					return PARSE_INVALID_OPTION;
 				}
 			}
@@ -325,6 +402,7 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 				}
 				else {
 					fprintf(stderr, "'%s' is not a valid subcommand for command '%s'\n\n", arg, command);
+					print_subcommand_suggestion(command, arg);
 					return PARSE_INVALID_SUBCOMMAND;
 				}
 			}

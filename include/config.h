@@ -36,9 +36,6 @@ typedef struct {
     int lib_count;
 } project_config_t;
 
-// Default values to populate struct with if config file is lost or has errors
-extern const craft_config_t defaults;
-
 // Loads values from config.toml into a craft_config_t struct
 int load_global_config(craft_config_t* config);
 

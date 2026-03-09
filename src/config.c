@@ -3,13 +3,83 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "template.h"
+#include "utils.h"
 
-const craft_config_t defaults = {
+static const craft_config_t defaults = {
     .language = "cpp",
     .c_standard = 99,
     .cpp_standard = 17,
     .template = "executable"
 };
+
+typedef struct {
+    const char* name;
+    int required;
+} config_key_t;
+
+static const config_key_t project_keys[] = {
+    {"name",         1},
+    {"version",      1},
+    {"language",     1},
+    {"c_standard",   0},
+    {"cpp_standard", 0}
+};
+static const int num_project_keys = 5;
+
+static const config_key_t build_keys[] = {
+    {"type",         1},
+    {"include_dirs", 0},
+    {"source_dirs",  0},
+    {"lib_dirs",     0},
+    {"libs",         0}
+};
+static const int num_build_keys = 5;
+
+// Checks a section for any unknown keys and prints an error or warning message
+static int check_unknown_keys(toml_datum_t section, const char* section_name, const config_key_t* valid_keys, int num_keys) {
+    for (int i = 0; i < section.u.tab.size; i++) {
+        const char* key = section.u.tab.key[i];
+        bool found = false;
+        for (int j = 0; j < num_keys; j++) {
+            if (strcmp(key, valid_keys[j].name) == 0) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            // Build array of just names for suggest()
+            const char* names[16];
+            for (int j = 0; j < num_keys; j++)
+                names[j] = valid_keys[j].name;
+
+            const char* suggestion = suggest(key, names, num_keys);
+
+            // Check if suggestion is a required key
+            int suggestion_required = 0;
+            if (suggestion) {
+                for (int j = 0; j < num_keys; j++) {
+                    if (strcmp(suggestion, valid_keys[j].name) == 0) {
+                        suggestion_required = valid_keys[j].required;
+                        break;
+                    }
+                }
+            }
+
+            if (suggestion && suggestion_required) {
+                fprintf(stderr, "[Config Error]: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
+                return -1;
+            }
+            else if (suggestion) {
+                fprintf(stderr, "[Config Warning]: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
+            }
+            else {
+                fprintf(stderr, "[Config Warning]: Unknown key '%s' in [%s]\n", key, section_name);
+            }
+        }
+    }
+
+    return 0;
+}
 
 int load_global_config(craft_config_t* config) {
 
@@ -195,6 +265,31 @@ int load_project_config(project_config_t* config, const char* project_root) {
         return -1;
     }
 
+    // Check if required sections are present
+    toml_datum_t project_section = toml_seek(result.toptab, "project");
+    if (project_section.type != TOML_TABLE) {
+        fprintf(stderr, "[Config Error]: Missing required [project] section in craft.toml\n");
+        toml_free(result);
+        return -1;
+    }
+
+    toml_datum_t build_section = toml_seek(result.toptab, "build");
+    if (build_section.type != TOML_TABLE) {
+        fprintf(stderr, "[Config Error]: Missing required [build] section in craft.toml\n");
+        toml_free(result);
+        return -1;
+    }
+
+    // Check for unknown keys in sections
+    if (check_unknown_keys(project_section, "project", project_keys, num_project_keys) != 0) {
+        toml_free(result);
+        return -1;
+    }
+    if (check_unknown_keys(build_section, "build", build_keys, num_build_keys) != 0) {
+        toml_free(result);
+        return -1;
+    }
+
     // Project fields
     toml_datum_t name = toml_seek(result.toptab, "project.name");
     toml_datum_t version = toml_seek(result.toptab, "project.version");
@@ -278,6 +373,18 @@ int validate_project_config(project_config_t* config) {
     if (strlen(config->name) == 0) {
         fprintf(stderr, "[Config Error]: Project name is missing from craft.toml\n");
         return -1;
+    }
+
+    // Check if there is a version and that it is valid
+    if (strlen(config->version) == 0) {
+        fprintf(stderr, "[Config Error]: Version is missing from craft.toml\n");
+        return -1;
+    }
+    else {
+        if (!is_valid_version(config->version)) {
+            fprintf(stderr, "[Config Error]: Version '%s' is invalid\n", config->version);
+            return -1;
+        }
     }
 
     // Check if there is a language and it is "c" or "cpp"

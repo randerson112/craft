@@ -61,7 +61,7 @@ int buildProject(const char* cwd)
     fprintf(stdout, "Building project\n");
     
     char command[512];
-    snprintf(command, sizeof(command), "cd %s && cmake .. && cmake --build .", buildDir);
+    snprintf(command, sizeof(command), "cd %s && cmake .. --log-level=ERROR && cmake --build .", buildDir);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to build project\n");
