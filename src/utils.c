@@ -337,9 +337,9 @@ int get_project_root(const char* cwd, char* buffer, size_t buffer_size) {
         // Move up a directory
         char* last_slash = strrchr(current_path, '/');
         if (!last_slash || last_slash == current_path) {
-            fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
             return -1;
         }
+        
         *last_slash = '\0';
     }
 }

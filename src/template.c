@@ -32,6 +32,7 @@ static int handle_save(command_t* command_data) {
     // Find project root
     char project_root[512];
     if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -92,6 +93,7 @@ static int handle_update(command_t* command_data) {
     // Find project root
     char project_root[512];
     if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 

@@ -6,20 +6,36 @@
 #include "string.h"
 
 // Compiles a source file and writes the executable to the output file
-int compileFile(const char* sourceFile, const char* outputFile)
+int compile_file(const char* cwd, const char* source_path, const char* output_path) 
 {
-    // Calculate required buffer size for command
-    size_t commandSize = strlen(COMPILER) + strlen(sourceFile) + strlen(" -o ") + strlen(outputFile) + 1;
-    char* command = malloc(commandSize);
-    
-    if (command == NULL)
-    {
-        fprintf(stderr, "Error: Memory allocation failed!\n");
+    // Get full path to source and output files
+    char full_source_path[512];
+    char full_output_path[512];
+    snprintf(full_source_path, sizeof(full_source_path), "%s/%s", cwd, source_path);
+    snprintf(full_output_path, sizeof(full_output_path), "%s/%s", cwd, output_path);
+
+    if (!fileExists(full_source_path)) {
+        fprintf(stderr, "Error: Source file '%s' does not exist\n", source_path);
         return -1;
     }
-    
+
+    // Get extension of source file
+    char extension[8];
+    getExtension(source_path, extension, sizeof(extension));
+
     // Write compile command
-    snprintf(command, commandSize, "%s%s -o %s", COMPILER, sourceFile, outputFile);
+    char command[1024];
+    if (strcmp(extension, "c") == 0) {
+        snprintf(command, sizeof(command), "%s %s -o %s", C_COMPILER, full_source_path, full_output_path);
+    }
+    else if (strcmp(extension, "cpp") == 0) {
+        snprintf(command, sizeof(command), "%s %s -o %s", CPP_COMPILER, full_source_path, full_output_path);
+    }
+    else {
+        fprintf(stderr, "Error: Cannot compile '%s'\n", source_path);
+        fprintf(stderr, "File must have a .c or .cpp extension\n");
+        return -1;
+    }
 
     // Run the command to compile source file
     fprintf(stdout, "Compiling...\n");
@@ -27,34 +43,41 @@ int compileFile(const char* sourceFile, const char* outputFile)
     {
         // Compilation successful
         fprintf(stdout, "Source file compiled successfully!\n");
-        free(command);
         return 0;
     }
     else
     {
         // Compilation failed
         fprintf(stderr, "Error: Compilation failed!\n");
-        free(command);
         return -1;
     }
 }
 
-int compile(const char* source_arg, char* output_arg) {
-    // Get optional output file name
-    char outputFile[256];
-    if (strlen(output_arg) == 0)
+int compile(command_t* command_data) {
+    
+    // Retrive path of current working directory where craft is being called
+    char cwd[4096];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
     {
-        // Output file not specified, create default one
-        stripExtension(source_arg, output_arg);
-    }
-    else
-    {
-        // Get specified output file
-        strncpy(outputFile, output_arg, sizeof(outputFile) - 1);
-        outputFile[sizeof(outputFile) - 1] = '\0';
+        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        return -1;
     }
 
+    // Get source path argument
+    const char* source_path = command_data->args[0];
+
+    // Get optional output path argument
+    if (command_data->arg_count == 2) {
+        const char* output_path = command_data->args[1];
+
+        // Compile
+        return compile_file(cwd, source_path, output_path);
+    }
+
+    // No output path was specified, make default output path
+    char output_path[512];
+    stripExtension(source_path, output_path);
+
     // Compile
-    // Returns 0 if successful and -1 if failed
-    return compileFile(source_arg, outputFile);
+    return compile_file(cwd, source_path, output_path);
 }
