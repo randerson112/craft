@@ -12,7 +12,7 @@ void printCraftInfo() {
     fprintf(stdout, "    init [path]                  Initialize a project in the current or given directory\n");
     fprintf(stdout, "    build                        Build the project in the current directory\n");
     fprintf(stdout, "    compile <src> [out]          Compile a single source file\n");
-    fprintf(stdout, "    run <executable>             Run a compiled executable\n");
+    fprintf(stdout, "    run [path]                   Run a compiled executable\n");
     fprintf(stdout, "    gen <file>                   Generate a file with boilerplate\n");
     fprintf(stdout, "    clean                        Remove the build directory\n");
     fprintf(stdout, "    template <subcommand>        Manage project templates\n");
@@ -23,7 +23,7 @@ void printCraftInfo() {
     fprintf(stdout, "    craft init\n");
     fprintf(stdout, "    craft build\n");
     fprintf(stdout, "    craft compile main.cpp\n");
-    fprintf(stdout, "    craft run MyApp\n");
+    fprintf(stdout, "    craft run\n");
     fprintf(stdout, "    craft clean\n");
     fprintf(stdout, "    craft template save MyTemplate\n");
     fprintf(stdout, "    craft config set lang cpp\n\n");
@@ -126,16 +126,18 @@ static void printRunHelp() {
     fprintf(stdout, "    craft run - Run a compiled executable.\n\n");
 
     fprintf(stdout, "Description:\n");
-    fprintf(stdout, "    Executes a compiled binary. Looks in the current directory and the\n");
-    fprintf(stdout, "    build directory for the executable.\n\n");
+    fprintf(stdout, "    Executes the compiled binary of the project or a different binary if specified.\n");
+    fprintf(stdout, "    With no arguments, it looks in the build directory for an executable with the same\n");
+    fprintf(stdout, "    name as the project. If a path is specified it will look there from the current directory instead.\n\n");
 
     fprintf(stdout, "Usage:\n");
-    fprintf(stdout, "    craft run <executable>\n\n");
+    fprintf(stdout, "    craft run [path]\n\n");
 
     fprintf(stdout, "Arguments:\n");
-    fprintf(stdout, "    <executable>   Name of the executable to run.\n\n");
+    fprintf(stdout, "    [path]   Optional path to the executable. Defaults to build directory executable.\n\n");
 
-    fprintf(stdout, "Example:\n");
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft run\n");
     fprintf(stdout, "    craft run MyApp\n");
 }
 

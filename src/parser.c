@@ -28,7 +28,7 @@ const command_info_t commands_info[] = {
 	{"project",  "craft project <path> [options]",     NULL,                 0, project_options, 2, 1, 1},
 	{"init",     "craft init [path] [options]",        NULL,                 0, init_options,    2, 0, 1},
 	{"build",    "craft build",                        NULL,                 0, NULL,            0, 0, 0},
-	{"run",      "craft run <executable>",             NULL,                 0, NULL,            0, 1, 1},
+	{"run",      "craft run [path]",                   NULL,                 0, NULL,            0, 0, 1},
 	{"clean",    "craft clean",                        NULL,                 0, NULL,            0, 0, 0},
 	{"compile",  "craft compile <src> [out]",          NULL,                 0, NULL,            0, 1, 2},
 	{"gen",      "craft gen <file>",                   NULL,                 0, NULL,            0, 1, 1},
@@ -40,9 +40,9 @@ const command_info_t commands_info[] = {
 static const char* lang_args[] = {"c", "cpp"};
 
 const option_info_t options_info[] = {
-	{"template", 't', "--template <name>\n\tor\n\t-t <name>",     1, NULL,      0},
-	{"lang",     'l', "--lang <language>\n\tor\n\t-l <language>", 1, lang_args, 2},
-	{"all",      'a', "--all\n\tor\n\t-a",                        0, NULL,      0}
+	{"template", 't', "--template <name>\n\t-t <name>",     1, NULL,      0},
+	{"lang",     'l', "--lang <language>\n\t-l <language>", 1, lang_args, 2},
+	{"all",      'a', "--all\n\t-a",                        0, NULL,      0}
 };
 
 // Gets respective command info struct based on command name

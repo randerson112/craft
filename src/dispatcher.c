@@ -35,9 +35,7 @@ int dispatch(command_t* command_data) {
     }
     
     if (strcmp(command, "run") == 0) {
-        const char* executable_name = command_data->args[0];
-
-        return run(executable_name);
+        return run(command_data);
     }
     
     if (strcmp(command, "gen") == 0) {
