@@ -11,38 +11,38 @@ static const char* list_options[] = {"lang", "all"};
 static const char* where_options[] = {"lang"};
 
 static const subcommand_info_t template_subcommands[] = {
-	{"save", NULL, 0, 1, 1},
-	{"delete", delete_options, 1, 1, 1},
-	{"update", NULL, 0, 1, 1},
-	{"list", list_options, 2, 0, 0},
-	{"where", where_options, 1, 1, 1}
+	{"save",   "craft template save <name>",             NULL,           0, 1, 1},
+	{"delete", "craft template delete <name> [options]", delete_options, 1, 1, 1},
+	{"update", "craft template update <name>",           NULL,           0, 1, 1},
+	{"list",   "craft template list [options]",          list_options,   2, 0, 0},
+	{"where",  "craft template where <name> [options]",  where_options,  1, 1, 1}
 };
 
 static const subcommand_info_t config_subcommands[] = {
-	{"set", NULL, 0, 2, 2},
-	{"get", NULL, 0, 1, 1},
-	{"list", NULL, 0, 0, 0}
+	{"set",  "craft config set <key> <value>", NULL, 0, 2, 2},
+	{"get",  "craft config get <key>",         NULL, 0, 1, 1},
+	{"list", "craft config list",              NULL, 0, 0, 0}
 };
 
 const command_info_t commands_info[] = {
-	{"project", NULL, 0, project_options, 2, 1, 1},
-	{"init", NULL, 0, init_options, 2, 0, 1},
-	{"build", NULL, 0, NULL, 0, 0, 0},
-	{"run", NULL, 0, NULL, 0, 1, 1},
-	{"clean", NULL, 0, NULL, 0, 0, 0},
-	{"compile", NULL, 0, NULL, 0, 1, 2},
-	{"gen", NULL, 0, NULL, 0, 1, 1},
-	{"help", NULL, 0, NULL, 0, 0, 1},
-	{"template", template_subcommands, 5, NULL, 0, 0, 0},
-	{"config", config_subcommands, 3, NULL, 0, 0, 0}
+	{"project",  "craft project <path> [options]",     NULL,                 0, project_options, 2, 1, 1},
+	{"init",     "craft init [path] [options]",        NULL,                 0, init_options,    2, 0, 1},
+	{"build",    "craft build",                        NULL,                 0, NULL,            0, 0, 0},
+	{"run",      "craft run <executable>",             NULL,                 0, NULL,            0, 1, 1},
+	{"clean",    "craft clean",                        NULL,                 0, NULL,            0, 0, 0},
+	{"compile",  "craft compile <src> [out]",          NULL,                 0, NULL,            0, 1, 2},
+	{"gen",      "craft gen <file>",                   NULL,                 0, NULL,            0, 1, 1},
+	{"help",     "craft help [command] [subcommand]",  NULL,                 0, NULL,            0, 0, 2},
+	{"template", "craft template <subcommand> [args]", template_subcommands, 5, NULL,            0, 0, 0},
+	{"config",   "craft config <subcommand> [args]",   config_subcommands,   3, NULL,            0, 0, 0}
 };
 
 static const char* lang_args[] = {"c", "cpp"};
 
 const option_info_t options_info[] = {
-	{"template", 't', 1, NULL, 0},
-	{"lang", 'l', 1, lang_args, 2},
-	{"all", 'a', 0, NULL, 0}
+	{"template", 't', "--template <name>\n\tor\n\t-t <name>",     1, NULL,      0},
+	{"lang",     'l', "--lang <language>\n\tor\n\t-l <language>", 1, lang_args, 2},
+	{"all",      'a', "--all\n\tor\n\t-a",                        0, NULL,      0}
 };
 
 // Gets respective command info struct based on command name
@@ -212,8 +212,37 @@ int command_is_valid(const char* command) {
 	return info != NULL;
 }
 
-// Prints a command suggestion if command was a few letters off
-void print_command_suggestion(const char* unknown) {
+// Gets usage information for a command
+const char* get_command_usage(const char* command) {
+	const command_info_t* info = get_command_info(command);
+	return info->usage;
+}
+
+// Gets usage information for a subcommand
+const char* get_subcommand_usage(const char* command, const char* subcommand) {
+	const subcommand_info_t* info = get_subcommand_info(command, subcommand);
+	return info->usage;
+}
+
+// Gets usage information for an option
+const char* get_option_usage(const char* option) {
+
+	// Strip dashes
+	if (strncmp(option, "--", 2) == 0) {
+		option = option + 2;	
+	}
+	else if (option[0] == '-') {
+		char shorthand = option[1];
+		option = get_option_name_from_shorthand(shorthand);
+	}
+
+	// Return the usage string
+	const option_info_t* info = get_option_info(option);
+	return info->usage;
+}
+
+// Gets a command suggestion if command was a few letters off
+const char* get_command_suggestion(const char* unknown) {
 
 	// Get array of command names
 	const char* valid_commands[NUM_COMMANDS];
@@ -221,15 +250,13 @@ void print_command_suggestion(const char* unknown) {
 		valid_commands[i] = commands_info[i].name;
 	}
 
-	// Print suggestion if unkown command is close enough
+	// Return suggestion if unkown command is close enough
 	const char* suggestion = suggest(unknown, valid_commands, NUM_COMMANDS);
-	if (suggestion) {
-		fprintf(stderr, "Did you mean '%s'?\n\n", suggestion);
-	}
+	return suggestion;
 }
 
-// Prints a subcommand suggestion for a command if subcommand was a few letters off
-void print_subcommand_suggestion(const char* command, const char* unknown) {
+// Gets a subcommand suggestion for a command if subcommand was a few letters off
+const char* get_subcommand_suggestion(const char* command, const char* unknown) {
 
 	// Get array of subcommand names for command
 	const command_info_t* command_info = get_command_info(command);
@@ -240,15 +267,13 @@ void print_subcommand_suggestion(const char* command, const char* unknown) {
 		valid_subcommands[i] = command_info->subcommands[i].name;
 	}
 
-	// Print suggestion if unknown subcommand is close enough
+	// Return suggestion if unknown subcommand is close enough
 	const char* suggestion = suggest(unknown, valid_subcommands, count);
-	if (suggestion) {
-		fprintf(stderr, "Did you mean '%s'?\n\n", suggestion);
-	}
+	return suggestion;
 }
 
-// Prints an option suggestion for a command if option was a few letters off
-void print_command_option_suggestion(const char* command, const char* unknown) {
+// Gets an option suggestion for a command if option was a few letters off
+const char* get_command_option_suggestion(const char* command, const char* unknown) {
 
 	// Get array of options for command
 	const command_info_t* command_info = get_command_info(command);
@@ -259,15 +284,13 @@ void print_command_option_suggestion(const char* command, const char* unknown) {
 		valid_options[i] = command_info->valid_options[i];
 	}
 
-	// Print suggestion if unknown option is close enough
+	// Return suggestion if unknown option is close enough
 	const char* suggestion = suggest(unknown, valid_options, count);
-	if (suggestion) {
-		fprintf(stderr, "Did you mean '--%s'?\n\n", suggestion);
-	}
+	return suggestion;
 }
 
-// Prints an option suggestion for subcommand if option was a few letters off 
-void print_subcommand_option_suggestion(const char* command, const char* subcommand, const char* unknown) {
+// Gets an option suggestion for subcommand if option was a few letters off 
+const char* get_subcommand_option_suggestion(const char* command, const char* subcommand, const char* unknown) {
 
 	// Get array of options for subcommand
 	const subcommand_info_t* subcommand_info = get_subcommand_info(command, subcommand);
@@ -278,15 +301,12 @@ void print_subcommand_option_suggestion(const char* command, const char* subcomm
 		valid_options[i] = subcommand_info->valid_options[i];
 	}
 
-	// Print suggestion if unknown option is close enough
+	// Return suggestion if unknown option is close enough
 	const char* suggestion = suggest(unknown, valid_options, count);
-	if (suggestion) {
-		fprintf(stderr, "Did you mean '--%s'\n\n", suggestion);
-	}
+	return suggestion;
 }
 
 // Parses the command line arguments into a command struct
-// Returns 0 if successful, -1 if parser encounters and error
 parse_result_t parse(int argc, char** argv, command_t* command_data) {
 	if (argc < 2) {
 		return PARSE_MISSING_COMMAND;
@@ -295,9 +315,17 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 	// Store command if valid
 	const char* command = argv[1];
 	if (!command_is_valid(command)) {
-		fprintf(stderr, "[Parse Error]: '%s' is not a valid command\n\n", command);
-		print_command_suggestion(command);
-		return PARSE_INVALID_COMMAND;
+		fprintf(stderr, "[Parse Error]: '%s' is not a valid command\n", command);
+		const char* suggestion = get_command_suggestion(command);
+		if (suggestion) {
+			fprintf(stderr, "\nDid you mean '%s'?\n\n", suggestion);
+			fprintf(stderr, "Usage: %s\n\n", get_command_usage(suggestion));
+			fprintf(stderr, "Run 'craft help %s' for more information\n", suggestion);
+		}
+		else {
+			fprintf(stderr, "\nRun 'craft help' to see a list of all available commands\n");
+		}
+		return PARSE_FAIL;
 	}
 	strcpy(command_data->name, command);
 
@@ -321,14 +349,18 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 			// Throw error if next should be a subcommand
 			if (next_is_subcommand) {
 				fprintf(stderr, "[Parse Error]: '%s' command expects a subcommand, but got an option '%s'\n\n", command, current);
-				return PARSE_INVALID_SUBCOMMAND;
+				fprintf(stderr, "Usage: %s\n\n", get_command_usage(command));
+				fprintf(stderr, "Run 'craft help %s' for more information\n", command);
+				return PARSE_FAIL;
 			}
 
 			// Throw error if last argument was an option that expected an argument
 			if (next_is_option_arg) {
 				char* last_option = argv[i - 1];
-				fprintf(stderr, "[Parse Error]: option '%s' expects an argument\n\n", last_option);
-				return PARSE_MISSING_OPTION_ARG;
+				fprintf(stderr, "[Parse Error]: '%s' option expects an argument\n\n", last_option);
+				fprintf(stderr, "Usage: %s\n\n", get_option_usage(last_option));
+				fprintf(stderr, "Run 'craft help %s' for more information\n", last_option);
+				return PARSE_FAIL;
 			}
 
 			// Strip dashes
@@ -336,47 +368,58 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 			if (strncmp(current, "--", 2) == 0) {
 				option = current + 2;
 				if (strlen(option) == 0) {
-					fprintf(stderr, "[Parse Error]: Empty option '--'\n\n");
-					return PARSE_INVALID_OPTION;
+					fprintf(stderr, "[Parse Error]: Empty option '--'\n");
+					return PARSE_FAIL;
 				}
 			}
 			else {
 				if (strlen(current) == 1) {
-					fprintf(stderr, "[Parse Error]: Empty option '-'\n\n");
-					return PARSE_INVALID_OPTION;	
+					fprintf(stderr, "[Parse Error]: Empty option '-'\n");
+					return PARSE_FAIL;	
 				}
 				if (strlen(current) > 2) {
-					fprintf(stderr, "[Parse Error]: Unknown option '%s', did you mean '--%s'?\n\n", current, current + 1);
-					return PARSE_INVALID_OPTION;
+					fprintf(stderr, "[Parse Error]: '%s' is not a valid option\n\n", current);
+					fprintf(stderr, "Use '--' for full option names and '-' for shorthands\n");
+					return PARSE_FAIL;
 				}
 				option = get_option_name_from_shorthand(current[1]);
 				if (!option) {
-					fprintf(stderr, "[Parse Error]: Unknown option '%s'\n\n", current);
-					return PARSE_INVALID_OPTION;
+					fprintf(stderr, "[Parse Error]: '%s' is not a valid option\n", current);
+					return PARSE_FAIL;
 				}
 			}
 
 			// Check if command or subcommand can have this option
 			if (subcommand_present) {
 				if (!subcommand_has_option(command, command_data->subcommand, option)) {
-					fprintf(stderr, "[Parse Error]: '%s' is not a valid option for %s subcommand '%s'\n\n", option, command, command_data->subcommand);
-					print_subcommand_option_suggestion(command, command_data->subcommand, option);
-					return PARSE_INVALID_OPTION;
+					fprintf(stderr, "[Parse Error]: '%s' is not a valid option for '%s' subcommand\n", current, command_data->subcommand);
+					const char* suggestion = get_subcommand_option_suggestion(command, command_data->subcommand, option);
+					if (suggestion) {
+						fprintf(stderr, "\nDid you mean '--%s'?\n\n", suggestion);
+						fprintf(stderr, "Usage: %s\n\n", get_option_usage(suggestion));
+						fprintf(stderr, "Run 'craft help --%s' for more information\n", suggestion);
+					}
+					return PARSE_FAIL;
 				}
 			}
 			else {
 				if (!command_has_option(command, option)) {
-					fprintf(stderr, "[Parse Error]: '%s' is not a valid option for '%s' command\n\n", current, command);
-					print_command_option_suggestion(command, option);
-					return PARSE_INVALID_OPTION;
+					fprintf(stderr, "[Parse Error]: '%s' is not a valid option for '%s' command\n", current, command);
+					const char* suggestion = get_command_option_suggestion(command, option);
+					if (suggestion) {
+						fprintf(stderr, "\nDid you mean '--%s'?\n\n", suggestion);
+						fprintf(stderr, "Usage: %s\n\n", get_option_usage(suggestion));
+						fprintf(stderr, "Run 'craft help --%s' for more information\n", suggestion);	
+					}
+					return PARSE_FAIL;
 				}
 			}
 
 			// Check if this option was already parsed
 			for (int j = 0; j < command_data->option_count; j++) {
 				if (strcmp(command_data->options[j].name, option) == 0) {
-					fprintf(stderr, "[Parse Error]: Duplicate option '%s'\n\n", current);
-					return PARSE_DUPLICATE_OPTION;
+					fprintf(stderr, "[Parse Error]: '%s' option was already specified\n", current);
+					return PARSE_FAIL;
 				}
 			}
 
@@ -401,23 +444,31 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 					continue;
 				}
 				else {
-					fprintf(stderr, "'%s' is not a valid subcommand for command '%s'\n\n", arg, command);
-					print_subcommand_suggestion(command, arg);
-					return PARSE_INVALID_SUBCOMMAND;
+					fprintf(stderr, "'%s' is not a valid subcommand for '%s' command\n", arg, command);
+					const char* suggestion = get_subcommand_suggestion(command, arg);
+					if (suggestion) {
+						fprintf(stderr, "\nDid you mean '%s'?\n\n", suggestion);
+						fprintf(stderr, "Usage: %s\n\n", get_subcommand_usage(command, suggestion));
+						fprintf(stderr, "Run 'craft help %s %s' for more information\n", command, suggestion);
+					}
+					return PARSE_FAIL;
 				}
 			}
 
 			// Option arg
 			if (next_is_option_arg) {
-				option_t* last_option = &command_data->options[command_data->option_count - 1];
+				const char* last_option = argv[i - 1];
+				option_t* last_option_info = &command_data->options[command_data->option_count - 1];
 
 				// Check if argument is valid for the option
-				if (!option_has_arg(last_option->name, arg))  {
-					fprintf(stderr, "[Parse Error]: '%s' is not a valid argument for option '%s'\n\n", arg, last_option->name);
-					return PARSE_INVALID_OPTION_ARG;
+				if (!option_has_arg(last_option_info->name, arg))  {
+					fprintf(stderr, "[Parse Error]: '%s' is not a valid argument for '%s' option\n\n", arg, last_option);
+					fprintf(stderr, "Usage: %s\n\n", get_option_usage(last_option_info->name));
+					fprintf(stderr, "Run 'craft help %s' for more information\n", last_option);
+					return PARSE_FAIL;
 				}
 
-				strcpy(last_option->arg, arg);
+				strcpy(last_option_info->arg, arg);
 				next_is_option_arg = 0;
 			}
 
@@ -430,13 +481,17 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 				if (subcommand_present) {
 					if (command_data->arg_count > get_subcommand_max_args(command, command_data->subcommand)) {
 						fprintf(stderr, "[Parse Error]: Too many arguments for %s subcommand '%s'\n\n", command, command_data->subcommand);
-						return PARSE_TOO_MANY_ARGS;
+						fprintf(stderr, "Usage: %s\n\n", get_subcommand_usage(command, command_data->subcommand));
+						fprintf(stderr, "Run 'craft help %s %s' for more information\n", command, command_data->subcommand);
+						return PARSE_FAIL;
 					}
 				}
 				else {
 					if (command_data->arg_count > get_command_max_args(command)) {
 						fprintf(stderr, "[Parse Error]: Too many arguments for '%s' command\n\n", command);
-						return PARSE_TOO_MANY_ARGS;
+						fprintf(stderr, "Usage: %s\n\n", get_command_usage(command));
+						fprintf(stderr, "Run 'craft help %s' for more information\n", command);
+						return PARSE_FAIL;
 					}
 				}
 			}
@@ -446,27 +501,35 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 	// Check if command expects a subcommand
 	if (next_is_subcommand) {
 		fprintf(stderr, "[Parse Error]: '%s' command expects a subcommand\n\n", command);
-		return PARSE_MISSING_SUBCOMMAND;
+		fprintf(stderr, "Usage: %s\n\n", get_command_usage(command));
+		fprintf(stderr, "Run 'craft help %s' for more information\n", command);
+		return PARSE_FAIL;
 	}
 
 	// Check if last command line argument was an option that expected an argument
 	if (next_is_option_arg) {
 		char* last_option = argv[argc - 1];
 		fprintf(stderr, "[Parse Error]: option '%s' expects an argument\n\n", last_option);
-		return PARSE_MISSING_OPTION_ARG;
+		fprintf(stderr, "Usage: %s\n\n", get_option_usage(last_option));
+		fprintf(stderr, "Run 'craft help %s' for more information\n", last_option);
+		return PARSE_FAIL;
 	}
 
 	// Check if command or subcommand has enough arguments
 	if (subcommand_present) {
 		if (command_data->arg_count < get_subcommand_min_args(command, command_data->subcommand)) {
 			fprintf(stderr, "[Parse Error]: Missing arguments for %s subcommand '%s'\n\n", command, command_data->subcommand);
-			return PARSE_MISSING_ARGS;
+			fprintf(stderr, "Usage: %s\n\n", get_subcommand_usage(command, command_data->subcommand));
+			fprintf(stderr, "Run 'craft help %s %s' for more information\n", command, command_data->subcommand);
+			return PARSE_FAIL;
 		}
 	}
 	else {
 		if (command_data->arg_count < get_command_min_args(command)) {
 			fprintf(stderr, "[Parse Error]: Missing arguments for '%s' command\n\n", command);
-			return PARSE_MISSING_ARGS;
+			fprintf(stderr, "Usage: %s\n\n", get_command_usage(command));
+			fprintf(stderr, "Run 'craft help %s' for more information\n", command);
+			return PARSE_FAIL;
 		}
 	}
 

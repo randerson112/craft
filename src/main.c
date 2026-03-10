@@ -20,13 +20,9 @@ int main(int argc, char* argv[])
         case PARSE_MISSING_COMMAND:
             printCraftInfo();
             return 0;
-
-        case PARSE_INVALID_COMMAND:
-            printBriefHelp();
-            return -1;
-
-        default:
-            printBriefCommandUsage(command_data.name);
+        
+        case PARSE_FAIL:
+            // Parser will print helpful error message
             return -1;
     }
 }

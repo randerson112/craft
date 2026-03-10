@@ -51,9 +51,7 @@ int dispatch(command_t* command_data) {
     }
     
     if (strcmp(command, "help") == 0) {
-        const char* command = command_data->args[0];
-
-        return help(command);
+        return help(command_data);
     }
 
     if (strcmp(command, "template") == 0) {
