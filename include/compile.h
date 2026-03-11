@@ -3,24 +3,29 @@
 
 // define compiler and run prefix/suffix for each platform
 #ifdef __APPLE__
-#define COMPILER "clang++ "
+#define C_COMPILER "clang"
+#define CPP_COMPILER "clang++"
 #define RUNPREFIX "./"
 #define RUNSUFFIX ""
 #endif
 
 #ifdef _WIN32
-#define COMPILER "g++ "
+#define C_COMPILER "gcc"
+#define CPP_COMPILER "g++"
 #define RUNPREFIX ""
 #define RUNSUFFIX ".exe"
 #endif
 
 #ifdef __linux__
-#define COMPILER "g++ "
+#define C_COMPILER "gcc"
+#define CPP_COMPILER "g++"
 #define RUNPREFIX "./"
 #define RUNSUFFIX ""
 #endif
 
+#include "parser.h"
+
 // compile command handler
-int compile(const char* source_arg, char* output_arg);
+int compile(command_t* command_data);
 
 #endif // COMPILE_H

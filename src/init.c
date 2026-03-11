@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "project.h"
 #include "config.h"
+#include "cmake.h"
 
 // Checks if a Craft project exists at the path
 int project_exists(const char* path) {
@@ -18,52 +19,26 @@ int project_exists(const char* path) {
     return 0;
 }
 
-// Creates a new project in an existing directory relative to the current directory
-int init_project_from_template(const char* path, const char* template, const char* lang) {
-    char template_dir[256];
-
-    // Get craft config directory
-    char craft_home[256];
-    get_craft_home(craft_home, sizeof(craft_home));
-
-    // Check for template in custom templates
-    snprintf(template_dir, sizeof(template_dir), "%s/templates/custom/%s/%s", craft_home, lang, template);
-    if (!dirExists(template_dir)) {
-        // Check for template in builtin templates
-        snprintf(template_dir, sizeof(template_dir), "%s/templates/builtin/%s/%s", craft_home, lang, template);
-        if (!dirExists(template_dir)) {
-            // Template not found
-            fprintf(stderr, "Template '%s' not found for language '%s'\n", template, lang);
-            return -1;
-        }
-    }
-
-    // Copy template contents to init path
-    return copy_dir_contents(template_dir, path, NULL, 0);
-}
-
 // Gets the full path to directory to initialize from the cwd and relative path
 int get_path_to_init(const char* cwd, const char* rel_path, char* buffer, size_t buffer_size) {
     // Get full path to specified directory
     char fullPath[256];
-    snprintf(fullPath, sizeof(fullPath), "%s/%s", cwd, rel_path);
-
-    // Remove . and .. from path
-    char resolvedPath[256];
-    if (realpath(fullPath, resolvedPath) == NULL) {
-        fprintf(stderr, "Error: Failed to resolve path\n");
-        return -1;
+    if (rel_path) {
+        snprintf(fullPath, sizeof(fullPath), "%s/%s", cwd, rel_path);
+    }
+    else {
+        snprintf(fullPath, sizeof(fullPath), "%s", cwd);
     }
 
-    // Check if directory exists
-    if (!dirExists(resolvedPath))
+    // Make sure directory exists
+    if (!dirExists(fullPath))
     {
         fprintf(stderr, "Error: Directory does not exist\n");
         return -1;
     }
 
     // Copy path to buffer
-    snprintf(buffer, buffer_size, "%s", resolvedPath);
+    snprintf(buffer, buffer_size, "%s", fullPath);
     return 0;
 }
 
@@ -80,11 +55,10 @@ int init(command_t* command_data) {
     craft_config_t global_config;
     load_global_config(&global_config);
     
-    const char* rel_path = command_data->args[0];
     const char* language = global_config.language;
     const char* template = global_config.template;
 
-    // Get option arguments if specified
+    // Override defaults with option arguments if specified
     for (int i = 0; i < command_data->option_count; i++) {
         const option_t* option = &command_data->options[i];
         if (strcmp(option->name, "template") == 0) {
@@ -95,9 +69,12 @@ int init(command_t* command_data) {
         }
     }
 
-    const char* build_type = infer_build_type(template);
+    const char* rel_path = NULL;
+    if (command_data->arg_count != 0) {
+        rel_path = command_data->args[0];
+    }
 
-    // Init a project at the given path
+    // Get path to where project is being initialized
     char init_path[256];
     if (get_path_to_init(cwd, rel_path, init_path, sizeof(init_path)) != 0) {
         return -1;
@@ -110,21 +87,5 @@ int init(command_t* command_data) {
     }
 
     // Create the project
-    if (init_project_from_template(init_path, template, language) != 0) {
-        return -1;
-    }
-
-    // Load the config from the template and set the project name and version
-    project_config_t project_config;
-    if (load_project_config(&project_config, init_path) != 0) {
-        return -1;
-    }
-
-    char project_name[32];
-    get_project_name(init_path, project_name, sizeof(project_name));
-    strncpy(project_config.name, project_name, sizeof(project_config.name));
-    strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
-
-    // Generate craft.toml
-    return generate_craft_toml(init_path, &project_config);
+    return create_project_from_template(init_path, template, language);
 }

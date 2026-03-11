@@ -337,9 +337,9 @@ int get_project_root(const char* cwd, char* buffer, size_t buffer_size) {
         // Move up a directory
         char* last_slash = strrchr(current_path, '/');
         if (!last_slash || last_slash == current_path) {
-            fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
             return -1;
         }
+        
         *last_slash = '\0';
     }
 }
@@ -372,4 +372,54 @@ int get_template_directory(char* buffer, size_t buffer_size, const char* type, c
     // Get specific template directory
     snprintf(buffer, buffer_size, "%s/templates/%s/%s/%s", craft_home, type, language, name);
     return 0;
+}
+
+// Calculates the minimum number of changes needed to make one string equal another
+// Used for suggestions when the user misspells a value
+int levenshtein_distance(const char* s1, const char* s2) {
+    int len1 = strlen(s1);
+    int len2 = strlen(s2);
+    int matrix[64][64];
+
+    for (int i = 0; i <= len1; i++) matrix[i][0] = i;
+    for (int j = 0; j <= len2; j++) matrix[0][j] = j;
+
+    for (int i = 1; i <= len1; i++) {
+        for (int j = 1; j <= len2; j++) {
+            int cost = s1[i-1] == s2[j-1] ? 0 : 1;
+            int del = matrix[i-1][j] + 1;
+            int ins = matrix[i][j-1] + 1;
+            int sub = matrix[i-1][j-1] + cost;
+            matrix[i][j] = del < ins ? (del < sub ? del : sub) : (ins < sub ? ins : sub);
+        }
+    }
+
+    return matrix[len1][len2];
+}
+
+const char* suggest(const char* unknown, const char** valid, int valid_count) {
+    const char* best = NULL;
+    int best_dist = 999;
+
+    for (int i = 0; i < valid_count; i++) {
+        int dist = levenshtein_distance(unknown, valid[i]);
+        if (dist < best_dist) {
+            best_dist = dist;
+            best = valid[i];
+        }
+    }
+
+    return best_dist <= 3 ? best : NULL;
+}
+
+int is_valid_version(const char* version) {
+    int major, minor, patch;
+    if (sscanf(version, "%d.%d.%d", &major, &minor, &patch) != 3)
+        return 0;
+    if (major < 0 || minor < 0 || patch < 0)
+        return 0;
+    // Make sure there's nothing extra after the patch number
+    char expected[32];
+    snprintf(expected, sizeof(expected), "%d.%d.%d", major, minor, patch);
+    return strcmp(version, expected) == 0;
 }

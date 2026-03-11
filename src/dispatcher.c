@@ -28,22 +28,15 @@ int dispatch(command_t* command_data) {
     }
     
     if (strcmp(command, "compile") == 0) {
-        const char* source = command_data->args[0];
-        char* output = command_data->args[1];
-
-        return compile(source, output);
+        return compile(command_data);
     }
     
     if (strcmp(command, "run") == 0) {
-        const char* executable_name = command_data->args[0];
-
-        return run(executable_name);
+        return run(command_data);
     }
     
     if (strcmp(command, "gen") == 0) {
-        const char* file = command_data->args[0];
-
-        return gen(file);
+        return gen(command_data);
     }
     
     if (strcmp(command, "clean") == 0) {
@@ -51,9 +44,7 @@ int dispatch(command_t* command_data) {
     }
     
     if (strcmp(command, "help") == 0) {
-        const char* command = command_data->args[0];
-
-        return help(command);
+        return help(command_data);
     }
 
     if (strcmp(command, "template") == 0) {

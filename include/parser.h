@@ -7,15 +7,7 @@
 typedef enum {
     PARSE_SUCCESS,
     PARSE_MISSING_COMMAND,
-    PARSE_INVALID_COMMAND,
-	PARSE_MISSING_SUBCOMMAND,
-	PARSE_INVALID_SUBCOMMAND,
-    PARSE_MISSING_ARGS,
-    PARSE_TOO_MANY_ARGS,
-    PARSE_INVALID_OPTION,
-    PARSE_DUPLICATE_OPTION,
-    PARSE_MISSING_OPTION_ARG,
-	PARSE_INVALID_OPTION_ARG
+    PARSE_FAIL
 } parse_result_t;
 
 // Option struct to store name of option and its arg if applicable
@@ -37,6 +29,7 @@ typedef struct {
 // Stores info about a subcommand
 typedef struct {
 	const char* name;
+	const char* usage;
 	const char** valid_options;
 	const int valid_options_count;
 	const int min_args;
@@ -46,6 +39,7 @@ typedef struct {
 // Stores info about a command
 typedef struct {
 	const char* name;
+	const char* usage;
 	const subcommand_info_t* subcommands;
 	const int subcommands_count;
 	const char** valid_options;
@@ -58,6 +52,7 @@ typedef struct {
 typedef struct {
 	const char* name;
 	const char shorthand;
+	const char* usage;
 	const int has_arg;
 	const char** valid_args;
 	const int valid_args_count;

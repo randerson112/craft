@@ -3,13 +3,83 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "template.h"
+#include "utils.h"
 
-const craft_config_t defaults = {
+static const craft_config_t defaults = {
     .language = "cpp",
     .c_standard = 99,
     .cpp_standard = 17,
     .template = "executable"
 };
+
+typedef struct {
+    const char* name;
+    int required;
+} config_key_t;
+
+static const config_key_t project_keys[] = {
+    {"name",         1},
+    {"version",      1},
+    {"language",     1},
+    {"c_standard",   0},
+    {"cpp_standard", 0}
+};
+static const int num_project_keys = 5;
+
+static const config_key_t build_keys[] = {
+    {"type",         1},
+    {"include_dirs", 0},
+    {"source_dirs",  0},
+    {"lib_dirs",     0},
+    {"libs",         0}
+};
+static const int num_build_keys = 5;
+
+// Checks a section for any unknown keys and prints an error or warning message
+static int check_unknown_keys(toml_datum_t section, const char* section_name, const config_key_t* valid_keys, int num_keys) {
+    for (int i = 0; i < section.u.tab.size; i++) {
+        const char* key = section.u.tab.key[i];
+        bool found = false;
+        for (int j = 0; j < num_keys; j++) {
+            if (strcmp(key, valid_keys[j].name) == 0) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            // Build array of just names for suggest()
+            const char* names[16];
+            for (int j = 0; j < num_keys; j++)
+                names[j] = valid_keys[j].name;
+
+            const char* suggestion = suggest(key, names, num_keys);
+
+            // Check if suggestion is a required key
+            int suggestion_required = 0;
+            if (suggestion) {
+                for (int j = 0; j < num_keys; j++) {
+                    if (strcmp(suggestion, valid_keys[j].name) == 0) {
+                        suggestion_required = valid_keys[j].required;
+                        break;
+                    }
+                }
+            }
+
+            if (suggestion && suggestion_required) {
+                fprintf(stderr, "[Config Error]: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
+                return -1;
+            }
+            else if (suggestion) {
+                fprintf(stderr, "[Config Warning]: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
+            }
+            else {
+                fprintf(stderr, "[Config Warning]: Unknown key '%s' in [%s]\n", key, section_name);
+            }
+        }
+    }
+
+    return 0;
+}
 
 int load_global_config(craft_config_t* config) {
 
@@ -122,8 +192,48 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
         fprintf(file, "cpp_standard = %d\n", config->cpp_standard);
     }
 
+    // Built type
     fprintf(file, "\n[build]\n");
     fprintf(file, "type = \"%s\"\n", config->build_type);
+
+    // Include dirs
+    fprintf(file, "include_dirs = [");
+    if (config->include_dir_count > 0) {
+        for (int i = 0; i < config->include_dir_count; i++)
+            fprintf(file, "%s\"%s\"", i > 0 ? ", " : "", config->include_dirs[i]);
+    } else {
+        fprintf(file, "\"include\"");
+    }
+    fprintf(file, "]\n");
+
+    // Source dirs
+    fprintf(file, "source_dirs = [");
+    if (config->source_dir_count > 0) {
+        for (int i = 0; i < config->source_dir_count; i++)
+            fprintf(file, "%s\"%s\"", i > 0 ? ", " : "", config->source_dirs[i]);
+    } else {
+        fprintf(file, "\"src\"");
+    }
+    fprintf(file, "]\n");
+
+    // Lib dirs (only write if present)
+    if (config->lib_dir_count > 0) {
+        fprintf(file, "lib_dirs = [");
+        for (int i = 0; i < config->lib_dir_count; i++)
+            fprintf(file, "%s\"%s\"", i > 0 ? ", " : "", config->lib_dirs[i]);
+        fprintf(file, "]\n");
+    }
+
+    // Libs (only write if present)
+    if (config->lib_count > 0) {
+        fprintf(file, "libs = [");
+        for (int i = 0; i < config->lib_count; i++)
+            fprintf(file, "%s\"%s\"", i > 0 ? ", " : "", config->libs[i]);
+        fprintf(file, "]\n");
+    }
+
+    fclose(file);
+    return 0;
 
     fclose(file);
     return 0;
@@ -131,18 +241,12 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
 
 int load_project_config(project_config_t* config, const char* project_root) {
 
-    // Set defaults first in case craft.toml is missing values
-    strncpy(config->name, "MyProject", sizeof(config->name));
-    strncpy(config->version, "0.1.0", sizeof(config->version));
-    strncpy(config->language, "cpp", sizeof(config->language));
-    config->c_standard = 0;
-    config->cpp_standard = 0;
-    strncpy(config->build_type, "executable", sizeof(config->build_type));
+    // Set all values to 0
+    memset(config, 0, sizeof(*config));
 
     // Get path to craft.toml
     char toml_path[1024];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_root);
-
     if (!fileExists(toml_path)) {
         fprintf(stderr, "Error: no craft.toml found in '%s'\n", project_root);
         return -1;
@@ -154,37 +258,181 @@ int load_project_config(project_config_t* config, const char* project_root) {
         fprintf(stderr, "Error: could not open craft.toml\n");
         return -1;
     }
-
     toml_result_t result = toml_parse_file(file);
     fclose(file);
-
     if (!result.ok) {
         fprintf(stderr, "Error parsing craft.toml: %s\n", result.errmsg);
         return -1;
     }
 
+    // Check if required sections are present
+    toml_datum_t project_section = toml_seek(result.toptab, "project");
+    if (project_section.type != TOML_TABLE) {
+        fprintf(stderr, "[Config Error]: Missing required [project] section in craft.toml\n");
+        toml_free(result);
+        return -1;
+    }
+
+    toml_datum_t build_section = toml_seek(result.toptab, "build");
+    if (build_section.type != TOML_TABLE) {
+        fprintf(stderr, "[Config Error]: Missing required [build] section in craft.toml\n");
+        toml_free(result);
+        return -1;
+    }
+
+    // Check for unknown keys in sections
+    if (check_unknown_keys(project_section, "project", project_keys, num_project_keys) != 0) {
+        toml_free(result);
+        return -1;
+    }
+    if (check_unknown_keys(build_section, "build", build_keys, num_build_keys) != 0) {
+        toml_free(result);
+        return -1;
+    }
+
+    // Project fields
     toml_datum_t name = toml_seek(result.toptab, "project.name");
     toml_datum_t version = toml_seek(result.toptab, "project.version");
     toml_datum_t language = toml_seek(result.toptab, "project.language");
     toml_datum_t c_standard = toml_seek(result.toptab, "project.c_standard");
     toml_datum_t cpp_standard = toml_seek(result.toptab, "project.cpp_standard");
-    toml_datum_t build_type = toml_seek(result.toptab, "build.type");
 
-    // Store config values in the struct
+    // Build fields
+    toml_datum_t build_type = toml_seek(result.toptab, "build.type");
+    toml_datum_t include_dirs = toml_seek(result.toptab, "build.include_dirs");
+    toml_datum_t source_dirs = toml_seek(result.toptab, "build.source_dirs");
+    toml_datum_t lib_dirs = toml_seek(result.toptab, "build.lib_dirs");
+    toml_datum_t libs = toml_seek(result.toptab, "build.libs");
+
+    // Store project values
     if (name.type == TOML_STRING)
         strncpy(config->name, name.u.s, sizeof(config->name));
     if (version.type == TOML_STRING)
         strncpy(config->version, version.u.s, sizeof(config->version));
     if (language.type == TOML_STRING)
         strncpy(config->language, language.u.s, sizeof(config->language));
-    if (c_standard.type == TOML_INT64)
+    if (c_standard.type == TOML_INT64) {
         config->c_standard = (int)c_standard.u.int64;
-    if (cpp_standard.type == TOML_INT64)
+        config->has_c_standard = 1;
+    }
+    if (cpp_standard.type == TOML_INT64) {
         config->cpp_standard = (int)cpp_standard.u.int64;
+        config->has_cpp_standard = 1;
+    }
+
+    // Store build values
     if (build_type.type == TOML_STRING)
         strncpy(config->build_type, build_type.u.s, sizeof(config->build_type));
 
+    // Include directories
+    if (include_dirs.type == TOML_ARRAY) {
+        config->include_dir_count = include_dirs.u.arr.size;
+        for (int i = 0; i < include_dirs.u.arr.size; i++) {
+            toml_datum_t elem = include_dirs.u.arr.elem[i];
+            if (elem.type == TOML_STRING)
+                strncpy(config->include_dirs[i], elem.u.s, sizeof(config->include_dirs[i]));
+        }
+    }
+
+    // Source directories
+    if (source_dirs.type == TOML_ARRAY) {
+        config->source_dir_count = source_dirs.u.arr.size;
+        for (int i = 0; i < source_dirs.u.arr.size; i++) {
+            toml_datum_t elem = source_dirs.u.arr.elem[i];
+            if (elem.type == TOML_STRING)
+                strncpy(config->source_dirs[i], elem.u.s, sizeof(config->source_dirs[i]));
+        }
+    }
+
+    // Library directories
+    if (lib_dirs.type == TOML_ARRAY) {
+        config->lib_dir_count = lib_dirs.u.arr.size;
+        for (int i = 0; i < lib_dirs.u.arr.size; i++) {
+            toml_datum_t elem = lib_dirs.u.arr.elem[i];
+            if (elem.type == TOML_STRING)
+                strncpy(config->lib_dirs[i], elem.u.s, sizeof(config->lib_dirs[i]));
+        }
+    }
+
+    // Libraries
+    if (libs.type == TOML_ARRAY) {
+        config->lib_count = libs.u.arr.size;
+        for (int i = 0; i < libs.u.arr.size; i++) {
+            toml_datum_t elem = libs.u.arr.elem[i];
+            if (elem.type == TOML_STRING)
+                strncpy(config->libs[i], elem.u.s, sizeof(config->libs[i]));
+        }
+    }
+
     toml_free(result);
+    return 0;
+}
+
+int validate_project_config(project_config_t* config) {
+    // Check if there is a project name
+    if (strlen(config->name) == 0) {
+        fprintf(stderr, "[Config Error]: Project name is missing from craft.toml\n");
+        return -1;
+    }
+
+    // Check if there is a version and that it is valid
+    if (strlen(config->version) == 0) {
+        fprintf(stderr, "[Config Error]: Version is missing from craft.toml\n");
+        return -1;
+    }
+    else {
+        if (!is_valid_version(config->version)) {
+            fprintf(stderr, "[Config Error]: Version '%s' is invalid\n", config->version);
+            return -1;
+        }
+    }
+
+    // Check if there is a language and it is "c" or "cpp"
+    if (strlen(config->language) != 0) {
+        if (strcmp(config->language, "c") != 0 && strcmp(config->language, "cpp") != 0) {
+            fprintf(stderr, "[Config Error]: Invalid language '%s' in craft.toml\n", config->language);
+            return -1;
+        }
+    }
+    else {
+        fprintf(stderr, "[Config Error]: Language is missing from craft.toml\n");
+        return -1;
+    }
+
+    // If c standard is present make sure it is valid
+    if (config->has_c_standard) {
+        int c_standard = config->c_standard;
+        if (c_standard != 89 && c_standard != 99 && c_standard != 11 && c_standard != 17 && c_standard != 23) {
+            fprintf(stderr, "[Config Error]: Invalid c standard '%d' in craft.toml\n", c_standard);
+            return -1;
+        }
+    }
+
+    // If cpp standard is present make sure it is valid
+    if (config->has_cpp_standard) {
+        int cpp_standard = config->cpp_standard;
+        if (cpp_standard != 11 && cpp_standard != 14 && cpp_standard != 17 && cpp_standard != 20 && cpp_standard != 23) {
+            fprintf(stderr, "[Config Error]: Invalid cpp standard '%d' in craft.toml\n", cpp_standard);
+            return -1;
+        }
+    }
+
+    // Check if there is a build type and it is one of the valid types
+    if (strlen(config->build_type) != 0) {
+        if (strcmp(config->build_type, "executable") != 0 &&
+            strcmp(config->build_type, "static-library") != 0 &&
+            strcmp(config->build_type, "shared-library") != 0 &&
+            strcmp(config->build_type, "header-only") != 0) {
+            fprintf(stderr, "[Config Error]: Invalid build type '%s' in craft.toml\n", config->build_type);
+            return -1;
+        }
+    }
+    else {
+        fprintf(stderr, "[Config Error]: Build type is missing from craft.toml\n");
+        return -1;
+    }
+
+    // Everything is valid
     return 0;
 }
 

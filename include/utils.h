@@ -51,4 +51,10 @@ int get_project_root(const char* cwd, char* buffer, size_t buffer_size);
 // name: name of template
 int get_template_directory(char* buffer, size_t buffer_size, const char* type, const char* language, const char* name);
 
+// Given an unknown string, suggests a string from a list of valid strings that is closest to it
+const char* suggest(const char* unknown, const char** valid, int valid_count);
+
+// Checks if a version string follows the format "vMAJOR.MINOR.PATCH"
+int is_valid_version(const char* version);
+
 #endif
