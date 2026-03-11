@@ -67,8 +67,8 @@ static int handle_save(command_t* command_data) {
 
     // Copy project contents to template, excluding craft.toml and build
     mkdir(template_dir, 0755);
-    const char* excludes[] = {".craft", "build"};
-    if (copy_dir_contents(project_root, template_dir, excludes, 2) != 0) {
+    const char* excludes[] = {".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
+    if (copy_dir_contents(project_root, template_dir, excludes, 4) != 0) {
         return -1;
     }
 
@@ -121,8 +121,8 @@ static int handle_update(command_t* command_data) {
     // Delete old template contents and copy project contents to template, excluding .craft and build
     removeDir(template_dir);
     mkdir(template_dir, 0755);
-    const char* excludes[] = {".craft", "build"};
-    if (copy_dir_contents(project_root, template_dir, excludes, 2) != 0) {
+    const char* excludes[] = {".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
+    if (copy_dir_contents(project_root, template_dir, excludes, 4) != 0) {
         return -1;
     }
 
