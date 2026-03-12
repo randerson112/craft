@@ -13,6 +13,23 @@ typedef struct {
     char template[16];
 } craft_config_t;
 
+typedef enum {
+    DEP_PATH,
+    DEP_SYSTEM,
+    DEP_GIT,
+    DEP_INVALID
+} dep_type_t;
+
+typedef struct {
+    char name[64];
+    dep_type_t type;
+    char value[512];
+    char components[16][64];
+    int components_count;
+    char tag[64];
+    char branch[64];
+} dependency_t;
+
 typedef struct {
 
     // [project]
@@ -34,6 +51,10 @@ typedef struct {
     int lib_dir_count;
     char libs[8][256];
     int lib_count;
+
+    // [dependencies]
+    dependency_t dependencies[32];
+    int dependencies_count;
 } project_config_t;
 
 // Loads values from config.toml into a craft_config_t struct

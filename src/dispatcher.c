@@ -10,6 +10,7 @@
 #include "clean.h"
 #include "template.h"
 #include "config.h"
+#include "add.h"
 
 int dispatch(command_t* command_data) {
     // Get command
@@ -53,6 +54,10 @@ int dispatch(command_t* command_data) {
 
     if (strcmp(command, "config") == 0) {
         return handle_config(command_data);
+    }
+
+    if (strcmp(command, "add") == 0) {
+        return add(command_data);
     }
 
     return -1;
