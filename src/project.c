@@ -49,6 +49,15 @@ int create_project_from_template(const char* path, const char* template, const c
 
     // Generate starting CMakeLists.txt based on configs
     return generate_cmake(path, &project_config);
+
+    // Generate .craft directory with deps directory
+    char craft_directory[512];
+    char craft_deps_directory[512];
+    snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", path);
+    snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
+
+    mkdir(craft_directory, 0755);
+    mkdir(craft_deps_directory, 0755);
 }
 
 // Gets the full path to the new project directory from the cwd and relative path

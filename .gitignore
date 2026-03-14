@@ -1,4 +1,6 @@
-# Build files
+# Craft generated
+craft.toml
+.craft/
 build/
 
 # IDE files
@@ -9,4 +11,3 @@ build/
 
 # Testing
 testing/
-craft.toml

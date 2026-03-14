@@ -8,7 +8,7 @@ static const char* init_options[] = {"template", "lang"};
 static const char* delete_options[] = {"lang"};
 static const char* list_options[] = {"lang", "all"};
 static const char* where_options[] = {"lang"};
-static const char* add_options[] = {"path", "system", "git", "components", "tag", "branch"};
+static const char* add_options[] = {"path", "git", "tag", "branch", "links"};
 
 static const subcommand_info_t template_subcommands[] = {
 	{"save",   "craft template save <name>",             NULL,           0, 1, 1},
@@ -35,7 +35,7 @@ const command_info_t commands_info[] = {
 	{"help",     "craft help [command] [subcommand]",  NULL,                 0, NULL,            0, 0, 2},
 	{"template", "craft template <subcommand> [args]", template_subcommands, 5, NULL,            0, 0, 0},
 	{"config",   "craft config <subcommand> [args]",   config_subcommands,   3, NULL,            0, 0, 0},
-	{"add",      "craft add <options>",                NULL,                 0, add_options,     6, 0, 0}
+	{"add",      "craft add <options>",                NULL,                 0, add_options,     5, 0, 0}
 };
 
 static const char* lang_args[] = {"c", "cpp"};
@@ -45,11 +45,10 @@ const option_info_t options_info[] = {
 	{"lang",      'l', "--lang <language>\n\t-l <language>", 1, lang_args, 2},
 	{"all",       'a', "--all\n\t-a",                        0, NULL,      0},
 	{"path",       0,  "--path <local path>",                1, NULL,      0},
-    {"system",     0,  "--system <name>",                    1, NULL,      0},
     {"git",        0,  "--git <url>",                        1, NULL,      0},
-    {"components", 0,  "--components <list>",                1, NULL,      0},
     {"tag",        0,  "--tag <tag>",                        1, NULL,      0},
     {"branch",     0,  "--branch <branch>",                  1, NULL,      0},
+	{"links",     'l', "--links <list>\n\t-l <list>",        1, NULL,      0}
 };
 
 // Gets respective command info struct based on command name
