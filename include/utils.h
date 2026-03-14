@@ -61,4 +61,7 @@ int is_valid_version(const char* version);
 // Gets the option struct from a command data struct based on name, returns NULL if not found
 const option_t* get_option(const command_t* command_data, const char* name);
 
+// Checks if the given path is a Craft project
+const int is_craft_project(const char* path);
+
 #endif

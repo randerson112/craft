@@ -4,33 +4,31 @@
 #include "utils.h"
 #include "config.h"
 #include <string.h>
+#include "cmake.h"
+#include "deps.h"
 
 // Detects the type of dependency based on present options
 static dep_type_t get_dependency_type(const command_t* command_data) {
     int has_path = 0;
-    int has_system = 0;
     int has_git = 0;
 
     // Detect which options are present
     if (get_option(command_data, "path") != NULL) has_path = 1;
-    if (get_option(command_data, "system") != NULL) has_system = 1;
     if (get_option(command_data, "git") != NULL) has_git = 1;
 
     // Make sure only one of these options is present
-    if (has_path + has_system + has_git != 1) {
-        fprintf(stderr, "Error: exactly and only one of --path, --system, or --git must be specified\n");
+    if (has_path + has_git != 1) {
+        fprintf(stderr, "Error: exactly and only one of --path or --git must be specified\n");
         return DEP_INVALID;
     }
 
     // Return the dependency type
     if (has_path) return DEP_PATH;
-    else if (has_system) return DEP_SYSTEM;
     else return DEP_GIT;
 }
 
 // Gets the dependency name based on type
 // For path deps: reads the project name from the dependency's craft.toml
-// For system deps: uses the value as is
 // For git deps: extracts the repo name from the URL
 static int get_dependency_name(char* buffer, size_t buffer_size, const char* project_root, const char* value, const dep_type_t type) {
     if (type == DEP_PATH) {
@@ -63,9 +61,7 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
             *dot_git = '\0';
     }
     else {
-
-        // System dependency so just return the argument value
-        snprintf(buffer, buffer_size, "%s", value);
+        return -1;
     }
 
     return 0;
@@ -83,10 +79,8 @@ static int validate_path_dependency(const char* project_root, const char* path) 
         return -1;
     }
 
-    // Check if craft.toml exists
-    char toml_path[512];
-    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", dep_project_root);
-    if (!fileExists(toml_path)) {
+    // Make sure it is a Craft project
+    if (!is_craft_project(dep_project_root)) {
         fprintf(stderr, "Error: '%s' is not a Craft project, no craft.toml found\n", path);
         return -1;
     }
@@ -118,13 +112,13 @@ static int dependency_already_exists(project_config_t* config, const char* name)
     return 0;
 }
 
-// Splits the command seperated components into the components field of a dependency
-static void get_components(dependency_t* dep, const char* components) {
-    char components_buf[512];
-    snprintf(components_buf, sizeof(components_buf), "%s", components);
-    char* token = strtok(components_buf, ",");
-    while (token && dep->components_count < 8) {
-        snprintf(dep->components[dep->components_count++], sizeof(dep->components[0]), "%s", token);
+// Splits the command seperated links into the links field of a dependency
+static void get_links(dependency_t* dep, const char* links) {
+    char links_buf[512];
+    snprintf(links_buf, sizeof(links_buf), "%s", links);
+    char* token = strtok(links_buf, ",");
+    while (token && dep->links_count < 8) {
+        snprintf(dep->links[dep->links_count++], sizeof(dep->links[0]), "%s", token);
         token = strtok(NULL, ",");
     }
 }
@@ -154,9 +148,6 @@ int add(const command_t* command_data) {
         case DEP_PATH:
             option = get_option(command_data, "path");
             break;
-        case DEP_SYSTEM:
-            option = get_option(command_data, "system");
-            break;
         case DEP_GIT:
             option = get_option(command_data, "git");
             break;
@@ -174,15 +165,10 @@ int add(const command_t* command_data) {
     // Throw error if incompatable options are present
     const option_t* tag_option = get_option(command_data, "tag");
     const option_t* branch_option = get_option(command_data, "branch");
-    const option_t* components_option = get_option(command_data, "components");
+    const option_t* links_option = get_option(command_data, "links");
 
-    if ((tag_option || branch_option) && type != DEP_GIT) {
-        fprintf(stderr, "Error: --tag and --branch can only be used with --git\n");
-        return -1;
-    }
-
-    if (components_option && type != DEP_SYSTEM) {
-        fprintf(stderr, "Error: --components can only be used with --system\n");
+    if ((tag_option || branch_option || links_option) && type != DEP_GIT) {
+        fprintf(stderr, "Error: --tag, --branch, and --links can only be used with --git\n");
         return -1;
     }
 
@@ -209,14 +195,14 @@ int add(const command_t* command_data) {
     snprintf(dep.name, sizeof(dep.name), "%s", dep_name);
     dep.type = type;
     snprintf(dep.value, sizeof(dep.value), "%s", value);
-    if (components_option) {
-        get_components(&dep, components_option->arg);
-    }
     if (tag_option) {
         snprintf(dep.tag, sizeof(dep.tag), "%s", tag_option->arg);
     }
     if (branch_option) {
         snprintf(dep.branch, sizeof(dep.branch), "%s", branch_option->arg);
+    }
+    if (links_option) {
+        get_links(&dep, links_option->arg);
     }
 
     // Load current project config and add the dependency
@@ -234,26 +220,27 @@ int add(const command_t* command_data) {
 
     config.dependencies[config.dependencies_count++] = dep;
 
+    // Regenerate craft.toml with new dependency
     if (generate_craft_toml(project_root, &config) != 0) {
+        return -1;
+    }
+
+    // Fetch git dependency into .craft/deps
+    if (type == DEP_GIT) {
+        if (fetch_git_dependency(project_root, &dep) != 0) {
+            return -1;
+        }
+    }
+
+    // Regenerate CMakeLists.txt with new dependency
+    if (generate_cmake(project_root, &config) != 0) {
         return -1;
     }
 
     // Print success message
     switch (type) {
         case DEP_PATH:
-            fprintf(stdout, "Added path dependency '%s' -> '%s'\n", dep_name, value);
-            break;
-        case DEP_SYSTEM:
-            if (dep.components_count > 0) {
-                fprintf(stdout, "Added system dependency '%s' with components: ", dep_name);
-                for (int i = 0; i < dep.components_count; i++) {
-                    fprintf(stdout, "%s%s", i > 0 ? ", " : "", dep.components[i]);
-                }
-                fprintf(stdout, "\n\n");
-            }
-            else {
-                fprintf(stdout, "Added system dependency '%s'\n\n", dep_name);
-            }
+            fprintf(stdout, "Added path dependency '%s' -> '%s'\n\n", dep_name, value);
             break;
         case DEP_GIT:
             fprintf(stdout, "Added git dependency '%s' -> '%s'", dep_name, value);
@@ -266,7 +253,7 @@ int add(const command_t* command_data) {
             fprintf(stdout, "\n\n");
             break;
         default:
-            break;
+            return -1;
     }
 
     fprintf(stdout, "Run 'craft build' to build with the new dependency\n");

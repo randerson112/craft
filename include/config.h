@@ -5,6 +5,7 @@
 #include "tomlc17.h"
 #include <stdio.h>
 #include "parser.h"
+#include "deps.h"
 
 typedef struct {
     char language[8];
@@ -12,23 +13,6 @@ typedef struct {
     int cpp_standard;
     char template[16];
 } craft_config_t;
-
-typedef enum {
-    DEP_PATH,
-    DEP_SYSTEM,
-    DEP_GIT,
-    DEP_INVALID
-} dep_type_t;
-
-typedef struct {
-    char name[64];
-    dep_type_t type;
-    char value[512];
-    char components[16][64];
-    int components_count;
-    char tag[64];
-    char branch[64];
-} dependency_t;
 
 typedef struct {
 

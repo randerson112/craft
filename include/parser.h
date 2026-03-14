@@ -2,7 +2,7 @@
 #define PARSER_H
 
 #define NUM_COMMANDS 11
-#define NUM_OPTIONS 9
+#define NUM_OPTIONS 8
 
 typedef enum {
     PARSE_SUCCESS,
@@ -12,8 +12,8 @@ typedef enum {
 
 // Option struct to store name of option and its arg if applicable
 typedef struct {
-	char name[16];
-	char arg[32];
+	char name[32];
+	char arg[256];
 } option_t;
 
 // Command struct to store command name, args, and options with their args
