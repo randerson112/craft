@@ -5,35 +5,10 @@
 #include "config.h"
 #include <string.h>
 #include "cmake.h"
-
-// Finds and returns a dependency object by name in a project config
-static dependency_t* find_target_dependency(const char* dep_name, project_config_t* config) {
-
-    // Look for dependency by name in dependencies
-    for (int i = 0; i < config->dependencies_count; i++) {
-        dependency_t* dep = &config->dependencies[i];
-
-        if (strcmp(dep->name, dep_name) == 0) {
-            return dep;
-        }
-    }
-
-    // Not found
-    return NULL;
-}
-
-// Removes a dependency directory from .craft/deps by name
-static void remove_dep_directory(const char* project_root, const char* dep_name) {
-    char dep_dir[512];
-    snprintf(dep_dir, sizeof(dep_dir), "%s/.craft/deps/%s", project_root, dep_name);
-
-    if (dirExists(dep_dir)) {
-        removeDir(dep_dir);
-    }
-}
+#include "deps.h"
 
 // Removes a dependency from a project's config by name
-static void remove_dep_from_config(project_config_t* config, const char* dep_name) {
+static void remove_dependency_from_config(project_config_t* config, const char* dep_name) {
     for (int i = 0; i < config->dependencies_count; i++) {
         if (strcmp(config->dependencies[i].name, dep_name) == 0) {
             for (int j = i; j < config->dependencies_count - 1; j++) {
@@ -43,18 +18,6 @@ static void remove_dep_from_config(project_config_t* config, const char* dep_nam
             break;
         }
     }
-}
-
-// Gets a dependency name suggestion if user was a few letters off
-static const char* get_dependency_suggestion(const project_config_t* config, const char* unknown) {
-    // Make list of current dependency names
-    const char* dep_names[32];
-    for (int i = 0; i < config->dependencies_count; i++) {
-        dep_names[i] = config->dependencies[i].name;
-    }
-
-    // Get suggestion
-    return suggest(unknown, dep_names, config->dependencies_count);
 }
 
 int handle_remove(const command_t* command_data) {
@@ -85,14 +48,14 @@ int handle_remove(const command_t* command_data) {
     // Get dependency name from command argument
     const char* dep_name = command_data->args[0];
 
-    dependency_t* removed_dep = find_target_dependency(dep_name, &config);
+    dependency_t* removed_dep = get_dependency(config.dependencies, config.dependencies_count, dep_name);
 
     // Dependency not found, give a suggestion if close enough
     if (!removed_dep) {
         fprintf(stderr, "Error: dependency '%s' not found in craft.toml\n", dep_name);
 
         // Print suggestion if close enough
-        const char* suggestion = get_dependency_suggestion(&config, dep_name);
+        const char* suggestion = get_dependency_suggestion(config.dependencies, config.dependencies_count, dep_name);
         if (suggestion) {
             fprintf(stderr, "\nDid you mean '%s'?\n", suggestion);
         }
@@ -102,11 +65,11 @@ int handle_remove(const command_t* command_data) {
 
     // If dependency is a git dependency, remove it from .craft/deps
     if (removed_dep->type == DEP_GIT) {
-        remove_dep_directory(project_root, dep_name);
+        delete_dependency_dir(project_root, dep_name);
     }
 
     // Remove the dependency from the craft.toml
-    remove_dep_from_config(&config, dep_name);
+    remove_dependency_from_config(&config, dep_name);
 
     if (generate_craft_toml(project_root, &config) != 0) {
         return -1;

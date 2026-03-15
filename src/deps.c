@@ -35,3 +35,36 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
     fprintf(stdout, "Fetched '%s'\n", dep->name);
     return 0;
 }
+
+dependency_t* get_dependency(dependency_t* dependencies, const int count, const char* dep_name) {
+    // Find dependency by name
+    for (int i = 0; i < count; i++) {
+        dependency_t* dep = &dependencies[i];
+
+        if (strcmp(dep->name, dep_name) == 0) {
+            return dep;
+        }
+    }
+
+    return NULL;
+}
+
+void delete_dependency_dir(const char* project_root, const char* dep_name) {
+    char dep_dir[512];
+    snprintf(dep_dir, sizeof(dep_dir), "%s/.craft/deps/%s", project_root, dep_name);
+
+    if (dirExists(dep_dir)) {
+        removeDir(dep_dir);
+    }
+}
+
+const char* get_dependency_suggestion(const dependency_t* dependencies, const int count, const char* unknown) {
+    // Make list of current dependency names
+    const char* dep_names[32];
+    for (int i = 0; i < count; i++) {
+        dep_names[i] = dependencies[i].name;
+    }
+
+    // Get suggestion
+    return suggest(unknown, dep_names, count);
+}
