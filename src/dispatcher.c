@@ -11,6 +11,7 @@
 #include "template.h"
 #include "config.h"
 #include "add.h"
+#include "remove.h"
 
 int dispatch(command_t* command_data) {
     // Get command
@@ -58,6 +59,10 @@ int dispatch(command_t* command_data) {
 
     if (strcmp(command, "add") == 0) {
         return add(command_data);
+    }
+
+    if (strcmp(command, "remove") == 0) {
+        return handle_remove(command_data);
     }
 
     return -1;
