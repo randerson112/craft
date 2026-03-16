@@ -2,12 +2,49 @@
 
 A lightweight build tool for C and C++ projects — think Cargo, but for C/C++.
 
-Craft takes the friction out of C/C++ development by managing your project structure, generating CMake configuration from a simple `craft.toml` file, and providing a clean command-line interface for common tasks.
+C and C++ development has always required wrestling with CMake, configuring build systems, and manually managing dependencies. Craft eliminates that friction. You describe your project in a simple `craft.toml` file and Craft handles the rest by generating CMake configuration, managing dependencies, and providing a clean command-line interface that feels modern and smooth.
+
+---
+
+## What Makes Craft Different
+
+### One file describes your entire project
+Instead of writing CMake directly, you define your project in `craft.toml`, a clean, human-readable config file inspired by Rust's `Cargo.toml`. Craft reads it and generates a correct `CMakeLists.txt` automatically. You never touch CMake unless you want to.
+```toml
+[project]
+name = "MyApp"
+version = "0.1.0"
+language = "cpp"
+cpp_standard = 17
+
+[build]
+type = "executable"
+include_dirs = ["include"]
+source_dirs = ["src"]
+```
+
+### Dependency management that just works
+Add libraries to your project with a single command. Craft clones git dependencies automatically and wires everything up in CMake. No manual `find_package` calls, no copy-pasting CMake boilerplate.
+```bash
+craft add --path ../PhysicsEngine          # local Craft project
+craft add --git https://github.com/raysan5/raylib --tag 5.5   # git dependency
+craft remove raylib                        # remove it just as easily
+craft update                               # update all dependencies
+```
+
+### A template system for your project structures
+Save any project as a reusable template and spin up new projects from it instantly. Craft ships with built-in templates for executables, static libraries, shared libraries, and header-only libraries — for both C and C++.
+```bash
+craft template save MyGameTemplate        # snapshot your project
+craft project NewGame --template MyGameTemplate   # use it later
+```
+
+### Helpful errors, not cryptic CMake output
+Craft validates your `craft.toml` before touching CMake, catches unknown keys, suggests corrections for typos, and gives you clear actionable error messages, not raw CMake stack traces.
 
 ---
 
 ## Quick Start
-
 ```bash
 # Create a new project
 craft project MyApp
@@ -20,15 +57,12 @@ craft build
 craft run
 ```
 
-It's that easy! No more confusing CMake or Make setup.
-
 ---
 
 ## Commands
 
 ### `craft project <path>`
 Creates a new project directory at the given path with a full project structure including `craft.toml`, `src/`, `include/`, and a starter main file.
-
 ```bash
 craft project MyApp
 craft project MyApp --lang c
@@ -37,22 +71,19 @@ craft project MyLib --template static-library
 
 ### `craft init [path]`
 Initializes a Craft project inside an existing directory. Defaults to the current directory if no path is given.
-
 ```bash
 craft init
 craft init MyApp --lang cpp
 ```
 
 ### `craft build`
-Reads `craft.toml`, regenerates `CMakeLists.txt` if needed, and builds the project using CMake. Can be run from any subdirectory — Craft walks up the directory tree to find the project root.
-
+Reads `craft.toml`, regenerates `CMakeLists.txt` if needed, fetches any missing git dependencies, and builds the project using CMake. Can be run from any subdirectory — Craft walks up the directory tree to find the project root.
 ```bash
 craft build
 ```
 
 ### `craft run [executable]`
 Runs the project executable. Defaults to the project name from `craft.toml`. Optionally accepts an executable name to run any binary.
-
 ```bash
 craft run
 craft run my_other_binary
@@ -60,7 +91,6 @@ craft run my_other_binary
 
 ### `craft compile <source> [output]`
 Compiles a single `.c` or `.cpp` file without a full project structure. Useful for quick one-off scripts.
-
 ```bash
 craft compile main.cpp
 craft compile main.cpp app
@@ -68,7 +98,6 @@ craft compile main.cpp app
 
 ### `craft gen <file>`
 Generates a file with boilerplate code. Places headers in the first `include_dir` and sources in the first `source_dir` from `craft.toml`. Falls back to the current directory if not in a project.
-
 ```bash
 craft gen utils.hpp
 craft gen utils.cpp
@@ -78,26 +107,46 @@ craft gen math.c
 
 ### `craft clean`
 Removes the `build/` directory and all compiled artifacts. Reports how many files and bytes were removed.
-
 ```bash
 craft clean
 ```
 
+### `craft add`
+Adds a dependency to the project. Git dependencies are cloned to `.craft/deps/` automatically. Regenerates `CMakeLists.txt` immediately so the project is always in a consistent state.
+```bash
+craft add --path ../MyLib                                         # local Craft project
+craft add --git https://github.com/raysan5/raylib --tag 5.5       # git dependency
+craft add --git https://github.com/nlohmann/json --tag v3.11.2    # with pinned tag
+craft add --git https://github.com/SFML/SFML --tag 3.0.0 --links SFML::Graphics,SFML::Window,SFML::System
+```
+
+### `craft remove <name>`
+Removes a dependency from `craft.toml` and regenerates `CMakeLists.txt`. For git dependencies, the cloned directory in `.craft/deps/` is also deleted.
+```bash
+craft remove raylib
+craft remove MyLib
+```
+
+### `craft update [name]`
+Updates git dependencies to their latest version by re-cloning. Dependencies pinned to a tag are skipped. Optionally update a single dependency by name.
+```bash
+craft update              # update all dependencies
+craft update raylib       # update a specific dependency
+```
+
 ### `craft template <subcommand>`
 Manages reusable project templates. Craft ships with built-in templates for common project types. Custom templates are saved to `~/.craft/templates/custom/`.
-
 ```bash
-craft template save MyTemplate       # Save current project as a template
-craft template delete MyTemplate     # Delete a custom template
-craft template update MyTemplate     # Re-snapshot current project into template
-craft template list                  # List all available templates
-craft template list --lang c         # Filter by language
-craft template where MyTemplate      # Show path to template on disk
+craft template save MyTemplate       # save current project as a template
+craft template delete MyTemplate     # delete a custom template
+craft template update MyTemplate     # re-snapshot current project into template
+craft template list                  # list all available templates
+craft template list --lang c         # filter by language
+craft template where MyTemplate      # show path to template on disk
 ```
 
 ### `craft config <subcommand>`
 Reads and writes global defaults stored in `~/.craft/config.toml`. These defaults are used when creating new projects and can be overridden per-project in `craft.toml`.
-
 ```bash
 craft config set defaults.lang cpp
 craft config set defaults.cpp_standard 17
@@ -107,10 +156,10 @@ craft config list
 
 ### `craft help [topic]`
 Shows help for commands, subcommands, and `craft.toml`.
-
 ```bash
 craft help
 craft help build
+craft help add
 craft help template save
 craft help config set
 craft help craft.toml
@@ -129,20 +178,7 @@ craft help craft.toml
 
 ## craft.toml
 
-`craft.toml` is the project configuration file. It is the single source of truth for how your project is built. Craft reads it to generate `CMakeLists.txt` automatically.
-
-```toml
-[project]
-name = "MyApp"
-version = "0.1.0"
-language = "cpp"
-cpp_standard = 17
-
-[build]
-type = "executable"
-include_dirs = ["include"]
-source_dirs = ["src"]
-```
+`craft.toml` is the single source of truth for how your project is built. Craft reads it to generate `CMakeLists.txt` automatically — you never need to write or edit CMake directly.
 
 ### `[project]` fields
 
@@ -164,7 +200,26 @@ source_dirs = ["src"]
 | `lib_dirs` | no | Directories to search for libraries |
 | `libs` | no | Libraries to link against |
 
-> **Note:** `CMakeLists.txt` is generated automatically by Craft and should not be edited directly. Add a `CMakeLists.extra.cmake` file to your project root for any custom CMake beyond what Craft generates — it will be included at the end of the generated file.
+### `[dependencies]` fields
+
+Dependencies are added and removed via `craft add` and `craft remove`. The `[dependencies]` section is managed by Craft — you rarely need to edit it manually.
+```toml
+[dependencies]
+MyLib = { path = "../MyLib" }
+raylib = { git = "https://github.com/raysan5/raylib", tag = "5.5" }
+json = { git = "https://github.com/nlohmann/json", tag = "v3.11.2" }
+SFML = { git = "https://github.com/SFML/SFML", tag = "3.0.0", links = ["SFML::Graphics", "SFML::Window", "SFML::System"] }
+```
+
+| Key | Description |
+|-----|-------------|
+| `path` | Path to a local Craft project |
+| `git` | Git URL to clone |
+| `tag` | Pin to a specific tag |
+| `branch` | Pin to a specific branch |
+| `links` | CMake link targets, required for non-Craft CMake projects |
+
+> **Note:** `CMakeLists.txt` is generated automatically by Craft and should not be edited directly. Add a `CMakeLists.extra.cmake` file to your project root for any custom CMake — it will be included at the end of the generated file.
 
 ---
 
@@ -178,9 +233,6 @@ Craft ships with built-in templates for both C and C++:
 | `static-library` | Static library project |
 | `shared-library` | Shared library project |
 | `header-only` | Header-only library |
-
-Use `--template` when creating a project to select one:
-
 ```bash
 craft project MyLib --template static-library --lang c
 ```
@@ -190,7 +242,6 @@ craft project MyLib --template static-library --lang c
 ## Global Configuration
 
 Global defaults live in `~/.craft/config.toml`:
-
 ```toml
 [defaults]
 language = "cpp"
@@ -206,7 +257,6 @@ These are used when creating new projects. Project-level settings in `craft.toml
 ## Directory Structure
 
 Craft uses `~/.craft/` to store its configuration and templates:
-
 ```
 ~/.craft/
 ├── bin/craft
@@ -229,16 +279,17 @@ Craft uses `~/.craft/` to store its configuration and templates:
 ```
 
 A typical Craft project looks like:
-
 ```
 MyApp/
 ├── craft.toml
-├── CMakeLists.txt          # generated by Craft, do not edit
-├── CMakeLists.extra.cmake  # optional, your custom CMake additions
+├── CMakeLists.txt           # generated by Craft, do not edit
+├── CMakeLists.extra.cmake   # optional, your custom CMake additions
 ├── build/
 ├── include/
-└── src/
-    └── main.cpp
+├── src/
+│   └── main.cpp
+└── .craft/
+    └── deps/                # cloned git dependencies
 ```
 
 ---
@@ -249,16 +300,11 @@ MyApp/
 - [x] v0.2.0 — `craft clean` with file count and byte reporting
 - [x] v0.3.0 — Template system with builtin and custom templates
 - [x] v0.4.0 — `craft.toml` parsing, global config, `craft config` command
-- [x] v0.5.0 — CMake generation from `craft.toml`, improved error messages, project-aware `gen`
+- [x] v0.5.0 — CMake generation from `craft.toml`, improved error messages, improved older commands
+- [ ] v0.6.0 — Dependency management: `craft add`, `craft remove`, `craft update` (Currently in development)
 
 ---
 
 ## Contributing
 
 Craft is open source and community driven. Contributions are welcome — feel free to open issues or pull requests.
-
----
-
-## License
-
-MIT
