@@ -35,7 +35,7 @@ const command_info_t commands_info[] = {
 	{"help",     "craft help [command] [subcommand]",  NULL,                 0, NULL,            0, 0, 2},
 	{"template", "craft template <subcommand> [args]", template_subcommands, 5, NULL,            0, 0, 0},
 	{"config",   "craft config <subcommand> [args]",   config_subcommands,   3, NULL,            0, 0, 0},
-	{"add",      "craft add <options>",                NULL,                 0, add_options,     5, 0, 0},
+	{"add",      "craft add <options>",                NULL,                 0, add_options,     5, 0, 1},
 	{"remove",   "craft remove <dep name>",            NULL,                 0, NULL,            0, 1, 1},
 	{"update",   "craft update [dep name]",            NULL,                 0, NULL,            0, 0, 1}
 };

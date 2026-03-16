@@ -6,6 +6,7 @@
 #include <string.h>
 #include "cmake.h"
 #include "deps.h"
+#include "registry.h"
 
 // Detects the type of dependency based on present options
 static dep_type_t get_dependency_type(const command_t* command_data) {
@@ -17,14 +18,15 @@ static dep_type_t get_dependency_type(const command_t* command_data) {
     if (get_option(command_data, "git") != NULL) has_git = 1;
 
     // Make sure only one of these options is present
-    if (has_path + has_git != 1) {
-        fprintf(stderr, "Error: exactly and only one of --path or --git must be specified\n");
+    if (has_path && has_git) {
+        fprintf(stderr, "Error: Specify exactly one of --path or --git\n");
         return DEP_INVALID;
     }
 
     // Return the dependency type
     if (has_path) return DEP_PATH;
-    else return DEP_GIT;
+    else if (has_git) return DEP_GIT;
+    else return DEP_INVALID;
 }
 
 // Gets the dependency name based on type
@@ -123,6 +125,77 @@ static void get_links(dependency_t* dep, const char* links) {
     }
 }
 
+// Handles adding a kit from the registry
+static int add_registry_dependency(const char* project_root, const command_t* command_data) {
+
+    // Check for invalid options
+    for (int i = 0; i < command_data->option_count; i++) {
+        const char* option_name = command_data->options[i].name;
+        if (strcmp(option_name, "tag") != 0 && strcmp(option_name, "branch") != 0) {
+            fprintf(stderr, "Error: option '--%s' cannot be used when adding kits from registry\n", option_name);
+            return -1;
+        }
+    }
+
+    const char* kit_name = command_data->args[0];
+
+    // Look up the kit in the registry
+    registry_kit_t kit;
+    memset(&kit, 0, sizeof(kit));
+    if (registry_find(kit_name, &kit) != 0) {
+        return -1;
+    }
+
+    // Build the dependency entry from registry info
+    dependency_t dep;
+    memset(&dep, 0, sizeof(dep));
+    snprintf(dep.name, sizeof(dep.name), "%s", kit.name);
+    dep.type = DEP_GIT;
+    snprintf(dep.value, sizeof(dep.value), "%s", kit.git_url);
+    dep.links_count = kit.links_count;
+    for (int i = 0; i < kit.links_count; i++) {
+        snprintf(dep.links[i], sizeof(dep.links[0]), "%s", kit.links[i]);
+    }
+
+    // Allow --tag or --branch to override the default
+    const option_t* tag_option = get_option(command_data, "tag");
+    const option_t* branch_option = get_option(command_data, "branch");
+    if (tag_option && branch_option) {
+        fprintf(stderr, "Error: --tag and --branch cannot be used together\n");
+        return -1;
+    }
+    if (tag_option) {
+        snprintf(dep.tag, sizeof(dep.tag), "%s", tag_option->arg);
+    }
+    if (branch_option) {
+        snprintf(dep.branch, sizeof(dep.branch), "%s", branch_option->arg);
+    }
+
+    // Load config and check for duplicates
+    project_config_t config;
+    if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+    if (validate_project_config(&config) != 0) {
+        return -1;
+    }
+    if (dependency_already_exists(&config, dep.name)) {
+        fprintf(stderr, "Error: kit '%s' already exists in craft.toml\n", dep.name);
+        return -1;
+    }
+
+    // Add dependency and regenerate files
+    config.dependencies[config.dependencies_count++] = dep;
+
+    if (generate_craft_toml(project_root, &config) != 0) return -1;
+    if (fetch_git_dependency(project_root, &dep) != 0) return -1;
+    if (generate_cmake(project_root, &config) != 0) return -1;
+
+    fprintf(stdout, "Added kit '%s'\n\n", dep.name);
+    fprintf(stdout, "Run 'craft build' to build with the new dependency\n");
+    return 0;
+}
+
 int add(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
@@ -138,6 +211,11 @@ int add(const command_t* command_data) {
     if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
         fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
         return -1;
+    }
+
+    // If an argument was given, treat it as a registry kit name
+    if (command_data->arg_count > 0) {
+        return add_registry_dependency(project_root, command_data);
     }
 
     // Determine the type of dependency and get the main value from the option
