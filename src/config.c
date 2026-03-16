@@ -232,8 +232,40 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
         fprintf(file, "]\n");
     }
 
-    fclose(file);
-    return 0;
+    // Write dependencies if present
+    if (config->dependencies_count > 0) {
+        fprintf(file, "\n[dependencies]\n");
+        for (int i = 0; i < config->dependencies_count; i++) {
+            dependency_t* dep = &config->dependencies[i];
+
+            switch(dep->type) {
+                case DEP_PATH:
+                    fprintf(file, "%s = { path = \"%s\" }\n", dep->name, dep->value);
+                    break;
+                case DEP_GIT:
+                    fprintf(file, "%s = { git = \"%s\"", dep->name, dep->value);
+
+                    if (strlen(dep->tag) > 0) {
+                        fprintf(file, ", tag = \"%s\"", dep->tag);
+                    }
+                    else if (strlen(dep->branch) > 0) {
+                        fprintf(file, ", branch = \"%s\"", dep->branch);
+                    }
+
+                    if (dep->links_count > 0) {
+                        fprintf(file, ", links = [");
+                        for (int j = 0; j < dep->links_count; j++) {
+                            fprintf(file, "%s\"%s\"", j > 0 ? ", " : "", dep->links[j]);
+                        }
+                        fprintf(file, "]");
+                    }
+                    fprintf(file, " }\n");
+                    break;
+                case DEP_INVALID:
+                    return -1;
+            }
+        }
+    }
 
     fclose(file);
     return 0;
@@ -361,6 +393,129 @@ int load_project_config(project_config_t* config, const char* project_root) {
             toml_datum_t elem = libs.u.arr.elem[i];
             if (elem.type == TOML_STRING)
                 strncpy(config->libs[i], elem.u.s, sizeof(config->libs[i]));
+        }
+    }
+
+    // Dependencies section
+    toml_datum_t deps_section = toml_seek(result.toptab, "dependencies");
+    if (deps_section.type == TOML_TABLE) {
+        config->dependencies_count = deps_section.u.tab.size;
+        for (int i = 0; i < config->dependencies_count; i++) {
+            dependency_t* dep = &config->dependencies[i];
+            memset(dep, 0, sizeof(*dep));
+
+            // Get name of dependency from the key
+            snprintf(dep->name, sizeof(dep->name), "%s", deps_section.u.tab.key[i]);
+
+            // Get the value table for this dependency
+            toml_datum_t dep_table = deps_section.u.tab.value[i];
+            if (dep_table.type != TOML_TABLE) {
+                fprintf(stderr, "[Config Error]: Value for dependency '%s' must be a table\n", dep->name);
+                toml_free(result);
+                return -1;
+            }
+
+            // Detect dependency type from which keys are present
+            int has_path = 0;
+            int has_git = 0;
+
+            for (int j = 0; j < dep_table.u.tab.size; j++) {
+                if (strcmp(dep_table.u.tab.key[j], "path") == 0)   has_path = 1;
+                if (strcmp(dep_table.u.tab.key[j], "git") == 0)    has_git = 1;
+            }
+
+            // Validate exactly one type key is present
+            if (has_path + has_git != 1) {
+                fprintf(stderr, "[Config Error]: dependency '%s' must have exactly one of 'path' or 'git'\n", dep->name);
+                toml_free(result);
+                return -1;
+            }
+
+            // Local path dependency
+            if (has_path) {
+                dep->type = DEP_PATH;
+                for (int j = 0; j < dep_table.u.tab.size; j++) {
+                    if (strcmp(dep_table.u.tab.key[j], "path") == 0) {
+                        if (dep_table.u.tab.value[j].type != TOML_STRING) {
+                            fprintf(stderr, "[Config Error]: 'path' value for dependency '%s' must be a string\n", dep->name);
+                            toml_free(result);
+                            return -1;
+                        }
+                        snprintf(dep->value, sizeof(dep->value), "%s", dep_table.u.tab.value[j].u.s);
+                        break;
+                    }
+                }
+            }
+
+            // Git dependency
+            else if (has_git) {
+                dep->type = DEP_GIT;
+
+                int has_tag = 0;
+                int has_branch = 0;
+
+                for (int j = 0; j < dep_table.u.tab.size; j++) {
+                    const char* key = dep_table.u.tab.key[j];
+                    toml_datum_t val = dep_table.u.tab.value[j];
+
+                    if (strcmp(key, "git") == 0) {
+                        if (val.type != TOML_STRING) {
+                            fprintf(stderr, "[Config Error]: 'git' value for dependency '%s' must be a string\n", dep->name);
+                            toml_free(result);
+                            return -1;
+                        }
+                        snprintf(dep->value, sizeof(dep->value), "%s", val.u.s);
+                    }
+                    else if (strcmp(key, "tag") == 0) {
+                        if (val.type != TOML_STRING) {
+                            fprintf(stderr, "[Config Error]: 'tag' value for dependency '%s' must be a string\n", dep->name);
+                            toml_free(result);
+                            return -1;
+                        }
+                        snprintf(dep->tag, sizeof(dep->tag), "%s", val.u.s);
+                        has_tag = 1;
+                    }
+                    else if (strcmp(key, "branch") == 0) {
+                        if (val.type != TOML_STRING) {
+                            fprintf(stderr, "[Config Error]: 'branch' value for dependency '%s' must be a string\n", dep->name);
+                            toml_free(result);
+                            return -1;
+                        }
+                        snprintf(dep->branch, sizeof(dep->branch), "%s", val.u.s);
+                        has_branch = 1;
+                    }
+                    else if (strcmp(key, "links") == 0) {
+                        if (val.type != TOML_ARRAY) {
+                            fprintf(stderr, "[Config Error]: 'links' value for dependency '%s' must be an array\n", dep->name);
+                            toml_free(result);
+                            return -1;
+                        }
+                        for (int k = 0; k < val.u.arr.size; k++) {
+                            if (val.u.arr.elem[k].type != TOML_STRING) {
+                                fprintf(stderr, "[Config Error]: 'links' values for dependency '%s' must be strings\n", dep->name);
+                                toml_free(result);
+                                return -1;
+                            }
+                            snprintf(dep->links[k], sizeof(dep->links[0]), "%s", val.u.arr.elem[k].u.s);
+                            dep->links_count++;
+                        }
+                    }
+                }
+
+                // Validate tag and branch are not both present
+                if (has_tag && has_branch) {
+                    fprintf(stderr, "[Config Error]: dependency '%s' cannot have both 'tag' and 'branch'\n", dep->name);
+                    toml_free(result);
+                    return -1;
+                }
+
+                // Validate git URL is present
+                if (strlen(dep->value) == 0) {
+                    fprintf(stderr, "[Config Error]: dependency '%s' is missing a 'git' URL\n", dep->name);
+                    toml_free(result);
+                    return -1;
+                }
+            }
         }
     }
 

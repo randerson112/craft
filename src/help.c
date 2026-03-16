@@ -8,15 +8,18 @@ void printCraftInfo() {
     fprintf(stdout, "    craft <command> [args] [options]\n\n");
 
     fprintf(stdout, "Commands:\n");
-    fprintf(stdout, "    project <path>               Create a new project at the given path\n");
-    fprintf(stdout, "    init [path]                  Initialize a project in the current or given directory\n");
-    fprintf(stdout, "    build                        Build the project in the current directory\n");
-    fprintf(stdout, "    compile <src> [out]          Compile a single source file\n");
-    fprintf(stdout, "    run [path]                   Run a compiled executable\n");
-    fprintf(stdout, "    gen <file>                   Generate a file with boilerplate\n");
-    fprintf(stdout, "    clean                        Remove the build directory\n");
-    fprintf(stdout, "    template <subcommand>        Manage project templates\n");
-    fprintf(stdout, "    config <subcommand>          Manage global Craft configuration\n\n");
+    fprintf(stdout, "    project         Create a new project at the given path\n");
+    fprintf(stdout, "    init            Initialize a project in the current or given directory\n");
+    fprintf(stdout, "    build           Build the project in the current directory\n");
+    fprintf(stdout, "    compile         Compile a single source file\n");
+    fprintf(stdout, "    run             Run a compiled executable\n");
+    fprintf(stdout, "    gen             Generate a file with boilerplate\n");
+    fprintf(stdout, "    clean           Remove the build directory\n");
+    fprintf(stdout, "    add             Add a dependency to the project\n");
+    fprintf(stdout, "    remove          Remove a dependency from the project\n");
+    fprintf(stdout, "    update          Update git dependencies to their latest version\n");
+    fprintf(stdout, "    template        Manage project templates\n");
+    fprintf(stdout, "    config          Manage global Craft configuration\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft project MyApp\n");
@@ -25,6 +28,9 @@ void printCraftInfo() {
     fprintf(stdout, "    craft compile main.cpp\n");
     fprintf(stdout, "    craft run\n");
     fprintf(stdout, "    craft clean\n");
+    fprintf(stdout, "    craft add --path ../MyLib\n");
+    fprintf(stdout, "    craft remove MyLib\n");
+    fprintf(stdout, "    craft update\n");
     fprintf(stdout, "    craft template save MyTemplate\n");
     fprintf(stdout, "    craft config set lang cpp\n\n");
 
@@ -177,6 +183,88 @@ static void printCleanHelp() {
 
     fprintf(stdout, "Example:\n");
     fprintf(stdout, "    craft clean\n");
+}
+
+static void printAddHelp() {
+    fprintf(stdout, "Command:\n");
+    fprintf(stdout, "    craft add - Add a dependency to the project.\n\n");
+
+    fprintf(stdout, "Description:\n");
+    fprintf(stdout, "    Adds a dependency to craft.toml and regenerates CMakeLists.txt.\n");
+    fprintf(stdout, "    Git dependencies are cloned to .craft/deps/ automatically.\n");
+    fprintf(stdout, "    Local path dependencies must be Craft projects.\n\n");
+
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft add --path <path>\n");
+    fprintf(stdout, "    craft add --git <url> [options]\n\n");
+
+    fprintf(stdout, "Options:\n");
+    fprintf(stdout, "    --path <path>         Add a local Craft project as a dependency\n");
+    fprintf(stdout, "    --git <url>           Add a git dependency\n");
+    fprintf(stdout, "    --tag <tag>           Pin to a specific tag (git only)\n");
+    fprintf(stdout, "    --branch <branch>     Pin to a specific branch (git only)\n");
+    fprintf(stdout, "    --links <targets>     Comma separated CMake link targets (git only)\n");
+    fprintf(stdout, "                          Required for non-Craft CMake projects\n\n");
+
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft add --path ../MyLib\n");
+    fprintf(stdout, "    craft add --git https://github.com/user/mylib\n");
+    fprintf(stdout, "    craft add --git https://github.com/user/mylib --tag v1.0.0\n");
+    fprintf(stdout, "    craft add --git https://github.com/raysan5/raylib --tag 5.5\n");
+    fprintf(stdout, "    craft add --git https://github.com/SFML/SFML --tag 3.0.0 --links SFML::Graphics,SFML::Window,SFML::System\n\n");
+
+    fprintf(stdout, "Tips:\n");
+    fprintf(stdout, "    If the git repo is a Craft project, --links is not needed.\n");
+    fprintf(stdout, "    Use --tag to pin to a specific version for reproducible builds.\n");
+    fprintf(stdout, "    Run 'craft build' after adding a dependency to compile it.\n");
+}
+
+static void printRemoveHelp() {
+    fprintf(stdout, "Command:\n");
+    fprintf(stdout, "    craft remove - Remove a dependency from the project.\n\n");
+
+    fprintf(stdout, "Description:\n");
+    fprintf(stdout, "    Removes a dependency from craft.toml and regenerates CMakeLists.txt.\n");
+    fprintf(stdout, "    For git dependencies, the cloned directory in .craft/deps/ is also deleted.\n");
+    fprintf(stdout, "    Local path dependencies are removed from craft.toml only.\n");
+
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft remove <name>\n\n");
+
+    fprintf(stdout, "Arguments:\n");
+    fprintf(stdout, "    <name>   Name of the dependency to remove.\n\n");
+
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft remove MyLib\n");
+    fprintf(stdout, "    craft remove raylib\n\n");
+
+    fprintf(stdout, "Tip:\n");
+    fprintf(stdout, "    Run 'craft clean && craft build' to fully rebuild without the dependency.\n");
+}
+
+static void printUpdateHelp() {
+    fprintf(stdout, "Command:\n");
+    fprintf(stdout, "    craft update - Update git dependencies to their latest version.\n\n");
+
+    fprintf(stdout, "Description:\n");
+    fprintf(stdout, "    Re-clones git dependencies to get the latest version. Dependencies\n");
+    fprintf(stdout, "    pinned to a tag are skipped since they are already at a fixed version.\n");
+    fprintf(stdout, "    Dependencies pinned to a branch are re-cloned to get the latest commits\n");
+    fprintf(stdout, "    on that branch. Local path dependencies are always skipped.\n\n");
+
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft update [name]\n\n");
+
+    fprintf(stdout, "Arguments:\n");
+    fprintf(stdout, "    [name]   Optional name of a specific dependency to update.\n");
+    fprintf(stdout, "             If omitted all dependencies are updated.\n\n");
+
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft update\n");
+    fprintf(stdout, "    craft update raylib\n\n");
+
+    fprintf(stdout, "Tip:\n");
+    fprintf(stdout, "    Run 'craft build' after updating to rebuild with the new versions.\n");
 }
 
 static void printHelpHelp() {
@@ -440,6 +528,12 @@ static void printCraftTomlHelp() {
     fprintf(stdout, "        lib_dirs      (optional) Directories to search for libraries\n");
     fprintf(stdout, "        libs          (optional) Libraries to link against\n\n");
 
+    fprintf(stdout, "    [dependencies]\n");
+    fprintf(stdout, "        Local path:  name = { path = \"../MyLib\" }\n");
+    fprintf(stdout, "        Git:         name = { git = \"https://github.com/user/repo\" }\n");
+    fprintf(stdout, "        Git + tag:   name = { git = \"https://...\", tag = \"v1.0.0\" }\n");
+    fprintf(stdout, "        Git + links: name = { git = \"https://...\", links = [\"lib::target\"] }\n\n");
+
     fprintf(stdout, "Example:\n\n");
     fprintf(stdout, "    [project]\n");
     fprintf(stdout, "    name = \"MyApp\"\n");
@@ -449,14 +543,16 @@ static void printCraftTomlHelp() {
     fprintf(stdout, "    [build]\n");
     fprintf(stdout, "    type = \"executable\"\n");
     fprintf(stdout, "    include_dirs = [\"include\"]\n");
-    fprintf(stdout, "    source_dirs = [\"src\"]\n");
-    fprintf(stdout, "    lib_dirs = [\"lib/mylib\"]\n");
-    fprintf(stdout, "    libs = [\"mylib\"]\n\n");
+    fprintf(stdout, "    source_dirs = [\"src\"]\n\n");
+    fprintf(stdout, "    [dependencies]\n");
+    fprintf(stdout, "    MyLib = { path = \"../MyLib\" }\n");
+    fprintf(stdout, "    raylib = { git = \"https://github.com/raysan5/raylib\", tag = \"5.5\" }\n\n");
 
     fprintf(stdout, "Tips:\n");
     fprintf(stdout, "    Craft regenerates CMakeLists.txt automatically when craft.toml is newer.\n");
     fprintf(stdout, "    For custom CMake beyond what Craft generates, add a CMakeLists.extra.cmake\n");
     fprintf(stdout, "    file. Craft will include it at the end of the generated CMakeLists.txt.\n");
+    fprintf(stdout, "    Run 'craft help add' for details on adding dependencies.\n");
 }
 
 int help(command_t* command_data) {
@@ -493,6 +589,9 @@ int help(command_t* command_data) {
     if (strcmp(topic, "run") == 0)            { printRunHelp();      return 0; }
     if (strcmp(topic, "gen") == 0)            { printGenHelp();      return 0; }
     if (strcmp(topic, "clean") == 0)          { printCleanHelp();    return 0; }
+    if (strcmp(topic, "add") == 0)            { printAddHelp();      return 0; }
+    if (strcmp(topic, "remove") == 0)         { printRemoveHelp();   return 0; }
+    if (strcmp(topic, "update") == 0)         { printUpdateHelp();   return 0; }
     if (strcmp(topic, "help") == 0)           { printHelpHelp();     return 0; }
     if (strcmp(topic, "template") == 0)       { printTemplateHelp(); return 0; }
     if (strcmp(topic, "config") == 0)         { printConfigHelp();   return 0; }

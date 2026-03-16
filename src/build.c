@@ -5,6 +5,8 @@
 #include "sys/stat.h"
 #include "config.h"
 #include "cmake.h"
+#include <string.h>
+#include "deps.h"
 
 // Builds a project by creating a build directory and running cmake
 int buildProject(const char* cwd)
@@ -26,16 +28,27 @@ int buildProject(const char* cwd)
     }
 
     // Regenerate CMakeLists.txt from craft.toml if needed
+    project_config_t config;
+    if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+
+    if (validate_project_config(&config) != 0) {
+        return -1;
+    }
+
+    // Fetch git dependencies into .craft/deps
+    for (int i = 0; i < config.dependencies_count; i++) {
+        dependency_t* dep = &config.dependencies[i];
+
+        if (dep->type == DEP_GIT) {
+            if (fetch_git_dependency(project_root, dep) != 0) {
+                return -1;
+            }
+        }
+    }
+
     if (cmake_needs_regeneration(project_root)) {
-        project_config_t config;
-        if (load_project_config(&config, project_root) != 0) {
-            return -1;
-        }
-
-        if (validate_project_config(&config) != 0) {
-            return -1;
-        }
-
         generate_cmake(project_root, &config);
     }
 
@@ -62,7 +75,7 @@ int buildProject(const char* cwd)
     fprintf(stdout, "Building project\n");
     
     char command[512];
-    snprintf(command, sizeof(command), "cd %s && cmake .. --log-level=ERROR && cmake --build .", buildDir);
+    snprintf(command, sizeof(command), "cd %s && cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build .", buildDir);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to build project\n");

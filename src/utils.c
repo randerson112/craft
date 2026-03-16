@@ -423,3 +423,25 @@ int is_valid_version(const char* version) {
     snprintf(expected, sizeof(expected), "%d.%d.%d", major, minor, patch);
     return strcmp(version, expected) == 0;
 }
+
+const option_t* get_option(const command_t* command_data, const char* name) {
+    for (int i = 0; i < command_data->option_count; i++) {
+        const option_t* option = &command_data->options[i];
+        if (strcmp(option->name, name) == 0) {
+            return option;
+        }
+    }
+
+    return NULL;
+}
+
+const int is_craft_project(const char* path) {
+    // Check if craft.toml exists
+    char toml_path[512];
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
+    if (fileExists(toml_path)) {
+        return 1;
+    }
+
+    return 0;
+}

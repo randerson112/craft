@@ -5,6 +5,7 @@
 #include "tomlc17.h"
 #include <stdio.h>
 #include "parser.h"
+#include "deps.h"
 
 typedef struct {
     char language[8];
@@ -34,6 +35,10 @@ typedef struct {
     int lib_dir_count;
     char libs[8][256];
     int lib_count;
+
+    // [dependencies]
+    dependency_t dependencies[32];
+    int dependencies_count;
 } project_config_t;
 
 // Loads values from config.toml into a craft_config_t struct

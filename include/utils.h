@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <unistd.h>
+#include "parser.h"
 
 // Strips extension off a file and writes it to stripped file buffer
 void stripExtension(const char* file, char* strippedFile);
@@ -56,5 +57,11 @@ const char* suggest(const char* unknown, const char** valid, int valid_count);
 
 // Checks if a version string follows the format "vMAJOR.MINOR.PATCH"
 int is_valid_version(const char* version);
+
+// Gets the option struct from a command data struct based on name, returns NULL if not found
+const option_t* get_option(const command_t* command_data, const char* name);
+
+// Checks if the given path is a Craft project
+const int is_craft_project(const char* path);
 
 #endif
