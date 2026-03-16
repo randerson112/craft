@@ -22,6 +22,7 @@ type = "executable"
 include_dirs = ["include"]
 source_dirs = ["src"]
 ```
+Fun Fact: You will acutally realize that Craft itself is a Craft project. There is a craft.toml and automatically generated CMakeLists.txt. It is self hosting in that way. Craft has been building and managing itself from the early days of development.
 
 ### Dependency management that just works
 Add libraries to your project with a single command. Craft clones git dependencies automatically and wires everything up in CMake. No manual `find_package` calls, no copy-pasting CMake boilerplate.
