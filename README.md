@@ -302,7 +302,11 @@ MyApp/
 - [x] v0.3.0 — Template system with builtin and custom templates
 - [x] v0.4.0 — `craft.toml` parsing, global config, `craft config` command
 - [x] v0.5.0 — CMake generation from `craft.toml`, improved error messages, improved older commands
-- [ ] v0.6.0 — Dependency management: `craft add`, `craft remove`, `craft update` (Currently in development)
+- [x] v0.6.0 — Dependency management: `craft add`, `craft remove`, `craft update`
+- [ ] v0.7.0 - `craft adopt` to turn existing projects into Craft projects (Currently in development)
+- [ ] v0.8.0 - Windows compatability
+- [ ] v0.9.0 - Install scripts
+- [ ] v1.0.0 - Final polishing and initial release
 
 ---
 
