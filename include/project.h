@@ -8,7 +8,7 @@
 int handle_project(const command_t* command_data);
 
 // Gets the name of a project by taking the last name of the path
-void get_project_name(const char* path, char* buffer, size_t buffer_size);
+void get_project_name(char* buffer, size_t buffer_size, const char* path);
 
 // Creates a project by copying template structure to project path
 int create_project_from_template(const char* path, const char* template, const char* lang);

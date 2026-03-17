@@ -33,7 +33,7 @@ int create_project_from_template(const char* path, const char* template, const c
     }
 
     char project_name[32];
-    get_project_name(path, project_name, sizeof(project_name));
+    get_project_name(project_name, sizeof(project_name), path);
     strncpy(project_config.name, project_name, sizeof(project_config.name));
     strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
 
@@ -77,7 +77,7 @@ int get_project_path(const char* cwd, const char* rel_path, char* buffer)
     return 0;
 }
 
-void get_project_name(const char* path, char* buffer, size_t buffer_size) {
+void get_project_name(char* buffer, size_t buffer_size, const char* path) {
     // Get the last component of the path
     const char* last_slash = strrchr(path, '/');
     const char* name = last_slash ? last_slash + 1 : path;

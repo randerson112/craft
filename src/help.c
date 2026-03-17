@@ -22,16 +22,16 @@ void print_craft_info() {
     fprintf(stdout, "    config          Manage global Craft configuration\n\n");
 
     fprintf(stdout, "Examples:\n");
-    fprintf(stdout, "    craft project MyApp\n");
+    fprintf(stdout, "    craft project my_app\n");
     fprintf(stdout, "    craft init\n");
     fprintf(stdout, "    craft build\n");
     fprintf(stdout, "    craft compile main.cpp\n");
     fprintf(stdout, "    craft run\n");
     fprintf(stdout, "    craft clean\n");
-    fprintf(stdout, "    craft add --path ../MyLib\n");
-    fprintf(stdout, "    craft remove MyLib\n");
+    fprintf(stdout, "    craft add --path ../my_lib\n");
+    fprintf(stdout, "    craft remove my_lib\n");
     fprintf(stdout, "    craft update\n");
-    fprintf(stdout, "    craft template save MyTemplate\n");
+    fprintf(stdout, "    craft template save my_template\n");
     fprintf(stdout, "    craft config set lang cpp\n\n");
 
     fprintf(stdout, "Tips:\n");
@@ -60,9 +60,9 @@ static void print_project_help() {
     fprintf(stdout, "    --lang, -l <language>   Language to use: c or cpp (defaults to global default)\n\n");
 
     fprintf(stdout, "Examples:\n");
-    fprintf(stdout, "    craft project MyApp\n");
-    fprintf(stdout, "    craft project MyApp --lang c\n");
-    fprintf(stdout, "    craft project MyLib --template static-library\n");
+    fprintf(stdout, "    craft project my_app\n");
+    fprintf(stdout, "    craft project my_app --lang c\n");
+    fprintf(stdout, "    craft project my_lib --template static-library\n");
 }
 
 static void print_init_help() {
@@ -86,7 +86,7 @@ static void print_init_help() {
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft init\n");
-    fprintf(stdout, "    craft init MyApp --lang c\n");
+    fprintf(stdout, "    craft init my_app --lang c\n");
     fprintf(stdout, "    craft init --template static-library\n");
 }
 
@@ -144,7 +144,7 @@ static void print_run_help() {
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft run\n");
-    fprintf(stdout, "    craft run MyApp\n");
+    fprintf(stdout, "    craft run my_app\n");
 }
 
 static void print_gen_help() {
@@ -207,7 +207,7 @@ static void print_add_help() {
     fprintf(stdout, "                          Required for non-Craft CMake projects\n\n");
 
     fprintf(stdout, "Examples:\n");
-    fprintf(stdout, "    craft add --path ../MyLib\n");
+    fprintf(stdout, "    craft add --path ../my_lib\n");
     fprintf(stdout, "    craft add --git https://github.com/user/mylib\n");
     fprintf(stdout, "    craft add --git https://github.com/user/mylib --tag v1.0.0\n");
     fprintf(stdout, "    craft add --git https://github.com/raysan5/raylib --tag 5.5\n");
@@ -235,7 +235,7 @@ static void print_remove_help() {
     fprintf(stdout, "    <name>   Name of the dependency to remove.\n\n");
 
     fprintf(stdout, "Examples:\n");
-    fprintf(stdout, "    craft remove MyLib\n");
+    fprintf(stdout, "    craft remove my_lib\n");
     fprintf(stdout, "    craft remove raylib\n\n");
 
     fprintf(stdout, "Tip:\n");
@@ -305,12 +305,12 @@ static void print_template_help() {
     fprintf(stdout, "    where <name>     Show the path to a template on disk\n\n");
 
     fprintf(stdout, "Examples:\n");
-    fprintf(stdout, "    craft template save MyTemplate\n");
-    fprintf(stdout, "    craft template delete MyTemplate\n");
-    fprintf(stdout, "    craft template update MyTemplate\n");
+    fprintf(stdout, "    craft template save my_template\n");
+    fprintf(stdout, "    craft template delete my_template\n");
+    fprintf(stdout, "    craft template update my_template\n");
     fprintf(stdout, "    craft template list\n");
     fprintf(stdout, "    craft template list --lang c\n");
-    fprintf(stdout, "    craft template where MyTemplate\n\n");
+    fprintf(stdout, "    craft template where my_template\n\n");
 
     fprintf(stdout, "Tip:\n");
     fprintf(stdout, "    Run 'craft help template <subcommand>' for details on a subcommand.\n");
@@ -367,7 +367,7 @@ static int print_template_subcommand_help(const char* subcommand) {
         fprintf(stdout, "    <name>   Name to save the template as.\n\n");
 
         fprintf(stdout, "Example:\n");
-        fprintf(stdout, "    craft template save MyTemplate\n");
+        fprintf(stdout, "    craft template save my_template\n");
     }
     else if (strcmp(subcommand, "delete") == 0) {
         fprintf(stdout, "Subcommand:\n");
@@ -383,8 +383,8 @@ static int print_template_subcommand_help(const char* subcommand) {
         fprintf(stdout, "    --lang, -l <language>   Language of the template: c or cpp (defaults to global default)\n\n");
 
         fprintf(stdout, "Example:\n");
-        fprintf(stdout, "    craft template delete MyTemplate\n");
-        fprintf(stdout, "    craft template delete MyTemplate --lang c\n");
+        fprintf(stdout, "    craft template delete my_template\n");
+        fprintf(stdout, "    craft template delete my_template --lang c\n");
     }
     else if (strcmp(subcommand, "update") == 0) {
         fprintf(stdout, "Subcommand:\n");
@@ -401,7 +401,7 @@ static int print_template_subcommand_help(const char* subcommand) {
         fprintf(stdout, "    <name>   Name of the template to update.\n\n");
 
         fprintf(stdout, "Example:\n");
-        fprintf(stdout, "    craft template update MyTemplate\n");
+        fprintf(stdout, "    craft template update my_template\n");
     }
     else if (strcmp(subcommand, "list") == 0) {
         fprintf(stdout, "Subcommand:\n");
@@ -435,7 +435,7 @@ static int print_template_subcommand_help(const char* subcommand) {
         fprintf(stdout, "    --lang, -l <language>   Language of the template: c or cpp (defaults to global default)\n\n");
 
         fprintf(stdout, "Example:\n");
-        fprintf(stdout, "    craft template where MyTemplate\n");
+        fprintf(stdout, "    craft template where my_template\n");
     }
     else {
         fprintf(stderr, "Error: '%s' is not a valid subcommand for 'template'\n", subcommand);
@@ -529,14 +529,14 @@ static void print_craft_toml_help() {
     fprintf(stdout, "        libs          (optional) Libraries to link against\n\n");
 
     fprintf(stdout, "    [dependencies]\n");
-    fprintf(stdout, "        Local path:  name = { path = \"../MyLib\" }\n");
+    fprintf(stdout, "        Local path:  name = { path = \"../my_lib\" }\n");
     fprintf(stdout, "        Git:         name = { git = \"https://github.com/user/repo\" }\n");
     fprintf(stdout, "        Git + tag:   name = { git = \"https://...\", tag = \"v1.0.0\" }\n");
     fprintf(stdout, "        Git + links: name = { git = \"https://...\", links = [\"lib::target\"] }\n\n");
 
     fprintf(stdout, "Example:\n\n");
     fprintf(stdout, "    [project]\n");
-    fprintf(stdout, "    name = \"MyApp\"\n");
+    fprintf(stdout, "    name = \"my_app\"\n");
     fprintf(stdout, "    version = \"0.1.0\"\n");
     fprintf(stdout, "    language = \"cpp\"\n");
     fprintf(stdout, "    cpp_standard = 17\n\n");
@@ -545,7 +545,7 @@ static void print_craft_toml_help() {
     fprintf(stdout, "    include_dirs = [\"include\"]\n");
     fprintf(stdout, "    source_dirs = [\"src\"]\n\n");
     fprintf(stdout, "    [dependencies]\n");
-    fprintf(stdout, "    MyLib = { path = \"../MyLib\" }\n");
+    fprintf(stdout, "    my_lib = { path = \"../my_lib\" }\n");
     fprintf(stdout, "    raylib = { git = \"https://github.com/raysan5/raylib\", tag = \"5.5\" }\n\n");
 
     fprintf(stdout, "Tips:\n");

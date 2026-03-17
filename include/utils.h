@@ -16,20 +16,11 @@ int file_exists(const char* path);
 // Check if a directory exists
 int dir_exists(const char* path);
 
-// Removes a directory recursively, called by the two functions below
-int remove_dir_recursive(const char* path, unsigned int* count, unsigned int* bytes);
-
 // Removes a directory without keeping track of counts
 int remove_dir(const char* path);
 
 // Removes a directory and keeps track of counts
 int remove_dir_count(const char* path, unsigned int* count, unsigned int* bytes);
-
-// Gets name of base directory from a full path
-const char* get_base_name(const char* path);
-
-// Creates starter project files and directorys at the given path
-int create_cpp_project(const char* path, const char* name);
 
 // Formats a number of bytes into a string with appropriate conversion
 void format_bytes(unsigned int bytes, char* buffer, unsigned int buffer_size);
@@ -37,14 +28,11 @@ void format_bytes(unsigned int bytes, char* buffer, unsigned int buffer_size);
 // Copy all contents of a directory into another directory recursively, excluding certain files if needed
 int copy_dir_contents(const char* source_dir, const char* dest_dir, const char** excludes, size_t exclude_count);
 
-// Copy file contents to another file
-int copy_file(const char* source, const char* dest);
-
 // Gets the path to craft config directory
 int get_craft_home(char* buffer, size_t buffer_size);
 
 // Gets the root path of a project by searching cwd and parent directories
-int get_project_root(const char* cwd, char* buffer, size_t buffer_size);
+int get_project_root(char* buffer, size_t buffer_size, const char* cwd);
 
 // Gets the path to template directory
 // type: builtin or custom
@@ -55,7 +43,7 @@ int get_template_directory(char* buffer, size_t buffer_size, const char* type, c
 // Given an unknown string, suggests a string from a list of valid strings that is closest to it
 const char* suggest(const char* unknown, const char** valid, int valid_count);
 
-// Checks if a version string follows the format "vMAJOR.MINOR.PATCH"
+// Checks if a version string follows the format "vMAJOR_MINOR_PATCH"
 int is_valid_version(const char* version);
 
 // Gets the option struct from a command data struct based on name, returns NULL if not found

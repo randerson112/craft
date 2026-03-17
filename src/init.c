@@ -20,7 +20,7 @@ int project_exists(const char* path) {
 }
 
 // Gets the full path to directory to initialize from the cwd and relative path
-int get_path_to_init(const char* cwd, const char* rel_path, char* buffer, size_t buffer_size) {
+int get_path_to_init(char* buffer, size_t buffer_size, const char* cwd, const char* rel_path) {
     // Get full path to specified directory
     char full_path[256];
     if (rel_path) {
@@ -76,7 +76,7 @@ int handle_init(const command_t* command_data) {
 
     // Get path to where project is being initialized
     char init_path[256];
-    if (get_path_to_init(cwd, rel_path, init_path, sizeof(init_path)) != 0) {
+    if (get_path_to_init(init_path, sizeof(init_path), cwd, rel_path) != 0) {
         return -1;
     }
 

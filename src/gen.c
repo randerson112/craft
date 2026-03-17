@@ -111,7 +111,7 @@ static int find_matching_header(const char* cwd, const char* filename, const cha
 
     // If in a project, load the project config
     char project_root[1024];
-    if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+    if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         return 0;
     }
 
@@ -139,7 +139,7 @@ static int generate_header(const char* cwd, const char* filename, const char* ex
     int in_project = 0;
     char project_root[1024];
     project_config_t config;
-    if (get_project_root(cwd, project_root, sizeof(project_root)) == 0) {
+    if (get_project_root(project_root, sizeof(project_root), cwd) == 0) {
         in_project = 1;
         if (load_project_config(&config, project_root) != 0) {
             return -1;
@@ -181,7 +181,7 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
     int in_project = 0;
     char project_root[1024];
     project_config_t config;
-    if (get_project_root(cwd, project_root, sizeof(project_root)) == 0) {
+    if (get_project_root(project_root, sizeof(project_root), cwd) == 0) {
         in_project = 1;
         if (load_project_config(&config, project_root) != 0) {
             return -1;

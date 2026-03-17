@@ -56,7 +56,7 @@ int handle_update(const command_t* command_data) {
 
     // Find project root and load project config
     char project_root[512];
-    if (get_project_root(cwd, project_root, sizeof(project_root)) != 0) {
+    if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         fprintf(stderr, "Error: Could not find craft.toml in current or any parent directory\n");
         return -1;
     }

@@ -61,7 +61,7 @@ int dir_exists(const char* path)
 }
 
 // Removes a directory recursivley, keeps track of number of files deleted, and how many bytes
-int remove_dir_recursive(const char* path, unsigned int* count, unsigned int* bytes) {
+static int remove_dir_recursive(const char* path, unsigned int* count, unsigned int* bytes) {
     DIR* dir = opendir(path);
     if (!dir) {
         return -1;
@@ -109,106 +109,6 @@ int remove_dir_count(const char* path, unsigned int* count, unsigned int* bytes)
     return remove_dir_recursive(path, count, bytes);
 }
 
-const char* get_base_name(const char* path)
-{
-    const char* last_slash = strrchr(path, '/');
-    if (last_slash)
-    {
-        return last_slash + 1;
-    }
-
-    return path;
-}
-
-int create_cpp_project(const char* path, const char* name)
-{
-    // Make include directory if one does not exist
-    char include_dir[256];
-    snprintf(include_dir, sizeof(include_dir), "%s/include", path);
-    if (!dir_exists(include_dir))
-    {
-        if (mkdir(include_dir, 0755) == 0)
-        {
-            fprintf(stdout, "Generated include directory\n");
-        }
-        else
-        {
-            fprintf(stderr, "Error: Failed to create include directory\n");
-            return -1;
-        }
-    }
-
-    // Make src directory if it does not exist
-    char src_dir[256];
-    snprintf(src_dir, sizeof(src_dir), "%s/src", path);
-    if (!dir_exists(src_dir))
-    {
-        if (mkdir(src_dir, 0755) == 0)
-        {
-            fprintf(stdout, "Generated src directory\n");
-        }
-        else
-        {
-            fprintf(stderr, "Error: Failed to create src directory\n");
-            return -1;
-        }
-    }
-
-    // Make default main.cpp if there is none
-    char main_file_path[256];
-    snprintf(main_file_path, sizeof(main_file_path), "%s/src/main.cpp", path);
-
-    if (!file_exists(main_file_path))
-    {
-        FILE* main_file = fopen(main_file_path, "w");
-        if (main_file == NULL)
-        {
-            fprintf(stderr, "Error: Failed to generate main.cpp\n");
-            return -1;
-        }
-
-        // Default source file contents if no corresponding header
-        fprintf(main_file, "#include <iostream>\n\n");
-        fprintf(main_file, "int main(int argc, char* argv[]) {\n");
-        fprintf(main_file, "   std::cout << \"This is my %s project!\" << std::endl;\n", name);
-        fprintf(main_file, "}");
-        fprintf(stdout, "Generated main.cpp\n");
-    }
-
-    // Make default CMakeLists.txt if none exists
-    char cmake_path[256];
-    snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", path);
-
-    if (!file_exists(cmake_path))
-    {
-        // Project name
-        char project_name[64];
-        strcpy(project_name, name);
-        project_name[0] = toupper(project_name[0]);
-
-        // Executable name
-        char executable_name[64];
-        strcpy(executable_name, name);
-
-        FILE* cmake_file = fopen(cmake_path, "w");
-        if (cmake_file == NULL)
-        {
-            fprintf(stderr, "Error: Failed to generate CMakeLists.txt\n");
-            return -1;
-        }
-
-        // Write default content
-        fprintf(cmake_file, "cmake_minimum_required(VERSION 3.10)\n");
-        fprintf(cmake_file, "project(%s)\n\n", project_name);
-        fprintf(cmake_file, "set(CMAKE_CXX_STANDARD 17)\n\n");
-        fprintf(cmake_file, "include_directories(include)\n\n");
-        fprintf(cmake_file, "add_executable(%s src/main.cpp)", executable_name);
-        fprintf(stdout, "Generated CMakeLists.txt\n");
-    }
-
-    return 0;
-}
-
 // Formats a number of bytes into a string with appropriate conversion
 void format_bytes(unsigned int bytes, char* buffer, unsigned int buffer_size) {
     // Gigabytes
@@ -227,6 +127,29 @@ void format_bytes(unsigned int bytes, char* buffer, unsigned int buffer_size) {
     else {
         snprintf(buffer, buffer_size, "%u B", bytes);
     }
+}
+
+static int copy_file(const char* source, const char* dest) {
+
+    // Open files
+    FILE* in = fopen(source, "rb");
+    FILE* out = fopen(dest, "wb");
+    if (!in || !out) {
+        fprintf(stderr, "Error: Failed to copy file.\n");
+        return -1;
+    }
+
+    // Read bits from file and write to destination file
+    char buffer[4096];
+    size_t bytes;
+    while ((bytes = fread(buffer, 1, sizeof(buffer), in)) > 0) {
+        fwrite(buffer, 1, bytes, out);
+    }
+
+    // Close files
+    fclose(in);
+    fclose(out);
+    return 0;
 }
 
 int copy_dir_contents(const char* source_dir, const char* dest_dir, const char** excludes, size_t exclude_count) {
@@ -280,29 +203,6 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir, const char**
     return 0;
 }
 
-int copy_file(const char* source, const char* dest) {
-
-    // Open files
-    FILE* in = fopen(source, "rb");
-    FILE* out = fopen(dest, "wb");
-    if (!in || !out) {
-        fprintf(stderr, "Error: Failed to copy file.\n");
-        return -1;
-    }
-
-    // Read bits from file and write to destination file
-    char buffer[4096];
-    size_t bytes;
-    while ((bytes = fread(buffer, 1, sizeof(buffer), in)) > 0) {
-        fwrite(buffer, 1, bytes, out);
-    }
-
-    // Close files
-    fclose(in);
-    fclose(out);
-    return 0;
-}
-
 int get_craft_home(char* buffer, size_t buffer_size) {
     char* craft_home = getenv("CRAFT_HOME");
     if (craft_home) {
@@ -320,7 +220,7 @@ int get_craft_home(char* buffer, size_t buffer_size) {
     return -1;
 }
 
-int get_project_root(const char* cwd, char* buffer, size_t buffer_size) {
+int get_project_root(char* buffer, size_t buffer_size, const char* cwd) {
     char current_path[512];
     strncpy(current_path, cwd, sizeof(current_path));
 
@@ -376,7 +276,7 @@ int get_template_directory(char* buffer, size_t buffer_size, const char* type, c
 
 // Calculates the minimum number of changes needed to make one string equal another
 // Used for suggestions when the user misspells a value
-int levenshtein_distance(const char* s1, const char* s2) {
+static int levenshtein_distance(const char* s1, const char* s2) {
     int len1 = strlen(s1);
     int len2 = strlen(s2);
     int matrix[64][64];
