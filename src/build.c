@@ -9,7 +9,7 @@
 #include "deps.h"
 
 // Builds a project by creating a build directory and running cmake
-int buildProject(const char* cwd)
+int build_project(const char* cwd)
 {
     // Get path to root of the project
     char project_root[512];
@@ -19,9 +19,9 @@ int buildProject(const char* cwd)
     }
 
     // Check if CMakeLists.txt exists in the project root
-    char cmakePath[256];
-    snprintf(cmakePath, sizeof(cmakePath), "%s/CMakeLists.txt", project_root);
-    if (!fileExists(cmakePath))
+    char cmake_path[256];
+    snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_root);
+    if (!file_exists(cmake_path))
     {
         fprintf(stderr, "Error: Could not find CMakeLists.txt in this directory\n");
         return -1;
@@ -53,11 +53,11 @@ int buildProject(const char* cwd)
     }
 
     // Create a build directory if it does not exist
-    char buildDir[256];
-    snprintf(buildDir, sizeof(buildDir), "%s/build", project_root);
-    if (!dirExists(buildDir))
+    char build_dir[256];
+    snprintf(build_dir, sizeof(build_dir), "%s/build", project_root);
+    if (!dir_exists(build_dir))
     {
-        if (mkdir(buildDir, 0755) == 0)
+        if (mkdir(build_dir, 0755) == 0)
         {
             fprintf(stdout, "Generated build directory\n");
         }
@@ -75,7 +75,7 @@ int buildProject(const char* cwd)
     fprintf(stdout, "Building project\n");
     
     char command[512];
-    snprintf(command, sizeof(command), "cd %s && cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build .", buildDir);
+    snprintf(command, sizeof(command), "cd %s && cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build .", build_dir);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to build project\n");
@@ -87,7 +87,7 @@ int buildProject(const char* cwd)
     return 0;
 }
 
-int build() {
+int handle_build() {
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
     if (getcwd(cwd, sizeof(cwd)) == NULL)
@@ -96,5 +96,5 @@ int build() {
         return -1;
     }
 
-    return buildProject(cwd);
+    return build_project(cwd);
 }

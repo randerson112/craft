@@ -2,6 +2,6 @@
 #define CLEAN_H
 
 // clean command handler
-int clean();
+int handle_clean();
 
 #endif // CLEAN_H

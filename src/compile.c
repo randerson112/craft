@@ -14,14 +14,14 @@ int compile_file(const char* cwd, const char* source_path, const char* output_pa
     snprintf(full_source_path, sizeof(full_source_path), "%s/%s", cwd, source_path);
     snprintf(full_output_path, sizeof(full_output_path), "%s/%s", cwd, output_path);
 
-    if (!fileExists(full_source_path)) {
+    if (!file_exists(full_source_path)) {
         fprintf(stderr, "Error: Source file '%s' does not exist\n", source_path);
         return -1;
     }
 
     // Get extension of source file
     char extension[8];
-    getExtension(source_path, extension, sizeof(extension));
+    get_extension(source_path, extension, sizeof(extension));
 
     // Write compile command
     char command[1024];
@@ -53,7 +53,7 @@ int compile_file(const char* cwd, const char* source_path, const char* output_pa
     }
 }
 
-int compile(command_t* command_data) {
+int handle_compile(const command_t* command_data) {
     
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
@@ -76,7 +76,7 @@ int compile(command_t* command_data) {
 
     // No output path was specified, make default output path
     char output_path[512];
-    stripExtension(source_path, output_path);
+    strip_extension(source_path, output_path);
 
     // Compile
     return compile_file(cwd, source_path, output_path);

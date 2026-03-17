@@ -5,34 +5,34 @@
 #include "parser.h"
 
 // Strips extension off a file and writes it to stripped file buffer
-void stripExtension(const char* file, char* strippedFile);
+void strip_extension(const char* file, char* stripped_file);
 
 // Gets the extension of a file and writes it to extension buffer
-void getExtension(const char* file, char* extension, int extensionSize);
+void get_extension(const char* file, char* extension, int extension_size);
 
 // Check if a file exists
-int fileExists(const char* path);
+int file_exists(const char* path);
 
 // Check if a directory exists
-int dirExists(const char* path);
+int dir_exists(const char* path);
 
 // Removes a directory recursively, called by the two functions below
-int removeDirRecursive(const char* path, unsigned int* count, unsigned int* bytes);
+int remove_dir_recursive(const char* path, unsigned int* count, unsigned int* bytes);
 
 // Removes a directory without keeping track of counts
-int removeDir(const char* path);
+int remove_dir(const char* path);
 
 // Removes a directory and keeps track of counts
-int removeDirCount(const char* path, unsigned int* count, unsigned int* bytes);
+int remove_dir_count(const char* path, unsigned int* count, unsigned int* bytes);
 
 // Gets name of base directory from a full path
-const char* getBaseName(const char* path);
+const char* get_base_name(const char* path);
 
 // Creates starter project files and directorys at the given path
-int createCppProject(const char* path, const char* name);
+int create_cpp_project(const char* path, const char* name);
 
 // Formats a number of bytes into a string with appropriate conversion
-void formatBytes(unsigned int bytes, char* buffer, unsigned int bufferSize);
+void format_bytes(unsigned int bytes, char* buffer, unsigned int buffer_size);
 
 // Copy all contents of a directory into another directory recursively, excluding certain files if needed
 int copy_dir_contents(const char* source_dir, const char* dest_dir, const char** excludes, size_t exclude_count);

@@ -13,10 +13,10 @@ int create_project_from_template(const char* path, const char* template, const c
 
     // Check for template in custom templates
     get_template_directory(template_dir, sizeof(template_dir), "custom", lang, template);
-    if (!dirExists(template_dir)) {
+    if (!dir_exists(template_dir)) {
         // Check for template in builtin templates
         get_template_directory(template_dir, sizeof(template_dir), "builtin", lang, template);
-        if (!dirExists(template_dir)) {
+        if (!dir_exists(template_dir)) {
             // Template not found
             fprintf(stderr, "Template '%s' not found for language '%s'\n", template, lang);
             return -1;
@@ -64,16 +64,16 @@ int create_project_from_template(const char* path, const char* template, const c
 int get_project_path(const char* cwd, const char* rel_path, char* buffer)
 {
     // Check if directory at path already exists
-    char fullPath[256];
-    snprintf(fullPath, sizeof(fullPath), "%s/%s", cwd, rel_path);
+    char full_path[256];
+    snprintf(full_path, sizeof(full_path), "%s/%s", cwd, rel_path);
 
-    if (dirExists(fullPath))
+    if (dir_exists(full_path))
     {
         fprintf(stderr, "Error: Directory with that name already exists\n");
         return -1;
     }
 
-    strcpy(buffer, fullPath);
+    strcpy(buffer, full_path);
     return 0;
 }
 
@@ -86,7 +86,7 @@ void get_project_name(const char* path, char* buffer, size_t buffer_size) {
     strncpy(buffer, name, buffer_size);
 }
 
-int project(command_t* command_data) {
+int handle_project(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
     if (getcwd(cwd, sizeof(cwd)) == NULL)

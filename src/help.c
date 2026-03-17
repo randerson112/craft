@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void printCraftInfo() {
+void print_craft_info() {
     fprintf(stdout, "Craft - A lightweight C/C++ build tool\n\n");
     fprintf(stdout, "Usage:\n");
     fprintf(stdout, "    craft <command> [args] [options]\n\n");
@@ -40,7 +40,7 @@ void printCraftInfo() {
     fprintf(stdout, "    Run 'craft help craft.toml' for details on the project config file.\n");
 }
 
-static void printProjectHelp() {
+static void print_project_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft project - Create a new project at the given path.\n\n");
 
@@ -65,7 +65,7 @@ static void printProjectHelp() {
     fprintf(stdout, "    craft project MyLib --template static-library\n");
 }
 
-static void printInitHelp() {
+static void print_init_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft init - Initialize a project in the current or specified directory.\n\n");
 
@@ -90,7 +90,7 @@ static void printInitHelp() {
     fprintf(stdout, "    craft init --template static-library\n");
 }
 
-static void printBuildHelp() {
+static void print_build_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft build - Build the project in the current directory.\n\n");
 
@@ -106,7 +106,7 @@ static void printBuildHelp() {
     fprintf(stdout, "    craft build\n");
 }
 
-static void printCompileHelp() {
+static void print_compile_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft compile - Compile a single source file into an executable.\n\n");
 
@@ -127,7 +127,7 @@ static void printCompileHelp() {
     fprintf(stdout, "    craft compile main.cpp app\n");
 }
 
-static void printRunHelp() {
+static void print_run_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft run - Run a compiled executable.\n\n");
 
@@ -147,7 +147,7 @@ static void printRunHelp() {
     fprintf(stdout, "    craft run MyApp\n");
 }
 
-static void printGenHelp() {
+static void print_gen_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft gen - Generate a file with boilerplate.\n\n");
 
@@ -169,7 +169,7 @@ static void printGenHelp() {
     fprintf(stdout, "    craft gen math.c\n");
 }
 
-static void printCleanHelp() {
+static void print_clean_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft clean - Remove the build directory and all compiled artifacts.\n\n");
 
@@ -185,7 +185,7 @@ static void printCleanHelp() {
     fprintf(stdout, "    craft clean\n");
 }
 
-static void printAddHelp() {
+static void print_add_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft add - Add a dependency to the project.\n\n");
 
@@ -219,7 +219,7 @@ static void printAddHelp() {
     fprintf(stdout, "    Run 'craft build' after adding a dependency to compile it.\n");
 }
 
-static void printRemoveHelp() {
+static void print_remove_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft remove - Remove a dependency from the project.\n\n");
 
@@ -242,7 +242,7 @@ static void printRemoveHelp() {
     fprintf(stdout, "    Run 'craft clean && craft build' to fully rebuild without the dependency.\n");
 }
 
-static void printUpdateHelp() {
+static void print_update_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft update - Update git dependencies to their latest version.\n\n");
 
@@ -267,7 +267,7 @@ static void printUpdateHelp() {
     fprintf(stdout, "    Run 'craft build' after updating to rebuild with the new versions.\n");
 }
 
-static void printHelpHelp() {
+static void print_help_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft help - Show help for Craft commands and subcommands.\n\n");
 
@@ -284,7 +284,7 @@ static void printHelpHelp() {
     fprintf(stdout, "    craft help craft.toml\n");
 }
 
-static void printTemplateHelp() {
+static void print_template_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft template - Manage project templates.\n\n");
 
@@ -316,7 +316,7 @@ static void printTemplateHelp() {
     fprintf(stdout, "    Run 'craft help template <subcommand>' for details on a subcommand.\n");
 }
 
-static void printConfigHelp() {
+static void print_config_help() {
     fprintf(stdout, "Command:\n");
     fprintf(stdout, "    craft config - Manage global Craft configuration.\n\n");
 
@@ -349,7 +349,7 @@ static void printConfigHelp() {
     fprintf(stdout, "    Run 'craft help config <subcommand>' for details on a subcommand.\n");
 }
 
-static int printTemplateSubcommandHelp(const char* subcommand) {
+static int print_template_subcommand_help(const char* subcommand) {
     if (strcmp(subcommand, "save") == 0) {
         fprintf(stdout, "Subcommand:\n");
         fprintf(stdout, "    craft template save - Save the current project as a template.\n\n");
@@ -445,7 +445,7 @@ static int printTemplateSubcommandHelp(const char* subcommand) {
     return 0;
 }
 
-static int printConfigSubcommandHelp(const char* subcommand) {
+static int print_config_subcommand_help(const char* subcommand) {
     if (strcmp(subcommand, "set") == 0) {
         fprintf(stdout, "Subcommand:\n");
         fprintf(stdout, "    craft config set - Set a global config value.\n\n");
@@ -501,7 +501,7 @@ static int printConfigSubcommandHelp(const char* subcommand) {
     return 0;
 }
 
-static void printCraftTomlHelp() {
+static void print_craft_toml_help() {
     fprintf(stdout, "craft.toml - Project configuration file\n\n");
 
     fprintf(stdout, "Description:\n");
@@ -555,10 +555,10 @@ static void printCraftTomlHelp() {
     fprintf(stdout, "    Run 'craft help add' for details on adding dependencies.\n");
 }
 
-int help(command_t* command_data) {
+int handle_help(const command_t* command_data) {
     // No arguments, print general info
     if (command_data->arg_count == 0) {
-        printCraftInfo();
+        print_craft_info();
         return 0;
     }
 
@@ -566,7 +566,7 @@ int help(command_t* command_data) {
 
     // craft.toml help
     if (strcmp(topic, "craft.toml") == 0) {
-        printCraftTomlHelp();
+        print_craft_toml_help();
         return 0;
     }
 
@@ -574,27 +574,27 @@ int help(command_t* command_data) {
     if (command_data->arg_count == 2) {
         const char* subcommand = command_data->args[1];
         if (strcmp(topic, "template") == 0)
-            return printTemplateSubcommandHelp(subcommand);
+            return print_template_subcommand_help(subcommand);
         if (strcmp(topic, "config") == 0)
-            return printConfigSubcommandHelp(subcommand);
+            return print_config_subcommand_help(subcommand);
         fprintf(stderr, "Error: '%s' does not have subcommands\n", topic);
         return -1;
     }
 
     // Command help
-    if (strcmp(topic, "project") == 0)        { printProjectHelp();  return 0; }
-    if (strcmp(topic, "init") == 0)           { printInitHelp();     return 0; }
-    if (strcmp(topic, "build") == 0)          { printBuildHelp();    return 0; }
-    if (strcmp(topic, "compile") == 0)        { printCompileHelp();  return 0; }
-    if (strcmp(topic, "run") == 0)            { printRunHelp();      return 0; }
-    if (strcmp(topic, "gen") == 0)            { printGenHelp();      return 0; }
-    if (strcmp(topic, "clean") == 0)          { printCleanHelp();    return 0; }
-    if (strcmp(topic, "add") == 0)            { printAddHelp();      return 0; }
-    if (strcmp(topic, "remove") == 0)         { printRemoveHelp();   return 0; }
-    if (strcmp(topic, "update") == 0)         { printUpdateHelp();   return 0; }
-    if (strcmp(topic, "help") == 0)           { printHelpHelp();     return 0; }
-    if (strcmp(topic, "template") == 0)       { printTemplateHelp(); return 0; }
-    if (strcmp(topic, "config") == 0)         { printConfigHelp();   return 0; }
+    if (strcmp(topic, "project") == 0)        { print_project_help();  return 0; }
+    if (strcmp(topic, "init") == 0)           { print_init_help();     return 0; }
+    if (strcmp(topic, "build") == 0)          { print_build_help();    return 0; }
+    if (strcmp(topic, "compile") == 0)        { print_compile_help();  return 0; }
+    if (strcmp(topic, "run") == 0)            { print_run_help();      return 0; }
+    if (strcmp(topic, "gen") == 0)            { print_gen_help();      return 0; }
+    if (strcmp(topic, "clean") == 0)          { print_clean_help();    return 0; }
+    if (strcmp(topic, "add") == 0)            { print_add_help();      return 0; }
+    if (strcmp(topic, "remove") == 0)         { print_remove_help();   return 0; }
+    if (strcmp(topic, "update") == 0)         { print_update_help();   return 0; }
+    if (strcmp(topic, "help") == 0)           { print_help_help();     return 0; }
+    if (strcmp(topic, "template") == 0)       { print_template_help(); return 0; }
+    if (strcmp(topic, "config") == 0)         { print_config_help();   return 0; }
 
     // Unknown topic
     fprintf(stderr, "Error: No help available for '%s'\n", topic);

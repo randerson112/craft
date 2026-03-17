@@ -4,6 +4,6 @@
 #include "parser.h"
 
 // Gen command handler
-int gen(const command_t* command_data);
+int handle_gen(const command_t* command_data);
 
 #endif // GEN_H

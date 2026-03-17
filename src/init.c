@@ -12,7 +12,7 @@ int project_exists(const char* path) {
     char toml_path[512];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
 
-    if (fileExists(toml_path)) {
+    if (file_exists(toml_path)) {
         return 1;
     }
 
@@ -22,27 +22,27 @@ int project_exists(const char* path) {
 // Gets the full path to directory to initialize from the cwd and relative path
 int get_path_to_init(const char* cwd, const char* rel_path, char* buffer, size_t buffer_size) {
     // Get full path to specified directory
-    char fullPath[256];
+    char full_path[256];
     if (rel_path) {
-        snprintf(fullPath, sizeof(fullPath), "%s/%s", cwd, rel_path);
+        snprintf(full_path, sizeof(full_path), "%s/%s", cwd, rel_path);
     }
     else {
-        snprintf(fullPath, sizeof(fullPath), "%s", cwd);
+        snprintf(full_path, sizeof(full_path), "%s", cwd);
     }
 
     // Make sure directory exists
-    if (!dirExists(fullPath))
+    if (!dir_exists(full_path))
     {
         fprintf(stderr, "Error: Directory does not exist\n");
         return -1;
     }
 
     // Copy path to buffer
-    snprintf(buffer, buffer_size, "%s", fullPath);
+    snprintf(buffer, buffer_size, "%s", full_path);
     return 0;
 }
 
-int init(command_t* command_data) {
+int handle_init(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
     if (getcwd(cwd, sizeof(cwd)) == NULL)

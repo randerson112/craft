@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
             return dispatch(&command_data);
             
         case PARSE_MISSING_COMMAND:
-            printCraftInfo();
+            print_craft_info();
             return 0;
         
         case PARSE_FAIL:

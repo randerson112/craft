@@ -9,7 +9,7 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
     snprintf(dep_path, sizeof(dep_path), "%s/.craft/deps/%s", project_root, dep->name);
 
     // Skip if dependency is already cloned
-    if (dirExists(dep_path)) {
+    if (dir_exists(dep_path)) {
         return 0;
     }
 
@@ -53,8 +53,8 @@ void delete_dependency_dir(const char* project_root, const char* dep_name) {
     char dep_dir[512];
     snprintf(dep_dir, sizeof(dep_dir), "%s/.craft/deps/%s", project_root, dep_name);
 
-    if (dirExists(dep_dir)) {
-        removeDir(dep_dir);
+    if (dir_exists(dep_dir)) {
+        remove_dir(dep_dir);
     }
 }
 

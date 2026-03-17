@@ -12,7 +12,7 @@ int builtin_template_exists(const char* name, const char* language) {
     char builtin_path[512];
     get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
 
-    if (dirExists(builtin_path)) {
+    if (dir_exists(builtin_path)) {
         return 1;
     }
 
@@ -20,7 +20,7 @@ int builtin_template_exists(const char* name, const char* language) {
 }
 
 // Saves the current project structure as a template with the given name
-static int handle_save(command_t* command_data) {
+static int handle_save(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
     if (getcwd(cwd, sizeof(cwd)) == NULL)
@@ -81,7 +81,7 @@ static int handle_save(command_t* command_data) {
 }
 
 // Updates an existing template with the current project structure
-static int handle_update(command_t* command_data) {
+static int handle_update(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
     if (getcwd(cwd, sizeof(cwd)) == NULL)
@@ -113,13 +113,13 @@ static int handle_update(command_t* command_data) {
     // Get the path to where the template is saved
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
-    if (!dirExists(template_dir)) {
+    if (!dir_exists(template_dir)) {
         fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
     // Delete old template contents and copy project contents to template, excluding .craft and build
-    removeDir(template_dir);
+    remove_dir(template_dir);
     mkdir(template_dir, 0755);
     const char* excludes[] = {".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
     if (copy_dir_contents(project_root, template_dir, excludes, 4) != 0) {
@@ -135,7 +135,7 @@ static int handle_update(command_t* command_data) {
 }
 
 // Deletes a template by name
-static int handle_delete(command_t* command_data) {
+static int handle_delete(const command_t* command_data) {
 
     // Load global config for default language
     craft_config_t config;
@@ -155,16 +155,16 @@ static int handle_delete(command_t* command_data) {
     // Get path to template
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
-    if (!dirExists(template_dir)) {
+    if (!dir_exists(template_dir)) {
         fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
     // Delete template contents
-    return removeDir(template_dir);
+    return remove_dir(template_dir);
 }
 
-static int handle_where(command_t* command_data) {
+static int handle_where(const command_t* command_data) {
 
     // Load global config for default language
     craft_config_t config;
@@ -184,7 +184,7 @@ static int handle_where(command_t* command_data) {
     // Get the path to where the template is saved
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
-    if (!dirExists(template_dir)) {
+    if (!dir_exists(template_dir)) {
         fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
@@ -195,7 +195,7 @@ static int handle_where(command_t* command_data) {
 }
 
 // Shows a listing of all builtin and custom templates
-static int handle_list(command_t* command_data) {
+static int handle_list(const command_t* command_data) {
 
     // Load global config for default language
     craft_config_t config;
@@ -320,14 +320,14 @@ int template_exists(const char* name, const char* language) {
     get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
     get_template_directory(custom_path, sizeof(custom_path), "custom", language, name);
 
-    if (dirExists(builtin_path) || dirExists(custom_path)) {
+    if (dir_exists(builtin_path) || dir_exists(custom_path)) {
         return 1;
     }
 
     return 0;
 }
 
-int handle_template(command_t* command_data) {
+int handle_template(const command_t* command_data) {
     const char* subcommand = command_data->subcommand;
 
     if (strcmp(subcommand, "save") == 0) {

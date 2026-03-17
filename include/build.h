@@ -2,6 +2,6 @@
 #define BUILD_H
 
 // build command handler
-int build();
+int handle_build();
 
 #endif // BUILD_H

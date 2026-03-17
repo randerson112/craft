@@ -104,7 +104,7 @@ static int find_matching_header(const char* cwd, const char* filename, const cha
 
     // Check cwd first
     snprintf(path, sizeof(path), "%s/%s.%s", cwd, filename, extension);
-    if (fileExists(path)) {
+    if (file_exists(path)) {
         fprintf(stdout, "Matching header found in current directory\n");
         return 1;
     }
@@ -123,7 +123,7 @@ static int find_matching_header(const char* cwd, const char* filename, const cha
     // Look in include_dirs in craft.toml for header
     for (int i = 0; i < config.include_dir_count; i++) {
         snprintf(path, sizeof(path), "%s/%s/%s.%s", project_root, config.include_dirs[i], filename, extension);
-        if (fileExists(path)) {
+        if (file_exists(path)) {
             fprintf(stdout, "Matching header found in '%s'\n", config.include_dirs[i]);
             return 1;
         }
@@ -160,7 +160,7 @@ static int generate_header(const char* cwd, const char* filename, const char* ex
     }
 
     // Make sure file doesn't already exist at the destination
-    if (fileExists(dest)) {
+    if (file_exists(dest)) {
         fprintf(stderr, "Error: '%s.%s' already exists\n", filename, extension);
         return -1;
     }
@@ -206,7 +206,7 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
     }
 
     // Make sure file doesn't already exist
-    if (fileExists(dest)) {
+    if (file_exists(dest)) {
         fprintf(stderr, "Error: '%s.%s' already exists\n", filename, extension);
         return -1;
     }
@@ -220,7 +220,7 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
     }
 }
 
-int gen(const command_t* command_data) {
+int handle_gen(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
     char cwd[4096];
@@ -232,10 +232,10 @@ int gen(const command_t* command_data) {
     // Split filename and extension
     const char* arg = command_data->args[0];
     char filename[256];
-    stripExtension(arg, filename);
+    strip_extension(arg, filename);
 
     char extension[8];
-    getExtension(arg, extension, sizeof(extension));
+    get_extension(arg, extension, sizeof(extension));
 
     // Generate file based on extension
     if (strcmp(extension, "h") == 0 || strcmp(extension, "hpp") == 0) {

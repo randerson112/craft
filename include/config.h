@@ -54,6 +54,6 @@ int generate_craft_toml(const char* project_path, project_config_t* config);
 int validate_project_config(project_config_t* config);
 
 // Config command handler
-int handle_config(command_t* command_data);
+int handle_config(const command_t* command_data);
 
 #endif // CONFIG_H

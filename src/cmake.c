@@ -177,7 +177,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
 
     // Has CMakeLists.txt but not a Craft project
     // Use add_subdirectory with user provided links
-    else if (fileExists(dep_cmake)) {
+    else if (file_exists(dep_cmake)) {
         fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->name, dep->name);
 
         if (dep->links_count > 0) {

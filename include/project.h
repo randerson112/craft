@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // Project command handler
-int project(command_t* command_data);
+int handle_project(const command_t* command_data);
 
 // Gets the name of a project by taking the last name of the path
 void get_project_name(const char* path, char* buffer, size_t buffer_size);

@@ -279,7 +279,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
     // Get path to craft.toml
     char toml_path[1024];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_root);
-    if (!fileExists(toml_path)) {
+    if (!file_exists(toml_path)) {
         fprintf(stderr, "Error: no craft.toml found in '%s'\n", project_root);
         return -1;
     }
@@ -592,7 +592,7 @@ int validate_project_config(project_config_t* config) {
 }
 
 // Subcommand handler for config set to set a global config value
-int handle_set(command_t* command_data) {
+int handle_set(const command_t* command_data) {
 
     // Load config values
     craft_config_t config;
@@ -679,7 +679,7 @@ int handle_set(command_t* command_data) {
 }
 
 // Subcommand handler for config get to read a global config value
-int handle_get(command_t* command_data) {
+int handle_get(const command_t* command_data) {
 
     // Get config key argument
     const char* lookup = command_data->args[0];
@@ -756,7 +756,7 @@ int handle_list() {
     return 0;
 }
 
-int handle_config(command_t* command_data) {
+int handle_config(const command_t* command_data) {
     const char* subcommand = command_data->subcommand;
 
     if (strcmp(subcommand, "set") == 0) {

@@ -76,7 +76,7 @@ static int validate_path_dependency(const char* project_root, const char* path) 
     // Get path to dependency project root
     char dep_project_root[512];
     snprintf(dep_project_root, sizeof(dep_project_root), "%s/%s", project_root, path);
-    if (!dirExists(dep_project_root)) {
+    if (!dir_exists(dep_project_root)) {
         fprintf(stderr, "Error: path '%s' does not exist or is not a directory\n", path);
         return -1;
     }
@@ -196,7 +196,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
     return 0;
 }
 
-int add(const command_t* command_data) {
+int handle_add(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
     char cwd[4096];

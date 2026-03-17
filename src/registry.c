@@ -30,8 +30,8 @@ int registry_find(const char* name, registry_kit_t* kit) {
     snprintf(registry_cache_path, sizeof(registry_cache_path), "%s/registry", craft_home);
     
     // Clone the registry to craft home
-    if (dirExists(registry_cache_path)) {
-        removeDir(registry_cache_path);
+    if (dir_exists(registry_cache_path)) {
+        remove_dir(registry_cache_path);
     }
     if (fetch_craft_registry(registry_cache_path) != 0) {
         return -1;
@@ -40,7 +40,7 @@ int registry_find(const char* name, registry_kit_t* kit) {
     // Check if kit is in the registry
     char kit_toml_path[512];
     snprintf(kit_toml_path, sizeof(kit_toml_path), "%s/kits/%s.toml", registry_cache_path, name);
-    if (!fileExists(kit_toml_path)) {
+    if (!file_exists(kit_toml_path)) {
         fprintf(stderr, "Error: '%s' is not in the registry\n\n", name);
         fprintf(stderr, "Tip: Use --git to fetch a dependency from github.\n");
         fprintf(stderr, "     Also consider adding the desired kit to the registry\n");

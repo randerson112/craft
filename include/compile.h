@@ -26,6 +26,6 @@
 #include "parser.h"
 
 // compile command handler
-int compile(command_t* command_data);
+int handle_compile(const command_t* command_data);
 
 #endif // COMPILE_H
