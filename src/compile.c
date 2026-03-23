@@ -4,6 +4,7 @@
 #include "ctype.h"
 #include "stdlib.h"
 #include "string.h"
+#include "platform.h"
 
 // Compiles a source file and writes the executable to the output file
 int compile_file(const char* cwd, const char* source_path, const char* output_path) 

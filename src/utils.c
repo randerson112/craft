@@ -1,11 +1,9 @@
 #include "utils.h"
-#include <unistd.h>
+#include "platform.h"
+
 #include <sys/stat.h>
 #include <stdio.h>
-#include <ctype.h>
 #include <string.h>
-#include <dirent.h>
-#include <stdlib.h>
 
 void strip_extension(const char* file, char* stripped_file)
 {
@@ -62,27 +60,27 @@ int dir_exists(const char* path)
 
 // Removes a directory recursivley, keeps track of number of files deleted, and how many bytes
 static int remove_dir_recursive(const char* path, unsigned int* count, unsigned int* bytes) {
-    DIR* dir = opendir(path);
+    dir_t* dir = open_dir(path);
     if (!dir) {
         return -1;
     }
 
-    struct dirent* entry;
+    dir_entry_t entry;
     char buffer[1024];
 
-    while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+    while (read_dir(dir, &entry)) {
+        if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
             continue;
         }
 
-        snprintf(buffer, sizeof(buffer), "%s/%s", path, entry->d_name);
+        snprintf(buffer, sizeof(buffer), "%s/%s", path, entry.name);
 
         struct stat statbuff;
         stat(buffer, &statbuff);
 
         if (bytes) *bytes += statbuff.st_size;
         if (count) (*count)++;
-        if (S_ISDIR(statbuff.st_mode)) {
+        if (entry.is_dir) {
             remove_dir_recursive(buffer, count, bytes);
         }
         else {
@@ -90,7 +88,7 @@ static int remove_dir_recursive(const char* path, unsigned int* count, unsigned 
         }
     }
 
-    closedir(dir);
+    close_dir(dir);
     return rmdir(path);
 }
 
@@ -155,23 +153,23 @@ static int copy_file(const char* source, const char* dest) {
 int copy_dir_contents(const char* source_dir, const char* dest_dir, const char** excludes, size_t exclude_count) {
 
     // Open source directory
-    DIR* dir = opendir(source_dir);
+    dir_t* dir = open_dir(source_dir);
     if (!dir) {
         fprintf(stderr, "Error: Failed to copy directory contents.\n");
         return -1;
     }
 
     // Read all entries in directory
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+    dir_entry_t entry;
+    while (read_dir(dir, &entry)) {
+        if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
             continue;
         }
 
         // Check if file or dir should be excluded
         int should_exclude = 0;
         for (int i = 0; i < exclude_count; i++) {
-            if (strcmp(entry->d_name, excludes[i]) == 0) {
+            if (strcmp(entry.name, excludes[i]) == 0) {
                 should_exclude = 1;
                 break;
             }
@@ -179,16 +177,16 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir, const char**
         if (should_exclude) continue;
 
         // Get the full path to source entry and destination entry
-        char source_path[1024];
-        char dest_path[1024];
-        snprintf(source_path, sizeof(source_path), "%s/%s", source_dir, entry->d_name);
-        snprintf(dest_path, sizeof(dest_path), "%s/%s", dest_dir, entry->d_name);
+        char source_path[PATH_SIZE];
+        char dest_path[PATH_SIZE];
+        snprintf(source_path, sizeof(source_path), "%s/%s", source_dir, entry.name);
+        snprintf(dest_path, sizeof(dest_path), "%s/%s", dest_dir, entry.name);
 
         struct stat statbuff;
         stat(source_path, &statbuff);
 
         // If entry is directory, copy contents recursively
-        if (S_ISDIR(statbuff.st_mode)) {
+        if (entry.is_dir) {
             mkdir(dest_path, 0755);
             copy_dir_contents(source_path, dest_path, excludes, exclude_count);
         }
@@ -199,7 +197,7 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir, const char**
     }
 
     // Close source directory
-    closedir(dir);
+    close_dir(dir);
     return 0;
 }
 
@@ -210,7 +208,12 @@ int get_craft_home(char* buffer, size_t buffer_size) {
         return 0;
     }
 
-    char* user_home = getenv("HOME");
+    #ifdef _WIN32
+        char* user_home = getenv("USERPROFILE");
+    #else
+        char* user_home = getenv("HOME");
+    #endif
+
     if (user_home) {
         snprintf(buffer, buffer_size, "%s/.craft", user_home);
         return 0;

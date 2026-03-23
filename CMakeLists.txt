@@ -11,11 +11,7 @@ file(GLOB_RECURSE SOURCES "src/*.c")
 
 add_executable(craft ${SOURCES})
 
-target_include_directories(craft PRIVATE include lib/tomlc17)
-
-target_link_directories(craft PRIVATE ${CMAKE_SOURCE_DIR}/lib/tomlc17)
-
-target_link_libraries(craft PRIVATE tomlc17)
+target_include_directories(craft PRIVATE include)
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
     include(${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)

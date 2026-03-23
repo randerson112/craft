@@ -6,6 +6,7 @@
 #include "project.h"
 #include "config.h"
 #include "cmake.h"
+#include "platform.h"
 
 // Checks if a Craft project exists at the path
 int project_exists(const char* path) {

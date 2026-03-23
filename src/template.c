@@ -1,10 +1,10 @@
 #include "template.h"
 #include <stdio.h>
 #include "utils.h"
-#include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
 #include "config.h"
+#include "platform.h"
 
 // Checks if a builtin template exists for a certain language
 // Prevents the user from creating custom templates with same name as a builtin
@@ -227,7 +227,7 @@ static int handle_list(const command_t* command_data) {
     // Print builtin templates of specified language
     char builtin_templates_dir[512];
     get_template_directory(builtin_templates_dir, sizeof(builtin_templates_dir), "builtin", language, NULL);
-    DIR* bi_dir = opendir(builtin_templates_dir);
+    dir_t* bi_dir = open_dir(builtin_templates_dir);
     if (!bi_dir) {
         fprintf(stderr, "[Fatal Error]: Failed to open builtin templates for language '%s'\n", language);
         return -1;
@@ -235,21 +235,21 @@ static int handle_list(const command_t* command_data) {
 
     fprintf(stdout, "Built-in templates (%s):\n", language);
 
-    struct dirent* entry;
-    while ((entry = readdir(bi_dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+    dir_entry_t entry;
+    while (read_dir(bi_dir, &entry)) {
+        if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
             continue;
         }
 
-        fprintf(stdout, "\t%s\n", entry->d_name);
+        fprintf(stdout, "\t%s\n", entry.name);
     }
     fprintf(stdout, "\n");
-    closedir(bi_dir);
+    close_dir(bi_dir);
 
     // Print builtin templates of other language if show all is on
     if (show_all) {
         get_template_directory(builtin_templates_dir, sizeof(builtin_templates_dir), "builtin", other_language, NULL);
-        bi_dir = opendir(builtin_templates_dir);
+        bi_dir = open_dir(builtin_templates_dir);
         if (!bi_dir) {
             fprintf(stderr, "[Fatal Error]: Failed to open builtin templates for language '%s'\n", other_language);
             return -1;
@@ -257,21 +257,21 @@ static int handle_list(const command_t* command_data) {
 
         fprintf(stdout, "Built-in templates (%s):\n", other_language);
 
-        while ((entry = readdir(bi_dir)) != NULL) {
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        while (read_dir(bi_dir, &entry)) {
+            if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
                 continue;
             }
 
-            fprintf(stdout, "\t%s\n", entry->d_name);
+            fprintf(stdout, "\t%s\n", entry.name);
         }
         fprintf(stdout, "\n");
-        closedir(bi_dir);
+        close_dir(bi_dir);
     }
 
     // Print custom templates of specified language
     char custom_templates_dir[512];
     get_template_directory(custom_templates_dir, sizeof(custom_templates_dir), "custom", language, NULL);
-    DIR* c_dir = opendir(custom_templates_dir);
+    dir_t* c_dir = open_dir(custom_templates_dir);
     if (!c_dir) {
         fprintf(stderr, "[Fatal Error]: Failed to open custom templates for language '%s'\n", language);
         return -1;
@@ -279,21 +279,21 @@ static int handle_list(const command_t* command_data) {
 
     fprintf(stdout, "Custom templates (%s):\n", language);
 
-    while ((entry = readdir(c_dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+    while (read_dir(c_dir, &entry)) {
+        if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
             continue;
         }
 
-        fprintf(stdout, "\t%s\n", entry->d_name);
+        fprintf(stdout, "\t%s\n", entry.name);
     }
-    closedir(c_dir);
+    close_dir(c_dir);
 
     // Print builtin templates of other language if show all is on
     if (show_all) {
         fprintf(stdout, "\n");
         get_template_directory(custom_templates_dir, sizeof(custom_templates_dir), "custom", other_language, NULL);
 
-        c_dir = opendir(custom_templates_dir);
+        c_dir = open_dir(custom_templates_dir);
         if (!c_dir) {
             fprintf(stderr, "[Fatal Error]: Failed to open custom templates for language '%s'\n", other_language);
             return -1;
@@ -301,14 +301,14 @@ static int handle_list(const command_t* command_data) {
 
         fprintf(stdout, "Custom templates (%s):\n", other_language);
 
-        while ((entry = readdir(c_dir)) != NULL) {
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        while (read_dir(c_dir, &entry)) {
+            if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
                 continue;
             }
 
-            fprintf(stdout, "\t%s\n", entry->d_name);
+            fprintf(stdout, "\t%s\n", entry.name);
         }
-        closedir(c_dir);
+        close_dir(c_dir);
     }
 
     return 0;

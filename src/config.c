@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "template.h"
 #include "utils.h"
+#include "platform.h"
 
 static const craft_config_t defaults = {
     .language = "cpp",

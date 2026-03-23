@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include "config.h"
 #include "utils.h"
+#include "platform.h"
 
 int cmake_needs_regeneration(const char* project_root) {
     char cmake_path[1024];

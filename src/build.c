@@ -7,6 +7,7 @@
 #include "cmake.h"
 #include <string.h>
 #include "deps.h"
+#include "platform.h"
 
 // Builds a project by creating a build directory and running cmake
 int build_project(const char* cwd)
@@ -75,7 +76,7 @@ int build_project(const char* cwd)
     fprintf(stdout, "Building project\n");
     
     char command[512];
-    snprintf(command, sizeof(command), "cd %s && cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build .", build_dir);
+    snprintf(command, sizeof(command), "cmake -S %s -B %s -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build %s", project_root, build_dir, build_dir);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to build project\n");

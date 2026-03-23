@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "utils.h"
 #include <string.h>
+#include "platform.h"
 
 int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
     char dep_path[512];

@@ -4,6 +4,7 @@
 #include "stdlib.h"
 #include "config.h"
 #include <string.h>
+#include "platform.h"
 
 // Runs an executable relative from the current directory
 int run_executable_relative(const char* cwd, const char* executable_path)

@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "config.h"
 #include "cmake.h"
+#include "platform.h"
 
 int create_project_from_template(const char* path, const char* template, const char* lang) {
     char template_dir[256];

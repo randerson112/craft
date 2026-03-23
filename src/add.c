@@ -7,6 +7,7 @@
 #include "cmake.h"
 #include "deps.h"
 #include "registry.h"
+#include "platform.h"
 
 // Detects the type of dependency based on present options
 static dep_type_t get_dependency_type(const command_t* command_data) {
