@@ -119,6 +119,7 @@ static const char* detect_language(const char* path) {
     return cpp_count >= c_count ? "cpp" : "c";
 }
 
+// Detects which directories have source files in them and adds them to config source dirs
 static void detect_source_dirs(const char* path, project_config_t* config) {
 
     // Open directory for reading
@@ -175,6 +176,7 @@ static void detect_source_dirs(const char* path, project_config_t* config) {
     close_dir(dir);
 }
 
+// Detects which directories have header files in them and adds them to config include dirs
 static void detect_include_dirs(const char* path, project_config_t* config) {
 
     // Open directory for reading
@@ -230,6 +232,86 @@ static void detect_include_dirs(const char* path, project_config_t* config) {
     close_dir(dir);
 }
 
+// Detects which directories have library files in them and adds them to config lib dirs
+static void detect_libs(const char* path, project_config_t* config) {
+
+    // Open directory for reading
+    dir_t* dir = open_dir(path);
+    if (!dir) {
+        return;
+    }
+
+    // Read entries in directory
+    dir_entry_t entry;
+    while (read_dir(dir, &entry)) {
+        if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
+            continue;
+        }
+
+        // Skip if entry is not a directory
+        if (!entry.is_dir) {
+            continue;
+        }
+
+        // Read entries of subdirectory
+        char full_path[PATH_SIZE];
+        snprintf(full_path, PATH_SIZE, "%s\%s", path, entry.name);
+
+        dir_t* sub_dir = open_dir(full_path);
+        if (!sub_dir) {
+            return;
+        }
+
+        dir_entry_t sub_entry;
+        while (read_dir(sub_dir, &sub_entry)) {
+            char extension[8];
+            get_extension(sub_entry.name, extension, sizeof(extension));
+            if (strcmp(extension, "a")     == 0 ||
+                strcmp(extension, "dylib") == 0 ||
+                strcmp(extension, "so")    == 0 ||
+                strcmp(extension, "lib")   == 0 ||
+                strcmp(extension, "dll")   == 0) {
+                
+                // Add lib dir if not already added
+                int already_added = 0;
+                for (int i = 0; i < config->lib_dir_count; i++) {
+                    if (strcmp(config->lib_dirs[i], entry.name) == 0) {
+                        already_added = 1;
+                        break;
+                    }
+                }
+
+                if (!already_added && config->lib_dir_count < 8) {
+                    int count = config->lib_dir_count;
+                    snprintf(config->lib_dirs[count], sizeof(config->lib_dirs[count]), "%s", entry.name);
+                    config->lib_dir_count++;
+                }
+
+                // Strip lib prefix and extension to get library name
+                char lib_name[256];
+                snprintf(lib_name, sizeof(lib_name), "%s", sub_entry.name);
+
+                // Strip extension
+                char* dot = strrchr(lib_name, '.');
+                if (dot) *dot = '\0';
+
+                // Strip lib prefix
+                char* name = lib_name;
+                if (strncmp(lib_name, "lib", 3) == 0) {
+                    name = lib_name + 3;
+                }
+
+                snprintf(config->libs[config->lib_count++], sizeof(config->libs[0]), "%s", name);
+            }
+        }
+
+        close_dir(sub_dir);
+    }
+
+    close_dir(dir);
+}
+
+// Initializes a craft project structure in a directory with existing files
 static int init_existing_project(const char* path, const char* language) {
 
     // Load global defaults for fallbacks
@@ -288,6 +370,9 @@ static int init_existing_project(const char* path, const char* language) {
         snprintf(config.source_dirs[0], sizeof(config.source_dirs[0]), "%s", "src");
         config.source_dir_count++;
     }
+
+    // Get library directories and library names
+    detect_libs(path, &config);
 
     // Backup existing CMakeLists.txt if present
     backup_cmake(path);

@@ -55,6 +55,10 @@ static void write_sources(FILE* file, project_config_t* config) {
     }
 
     fprintf(file, ")\n\n");
+
+    // Also pick up source files in root directory
+    fprintf(file, "file(GLOB ROOT_SOURCES \"./%s\")\n", extension);
+    fprintf(file, "list(APPEND SOURCES ${ROOT_SOURCES})\n\n");
 }
 
 // Writes the add_executable or add_library target
@@ -77,7 +81,7 @@ static void write_target(FILE* file, project_config_t* config) {
 static void write_includes(FILE* file, project_config_t* config) {
     const char* visibility = strcmp(config->build_type, "header-only") == 0 ? "INTERFACE" : "PRIVATE";
 
-    fprintf(file, "target_include_directories(%s %s", config->name, visibility);
+    fprintf(file, "target_include_directories(%s %s .", config->name, visibility);
 
     if (config->include_dir_count > 0) {
         for (int i = 0; i < config->include_dir_count; i++) {
@@ -94,7 +98,7 @@ static void write_includes(FILE* file, project_config_t* config) {
 // Writes target_link_directories and target_link_libraries for manual libs
 static void write_libs(FILE* file, project_config_t* config) {
     if (config->lib_dir_count > 0) {
-        fprintf(file, "target_link_directories(%s PRIVATE", config->name);
+        fprintf(file, "target_link_directories(%s PRIVATE .", config->name);
         for (int i = 0; i < config->lib_dir_count; i++) {
             fprintf(file, " ${CMAKE_SOURCE_DIR}/%s", config->lib_dirs[i]);
         }
