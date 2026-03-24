@@ -127,7 +127,7 @@ void format_bytes(unsigned int bytes, char* buffer, unsigned int buffer_size) {
     }
 }
 
-static int copy_file(const char* source, const char* dest) {
+int copy_file(const char* source, const char* dest) {
 
     // Open files
     FILE* in = fopen(source, "rb");
@@ -347,4 +347,13 @@ const int is_craft_project(const char* path) {
     }
 
     return 0;
+}
+
+void get_dir_name(char* buffer, size_t buffer_size, const char* path) {
+    // Get the last component of the path
+    const char* last_slash = strrchr(path, '/');
+    const char* name = last_slash ? last_slash + 1 : path;
+
+    // Copy to buffer
+    strncpy(buffer, name, buffer_size);
 }

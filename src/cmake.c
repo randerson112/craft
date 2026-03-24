@@ -264,3 +264,18 @@ int generate_cmake(const char* project_path, project_config_t* config) {
     fclose(file);
     return 0;
 }
+
+int backup_cmake(const char* project_path) {
+    char cmake_path[PATH_SIZE];
+    snprintf(cmake_path, PATH_SIZE, "%s/CMakeLists.txt", project_path);
+
+    char backup_path[PATH_SIZE];
+    snprintf(backup_path, PATH_SIZE, "%s/CMakeLists.backup.cmake", project_path);
+
+    if (file_exists(cmake_path)) {
+        copy_file(cmake_path, backup_path);
+        return 1;
+    }
+
+    return 0;
+}
