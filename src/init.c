@@ -67,17 +67,13 @@ static int dir_is_empty(const char* path) {
 }
 
 // Detects language by recursively scanning directory and seeing what most of the source files are
-static const char* detect_language(const char* path) {
+static void get_language_counts(const char* path, int* cpp_count, int* c_count) {
 
     // Open directory for reading
     dir_t* dir = open_dir(path);
     if (!dir) {
-        return NULL;
+        return;
     }
-
-    // Keep track of source file counts to detect majority language
-    int cpp_count = 0;
-    int c_count = 0;
 
     // Read directory entries
     dir_entry_t entry;
@@ -92,11 +88,11 @@ static const char* detect_language(const char* path) {
         
         // If directory, recurse into directory
         if (entry.is_dir) {
-            const char* language = detect_language(full_path);
-            if (language) {
-                if (strcmp(language, "cpp") == 0) cpp_count++;
-                else if (strcmp(language, "c") == 0) c_count++;
+            // Skip .craft and build directories
+            if (strcmp(entry.name, "build") == 0) {
+                continue;
             }
+            get_language_counts(full_path, cpp_count, c_count);
         }
 
         // If file, check extension
@@ -104,19 +100,15 @@ static const char* detect_language(const char* path) {
             char extension[8];
             get_extension(entry.name, extension, sizeof(extension));
             if (strcmp(extension, "cpp") == 0 || strcmp(extension, "cc") == 0 || strcmp(extension, "cxx") == 0) {
-                cpp_count++;
+                (*cpp_count)++;
             }
             else if (strcmp(extension, "c") == 0) {
-                c_count++;
+                (*c_count)++;
             }
         }
     }
 
     close_dir(dir);
-
-    // Detect majority language and write to config
-    if (cpp_count == 0 && c_count == 0) return NULL;
-    return cpp_count >= c_count ? "cpp" : "c";
 }
 
 // Detects which directories have source files in them and adds them to config source dirs
@@ -137,6 +129,11 @@ static void detect_source_dirs(const char* path, project_config_t* config) {
 
         // Skip if entry is not a directory
         if (!entry.is_dir) {
+            continue;
+        }
+
+        // Skip .craft and build directories
+        if (strcmp(entry.name, "build") == 0) {
             continue;
         }
 
@@ -197,6 +194,11 @@ static void detect_include_dirs(const char* path, project_config_t* config) {
             continue;
         }
 
+        // Skip .craft and build directories
+        if (strcmp(entry.name, "build") == 0) {
+            continue;
+        }
+
         char full_path[PATH_SIZE];
         snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
 
@@ -253,9 +255,14 @@ static void detect_libs(const char* path, project_config_t* config) {
             continue;
         }
 
+        // Skip .craft and build directories
+        if (strcmp(entry.name, "build") == 0) {
+            continue;
+        }
+
         // Read entries of subdirectory
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s\%s", path, entry.name);
+        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
 
         dir_t* sub_dir = open_dir(full_path);
         if (!sub_dir) {
@@ -312,7 +319,7 @@ static void detect_libs(const char* path, project_config_t* config) {
 }
 
 // Initializes a craft project structure in a directory with existing files
-static int init_existing_project(const char* path, const char* language) {
+static int init_existing_project(const char* path, const char* language_option) {
 
     // Load global defaults for fallbacks
     craft_config_t global_config;
@@ -332,13 +339,16 @@ static int init_existing_project(const char* path, const char* language) {
     snprintf(config.version, sizeof(config.version), "0.1.0");
 
     // Get language
-    if (language) {
-        snprintf(config.language, sizeof(config.language), "%s", language);
+    if (language_option) {
+        snprintf(config.language, sizeof(config.language), "%s", language_option);
     }
     else {
-        const char* detected_language = detect_language(path);
-        if (detected_language) {
-            snprintf(config.language, sizeof(config.language), "%s", detected_language);
+        int cpp_count = 0;
+        int c_count = 0;
+        get_language_counts(path, &cpp_count, &c_count);
+        if (cpp_count > 0 || c_count > 0) {
+            const char* language = cpp_count >= c_count ? "cpp" : "c";
+            snprintf(config.language, sizeof(config.language), "%s", language);
         }
         else {
             snprintf(config.language, sizeof(config.language), "%s", global_config.language);
@@ -459,5 +469,12 @@ int handle_init(const command_t* command_data) {
     }
 
     // Otherwise init from existing project structure
-    return init_existing_project(init_path, language);
+    const char* language_option = NULL;
+    for (int i = 0; i < command_data->option_count; i++) {
+        const option_t* option = &command_data->options[i];
+        if (strcmp(option->name, "lang") == 0) {
+            language_option = option->arg;
+        }
+    }
+    return init_existing_project(init_path, language_option);
 }

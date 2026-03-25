@@ -40,6 +40,17 @@ int run_executable_build(const char* cwd) {
         return -1;
     }
 
+    project_config_t config;
+    if (load_project_config(&config, project_root) != 0) {
+        return -1;
+    }
+
+    // Make sure project is an executable
+    if (strcmp(config.build_type, "executable") != 0) {
+        fprintf(stderr, "Error: '%s' is not an executable project\n", config.name);
+        return -1;
+    }
+
     // Get path to build directory
     char build_dir[512];
     snprintf(build_dir, sizeof(build_dir), "%s/build", project_root);
@@ -51,10 +62,6 @@ int run_executable_build(const char* cwd) {
 
     // Get path to executable in build
     char project_name[32];
-    project_config_t config;
-    if (load_project_config(&config, project_root) != 0) {
-        return -1;
-    }
     strncpy(project_name, config.name, sizeof(project_name));
 
     char executable_path[512];
