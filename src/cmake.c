@@ -165,7 +165,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
             return -1;
         }
 
-        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->name, dep->name);
+        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
         fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->name, dep->name);
 
         if (dep_config.include_dir_count > 0) {
@@ -183,7 +183,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
     // Has CMakeLists.txt but not a Craft project
     // Use add_subdirectory with user provided links
     else if (file_exists(dep_cmake)) {
-        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->name, dep->name);
+        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
 
         if (dep->links_count > 0) {
             fprintf(file, "target_link_libraries(%s PRIVATE", config->name);

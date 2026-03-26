@@ -1,0 +1,10 @@
+[project]
+name = "craft"
+version = "0.6.1"
+language = "c"
+c_standard = 99
+
+[build]
+type = "executable"
+include_dirs = ["include"]
+source_dirs = ["src"]
