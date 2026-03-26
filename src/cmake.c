@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include "config.h"
 #include "utils.h"
+#include "platform.h"
 
 int cmake_needs_regeneration(const char* project_root) {
     char cmake_path[1024];
@@ -54,6 +55,10 @@ static void write_sources(FILE* file, project_config_t* config) {
     }
 
     fprintf(file, ")\n\n");
+
+    // Also pick up source files in root directory
+    fprintf(file, "file(GLOB ROOT_SOURCES \"./%s\")\n", extension);
+    fprintf(file, "list(APPEND SOURCES ${ROOT_SOURCES})\n\n");
 }
 
 // Writes the add_executable or add_library target
@@ -76,7 +81,7 @@ static void write_target(FILE* file, project_config_t* config) {
 static void write_includes(FILE* file, project_config_t* config) {
     const char* visibility = strcmp(config->build_type, "header-only") == 0 ? "INTERFACE" : "PRIVATE";
 
-    fprintf(file, "target_include_directories(%s %s", config->name, visibility);
+    fprintf(file, "target_include_directories(%s %s .", config->name, visibility);
 
     if (config->include_dir_count > 0) {
         for (int i = 0; i < config->include_dir_count; i++) {
@@ -93,7 +98,7 @@ static void write_includes(FILE* file, project_config_t* config) {
 // Writes target_link_directories and target_link_libraries for manual libs
 static void write_libs(FILE* file, project_config_t* config) {
     if (config->lib_dir_count > 0) {
-        fprintf(file, "target_link_directories(%s PRIVATE", config->name);
+        fprintf(file, "target_link_directories(%s PRIVATE .", config->name);
         for (int i = 0; i < config->lib_dir_count; i++) {
             fprintf(file, " ${CMAKE_SOURCE_DIR}/%s", config->lib_dirs[i]);
         }
@@ -160,7 +165,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
             return -1;
         }
 
-        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->name, dep->name);
+        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
         fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->name, dep->name);
 
         if (dep_config.include_dir_count > 0) {
@@ -178,7 +183,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
     // Has CMakeLists.txt but not a Craft project
     // Use add_subdirectory with user provided links
     else if (file_exists(dep_cmake)) {
-        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->name, dep->name);
+        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
 
         if (dep->links_count > 0) {
             fprintf(file, "target_link_libraries(%s PRIVATE", config->name);
@@ -261,5 +266,20 @@ int generate_cmake(const char* project_path, project_config_t* config) {
 
     write_escape_hatch(file);
     fclose(file);
+    return 0;
+}
+
+int backup_cmake(const char* project_path) {
+    char cmake_path[PATH_SIZE];
+    snprintf(cmake_path, PATH_SIZE, "%s/CMakeLists.txt", project_path);
+
+    char backup_path[PATH_SIZE];
+    snprintf(backup_path, PATH_SIZE, "%s/CMakeLists.backup.cmake", project_path);
+
+    if (file_exists(cmake_path)) {
+        copy_file(cmake_path, backup_path);
+        return 1;
+    }
+
     return 0;
 }

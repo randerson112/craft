@@ -7,6 +7,7 @@
 #include "cmake.h"
 #include <string.h>
 #include "deps.h"
+#include "platform.h"
 
 // Builds a project by creating a build directory and running cmake
 int build_project(const char* cwd)
@@ -15,15 +16,6 @@ int build_project(const char* cwd)
     char project_root[512];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
-        return -1;
-    }
-
-    // Check if CMakeLists.txt exists in the project root
-    char cmake_path[256];
-    snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_root);
-    if (!file_exists(cmake_path))
-    {
-        fprintf(stderr, "Error: Could not find CMakeLists.txt in this directory\n");
         return -1;
     }
 
@@ -37,6 +29,10 @@ int build_project(const char* cwd)
         return -1;
     }
 
+    if (cmake_needs_regeneration(project_root)) {
+        generate_cmake(project_root, &config);
+    }
+
     // Fetch git dependencies into .craft/deps
     for (int i = 0; i < config.dependencies_count; i++) {
         dependency_t* dep = &config.dependencies[i];
@@ -46,10 +42,6 @@ int build_project(const char* cwd)
                 return -1;
             }
         }
-    }
-
-    if (cmake_needs_regeneration(project_root)) {
-        generate_cmake(project_root, &config);
     }
 
     // Create a build directory if it does not exist
@@ -75,7 +67,7 @@ int build_project(const char* cwd)
     fprintf(stdout, "Building project\n");
     
     char command[512];
-    snprintf(command, sizeof(command), "cd %s && cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build .", build_dir);
+    snprintf(command, sizeof(command), "cmake -S %s -B %s -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build %s", project_root, build_dir, build_dir);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to build project\n");

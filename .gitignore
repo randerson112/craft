@@ -1,5 +1,5 @@
 # Craft generated
-craft.toml
+CMakeLists.txt
 .craft/
 build/
 
@@ -11,3 +11,5 @@ build/
 
 # Testing
 testing/
+build_windows/
+mingw-toolchain.cmake

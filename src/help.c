@@ -67,12 +67,20 @@ static void print_project_help() {
 
 static void print_init_help() {
     fprintf(stdout, "Command:\n");
-    fprintf(stdout, "    craft init - Initialize a project in the current or specified directory.\n\n");
+    fprintf(stdout, "    craft init - Initialize a Craft project in the current or specified directory.\n\n");
 
     fprintf(stdout, "Description:\n");
-    fprintf(stdout, "    Sets up a Craft project inside an existing directory. Unlike 'project',\n");
-    fprintf(stdout, "    it does not create the directory. Generates craft.toml, CMakeLists.txt,\n");
-    fprintf(stdout, "    src/, include/, and a starter main file.\n\n");
+    fprintf(stdout, "    Sets up a Craft project inside an existing directory. Unlike 'craft project',\n");
+    fprintf(stdout, "    it does not create the directory. Behavior depends on the directory contents.\n\n");
+    fprintf(stdout, "    Empty directory:\n");
+    fprintf(stdout, "        Generates craft.toml, CMakeLists.txt, src/, include/, and starter\n");
+    fprintf(stdout, "        files based on the specified or default template.\n\n");
+    fprintf(stdout, "    Existing project:\n");
+    fprintf(stdout, "        Scans the directory to detect language, source dirs, include dirs,\n");
+    fprintf(stdout, "        and libraries. Generates craft.toml and CMakeLists.txt from what\n");
+    fprintf(stdout, "        was found. Existing source files are never modified. If a\n");
+    fprintf(stdout, "        CMakeLists.txt already exists it will be backed up to\n");
+    fprintf(stdout, "        CMakeLists.backup.cmake before being replaced.\n\n");
 
     fprintf(stdout, "Usage:\n");
     fprintf(stdout, "    craft init [path] [options]\n\n");
@@ -81,13 +89,20 @@ static void print_init_help() {
     fprintf(stdout, "    [path]   Optional path to initialize. Defaults to current directory.\n\n");
 
     fprintf(stdout, "Options:\n");
-    fprintf(stdout, "    --template, -t <name>   Template to use for the project (defaults to global default)\n");
-    fprintf(stdout, "    --lang, -l <language>   Language to use: c or cpp (defaults to global default)\n\n");
+    fprintf(stdout, "    --template, -t <name>   Template to use (empty directories only)\n");
+    fprintf(stdout, "    --lang, -l <language>   Language override: c or cpp\n");
+    fprintf(stdout, "                            Overrides auto-detection for existing projects\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft init\n");
-    fprintf(stdout, "    craft init my_app --lang c\n");
-    fprintf(stdout, "    craft init --template static-library\n");
+    fprintf(stdout, "    craft init MyApp\n");
+    fprintf(stdout, "    craft init --lang c\n");
+    fprintf(stdout, "    craft init --template static-library\n\n");
+
+    fprintf(stdout, "Tips:\n");
+    fprintf(stdout, "    For existing projects, edit craft.toml after init to fine tune settings.\n");
+    fprintf(stdout, "    Use CMakeLists.extra.cmake for any custom CMake beyond what Craft generates.\n");
+    fprintf(stdout, "    Run 'craft help craft.toml' for details on the project config file.\n");
 }
 
 static void print_build_help() {

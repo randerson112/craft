@@ -5,6 +5,7 @@
 #include "deps.h"
 #include "utils.h"
 #include "config.h"
+#include "platform.h"
 
 // Updates a single dependency by fetching the latest version, unless a tag is present
 static int update_dependency(const char* project_root, const dependency_t* dep) {

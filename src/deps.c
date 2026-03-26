@@ -3,8 +3,24 @@
 #include <stdlib.h>
 #include "utils.h"
 #include <string.h>
+#include "platform.h"
+#include <sys/stat.h>
 
 int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
+    
+    // Create .craft/deps if not already there
+    char craft_directory[512];
+    char craft_deps_directory[512];
+    snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", project_root);
+    snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
+
+    if (!dir_exists(craft_directory)) {
+        mkdir(craft_directory, 0755);
+    }
+    if (!dir_exists(craft_deps_directory)) {
+        mkdir(craft_deps_directory, 0755);
+    }
+
     char dep_path[512];
     snprintf(dep_path, sizeof(dep_path), "%s/.craft/deps/%s", project_root, dep->name);
 

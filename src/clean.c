@@ -1,6 +1,7 @@
 #include "clean.h"
 #include "utils.h"
 #include <stdio.h>
+#include "platform.h"
 
 // Removes the build directory in the current directory
 int remove_build_dir(const char* cwd) {

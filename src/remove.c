@@ -6,6 +6,7 @@
 #include <string.h>
 #include "cmake.h"
 #include "deps.h"
+#include "platform.h"
 
 // Removes a dependency from a project's config by name
 static void remove_dependency_from_config(project_config_t* config, const char* dep_name) {

@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <dirent.h>
-#include <unistd.h>
+#include "platform.h"
 
 // Writes a cpp header file at the path with starting content
 static int write_cpp_header(const char* path, const char* filename) {

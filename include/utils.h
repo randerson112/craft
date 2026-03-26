@@ -25,6 +25,9 @@ int remove_dir_count(const char* path, unsigned int* count, unsigned int* bytes)
 // Formats a number of bytes into a string with appropriate conversion
 void format_bytes(unsigned int bytes, char* buffer, unsigned int buffer_size);
 
+// Copies file contents to another file
+int copy_file(const char* source, const char* dest);
+
 // Copy all contents of a directory into another directory recursively, excluding certain files if needed
 int copy_dir_contents(const char* source_dir, const char* dest_dir, const char** excludes, size_t exclude_count);
 
@@ -51,5 +54,8 @@ const option_t* get_option(const command_t* command_data, const char* name);
 
 // Checks if the given path is a Craft project
 const int is_craft_project(const char* path);
+
+// Gets the name of the current directory from a path
+void get_dir_name(char* buffer, size_t buffer_size, const char* path);
 
 #endif
