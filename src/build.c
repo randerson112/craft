@@ -19,15 +19,6 @@ int build_project(const char* cwd)
         return -1;
     }
 
-    // Check if CMakeLists.txt exists in the project root
-    char cmake_path[256];
-    snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_root);
-    if (!file_exists(cmake_path))
-    {
-        fprintf(stderr, "Error: Could not find CMakeLists.txt in this directory\n");
-        return -1;
-    }
-
     // Regenerate CMakeLists.txt from craft.toml if needed
     project_config_t config;
     if (load_project_config(&config, project_root) != 0) {
@@ -36,6 +27,10 @@ int build_project(const char* cwd)
 
     if (validate_project_config(&config) != 0) {
         return -1;
+    }
+
+    if (cmake_needs_regeneration(project_root)) {
+        generate_cmake(project_root, &config);
     }
 
     // Fetch git dependencies into .craft/deps
@@ -47,10 +42,6 @@ int build_project(const char* cwd)
                 return -1;
             }
         }
-    }
-
-    if (cmake_needs_regeneration(project_root)) {
-        generate_cmake(project_root, &config);
     }
 
     // Create a build directory if it does not exist
