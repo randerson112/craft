@@ -11,7 +11,7 @@
 
 // Platform abstract function to check if a command exists
 static int has_command(const char* command) {
-#ifdef __WIN32
+#ifdef _WIN32
     char buffer[256];
     snprintf(buffer, sizeof(buffer), "where %s >null 2>&1", command);
 #else
@@ -102,7 +102,7 @@ int build_project(const char* cwd)
     
     char command[512];
 
-    #ifdef __WIN32
+    #ifdef _WIN32
 
     if (compiler == COMPILER_GCC) {
         fprintf(stdout, "Using GCC toolchain\n");

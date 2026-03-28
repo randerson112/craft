@@ -38,7 +38,7 @@ int file_exists(const char* path)
     struct stat statbuff;
     if (stat(path, &statbuff) != 0) return 0;
 
-    #ifdef __WIN32
+    #ifdef _WIN32
     return (statbuff.st_mode & _S_IFMT) == _S_IFREG;
     #else
     return S_ISREG(statbuff.st_mode);
@@ -51,7 +51,7 @@ int dir_exists(const char* path)
     struct stat statbuff;
     if (stat(path, &statbuff) != 0) return 0;
 
-    #ifdef __WIN32
+    #ifdef _WIN32
     return (statbuff.st_mode & _S_IFMT) == _S_IFDIR;
     #else
     return S_ISDIR(statbuff.st_mode);

@@ -12,7 +12,7 @@ int run_executable_relative(const char* cwd, const char* executable_path)
     char full_path[512];
 
     // Combine current working directory with relative path, adding .exe for windows
-    #ifdef __WIN32
+    #ifdef _WIN32
     snprintf(full_path, sizeof(full_path), "%s/%s.exe", cwd, executable_path);
     #else
     snprintf(full_path, sizeof(full_path), "%s/%s", cwd, executable_path);
@@ -73,7 +73,7 @@ int run_executable_build(const char* cwd) {
 
     char executable_path[512];
 
-    #ifdef __WIN32
+    #ifdef _WIN32
     snprintf(executable_path, sizeof(executable_path), "%s/%s.exe", build_dir, project_name);
     #else
     snprintf(executable_path, sizeof(executable_path), "%s/%s", build_dir, project_name);
