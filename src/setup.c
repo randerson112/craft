@@ -632,9 +632,9 @@ int setup_craft() {
 
     // Create craft home directory if it does not exist yet
     char craft_home[PATH_SIZE];
-    get_craft_home(craft_home, PATH_SIZE);
-    if (!dir_exists(craft_home)) {
-        mkdir(craft_home, 0755);
+    if (get_craft_home(craft_home, PATH_SIZE) != 0) {
+        fprintf(stderr, "[Setup Error]: Failed to set up craft home directory\n");
+        return -1;
     }
 
     // Create the templates directory with builtin templates if not already there
