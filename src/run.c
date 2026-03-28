@@ -10,7 +10,14 @@
 int run_executable_relative(const char* cwd, const char* executable_path)
 {
     char full_path[512];
+
+    // Combine current working directory with relative path, adding .exe for windows
+    #ifdef __WIN32
+    snprintf(full_path, sizeof(full_path), "%s/%s.exe", cwd, executable_path);
+    #else
     snprintf(full_path, sizeof(full_path), "%s/%s", cwd, executable_path);
+    #endif
+
     if (!file_exists(full_path)) {
         fprintf(stderr, "Error: No executable found at '%s'\n", executable_path);
         return -1;
@@ -18,7 +25,7 @@ int run_executable_relative(const char* cwd, const char* executable_path)
 
     // Run executable
     char command[512];
-    snprintf(command, sizeof(command), "%s", full_path);
+    snprintf(command, sizeof(command), "\"%s\"", full_path);
 
     if (system(command) != 0)
     {
@@ -65,7 +72,13 @@ int run_executable_build(const char* cwd) {
     strncpy(project_name, config.name, sizeof(project_name));
 
     char executable_path[512];
+
+    #ifdef __WIN32
+    snprintf(executable_path, sizeof(executable_path), "%s/%s.exe", build_dir, project_name);
+    #else
     snprintf(executable_path, sizeof(executable_path), "%s/%s", build_dir, project_name);
+    #endif
+
     if (!file_exists(executable_path)) {
         fprintf(stderr, "Error: Executable '%s' not found in build directory\n\n", project_name);
         fprintf(stderr, "Try running 'craft build' to re-build the project first\n");

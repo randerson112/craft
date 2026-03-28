@@ -9,6 +9,33 @@
 #include "deps.h"
 #include "platform.h"
 
+// Platform abstract function to check if a command exists
+static int has_command(const char* command) {
+#ifdef __WIN32
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "where %s >null 2>&1", command);
+#else
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "which %s > /dev/null 2>&1", command);
+#endif
+    return system(buffer) == 0;
+}
+
+typedef enum {
+    COMPILER_GCC,
+    COMPILER_CLANG,
+    COMPILER_MSVC,
+    COMPILER_NONE
+} compiler_t;
+
+// Platform abstract function to detect what compiler is being used
+static compiler_t detect_compiler() {
+    if (has_command("g++")) return COMPILER_GCC;
+    if (has_command("clang++")) return COMPILER_CLANG;
+    if (has_command("cl")) return COMPILER_MSVC;
+    return COMPILER_NONE;
+}
+
 // Builds a project by creating a build directory and running cmake
 int build_project(const char* cwd)
 {
@@ -65,9 +92,57 @@ int build_project(const char* cwd)
 
     // Run cmake to build project
     fprintf(stdout, "Building project\n");
+
+    compiler_t compiler = detect_compiler();
+
+    if (compiler == COMPILER_NONE) {
+        fprintf(stderr, "Error: No compiler found (g++, clang++, or cl)\n");
+        return -1;
+    }
     
     char command[512];
-    snprintf(command, sizeof(command), "cmake -S %s -B %s -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build %s", project_root, build_dir, build_dir);
+
+    #ifdef __WIN32
+
+    if (compiler == COMPILER_GCC) {
+        fprintf(stdout, "Using GCC toolchain\n");
+        snprintf(command, sizeof(command),
+            "cmake -S \"%s\" -B \"%s\" "
+            "-G \"MinGw Makefiles\" "
+            "-DCMAKE_C_COMPILER=gcc "
+            "-DCMAKE_CXX_COMPILER=g++ "
+            "&& cmake --build \"%s\"",
+            project_root, build_dir, build_dir);
+    }
+    else if (compiler == COMPILER_MSVC) {
+        fprintf(stdout, "Using MSVC toolchain\n");
+        snprintf(command, sizeof(command), 
+            "cmake -S \"%s\" -B \"%s\" "
+            "&& cmake --build \"%s\"",
+            project_root, build_dir, build_dir);
+    }
+    else {
+        fprintf(stderr, "Error: No supported compiler found\n");
+        return -1;
+    }
+
+    #else
+
+    if (compiler == COMPILER_GCC || compiler == COMPILER_CLANG) {
+        fprintf(stdout, "Using Unix toolchain\n");
+        snprintf(command, sizeof(command), 
+            "cmake -S \"%s\" -B \"%s\" "
+            "&& cmake --build \"%s\"",
+            project_root, build_dir, build_dir);
+    }
+    else {
+        fprintf(stderr, "Error: No supported compiler found\n");
+        return -1;
+    }
+
+
+    #endif
+
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to build project\n");
