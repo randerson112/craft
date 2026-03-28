@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include "help.h"
 #include "parser.h"
 #include "dispatcher.h"

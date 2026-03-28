@@ -1,8 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <unistd.h>
 #include "parser.h"
+#include <stdlib.h>
 
 // Strips extension off a file and writes it to stripped file buffer
 void strip_extension(const char* file, char* stripped_file);

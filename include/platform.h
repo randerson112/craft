@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
+
 #include <windows.h>
 #include <direct.h>
 
@@ -12,22 +13,15 @@
 #define rmdir _rmdir
 #define mkdir(path, mode) _mkdir(path)
 #define getcwd _getcwd
-#endif
 
-#ifdef __APPLE__
+#else
+
 #include <limits.h>
 #include <unistd.h>
 
 #define PATH_SIZE PATH_MAX
 #define PATH_SEP '/'
-#endif
 
-#ifdef __linux__
-#include <limits.h>
-#include <unistd.h>
-
-#define PATH_SIZE PATH_MAX
-#define PATH_SEP '/'
 #endif
 
 typedef struct {
