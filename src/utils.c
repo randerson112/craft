@@ -219,7 +219,7 @@ int get_craft_home(char* buffer, size_t buffer_size) {
         return 0;
     }
 
-    fprintf(stderr, "Error: Could not locate craft directory.\n");
+    fprintf(stderr, "Error: Could not locate home directory.\n");
     return -1;
 }
 
