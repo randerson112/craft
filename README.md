@@ -65,6 +65,47 @@ Craft validates your `craft.toml` before touching CMake, catches unknown keys, s
 
 ---
 
+## Installation
+
+### macOS & Linux
+```bash
+curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/install.sh | bash
+```
+
+Then restart your terminal or run `source ~/.zshrc` (or `~/.bashrc`) to use craft.
+
+**Requirements:** git, cmake
+
+### Windows
+
+Open PowerShell and run:
+```powershell
+irm https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 | iex
+```
+
+Then restart your terminal to use craft.
+
+**Requirements:** git, cmake
+
+### Building from Source
+
+If you prefer to build manually:
+```bash
+git clone https://github.com/randerson112/craft.git
+cd craft
+cmake -S . -B build
+cmake --build build
+cp build/craft ~/.craft/bin/craft
+```
+
+### Verifying Installation
+```bash
+craft --version
+craft help
+```
+
+---
+
 ## Quick Start
 ```bash
 # Create a new project
