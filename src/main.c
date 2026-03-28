@@ -5,9 +5,13 @@
 #include "help.h"
 #include "parser.h"
 #include "dispatcher.h"
+#include "setup.h"
 
 int main(int argc, char* argv[])
 {
+    // Setup craft home directory on first run
+    setup_craft();
+    
     // Parse command line arguments
     command_t command_data = {0};
     parse_result_t result = parse(argc, argv, &command_data);
