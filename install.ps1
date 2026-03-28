@@ -12,9 +12,33 @@ if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
     Write-Error "Error: cmake is required. Install from https://cmake.org"
     exit 1
 }
-if (-not (Get-Command mingw32-make -ErrorAction SilentlyContinue) -and
-    -not (Get-Command make -ErrorAction SilentlyContinue)) {
-    Write-Error "Error: make is required. Install MinGW or MSYS2 from https://www.msys2.org"
+
+# Detect build system and generator
+$Generator = $null
+$BuildTool = $null
+
+if (Get-Command cl -ErrorAction SilentlyContinue) {
+    # MSVC detected
+    $Generator = "Visual Studio 17 2022"
+    $BuildTool = "msvc"
+    Write-Host "Detected MSVC compiler"
+} elseif (Get-Command mingw32-make -ErrorAction SilentlyContinue) {
+    $Generator = "MinGW Makefiles"
+    $BuildTool = "mingw"
+    Write-Host "Detected MinGW compiler"
+} elseif (Get-Command make -ErrorAction SilentlyContinue) {
+    $Generator = "MinGW Makefiles"
+    $BuildTool = "mingw"
+    Write-Host "Detected make"
+} elseif (Get-Command ninja -ErrorAction SilentlyContinue) {
+    $Generator = "Ninja"
+    $BuildTool = "ninja"
+    Write-Host "Detected Ninja build system"
+} else {
+    Write-Error "Error: No supported build system found. Install one of:
+    - MSVC: Visual Studio with C++ workload (https://visualstudio.microsoft.com)
+    - MinGW/MSYS2: https://www.msys2.org
+    - Ninja: https://ninja-build.org"
     exit 1
 }
 
@@ -26,13 +50,22 @@ if (Test-Path $TempDir) {
 
 git clone --depth 1 https://github.com/randerson112/craft.git $TempDir
 Set-Location $TempDir
-cmake -S . -B build -G "MinGW Makefiles"
-cmake --build build
+
+if ($BuildTool -eq "msvc") {
+    # MSVC uses multi-config generators so specify config at build time
+    cmake -S . -B build -G $Generator -A x64
+    cmake --build build --config Release
+    $BinaryPath = "build\Release\craft.exe"
+} else {
+    cmake -S . -B build -G $Generator
+    cmake --build build
+    $BinaryPath = "build\craft.exe"
+}
 
 # Install
 $CraftBin = "$env:USERPROFILE\.craft\bin"
 New-Item -ItemType Directory -Force -Path $CraftBin | Out-Null
-Copy-Item "build\craft.exe" "$CraftBin\craft.exe"
+Copy-Item $BinaryPath "$CraftBin\craft.exe"
 
 # Add to PATH permanently for current user
 $CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
