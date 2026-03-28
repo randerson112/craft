@@ -36,26 +36,26 @@ void get_extension(const char* file, char* extension, int extension_size)
 int file_exists(const char* path)
 {
     struct stat statbuff;
-    if (stat(path, &statbuff) == 0 && S_ISREG(statbuff.st_mode)) {
-        // File exists
-        return 1;
-    }
+    if (stat(path, &statbuff) != 0) return 0;
 
-    // File does not exist
-    return 0;
+    #ifdef __WIN32
+    return (statbuff.st_mode & _S_IFMT) == _S_IFREG;
+    #else
+    return S_ISREG(statbuff.st_mode);
+    #endif
 }
 
 // Check if a path exists and is a directory
 int dir_exists(const char* path)
 {
     struct stat statbuff;
-    if (stat(path, &statbuff) == 0 && S_ISDIR(statbuff.st_mode)) {
-        // Directory exists
-        return 1;
-    }
-    
-    // Directory does not exist
-    return 0;
+    if (stat(path, &statbuff) != 0) return 0;
+
+    #ifdef __WIN32
+    return (statbuff.st_mode & _S_IFMT) == _S_IFDIR;
+    #else
+    return S_ISDIR(statbuff.st_mode);
+    #endif
 }
 
 // Removes a directory recursivley, keeps track of number of files deleted, and how many bytes
