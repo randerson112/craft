@@ -11,6 +11,13 @@
     #include <dirent.h>
 #endif
 
+compiler_t detect_compiler() {
+    if (has_command("g++")) return COMPILER_GCC;
+    if (has_command("clang++")) return COMPILER_CLANG;
+    if (has_command("cl")) return COMPILER_MSVC;
+    return COMPILER_NONE;
+}
+
 // Windows implementation
 #ifdef _WIN32
 
@@ -67,6 +74,13 @@ void close_dir(dir_t* dir) {
     free(dir);
 }
 
+int has_command(const char* command) {
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "where %s >null 2>&1", command);
+    
+    return system(buffer) == 0;
+}
+
 // MacOS and Linux implementation
 #else
 
@@ -111,6 +125,13 @@ int read_dir(dir_t* dir, dir_entry_t* entry) {
 void close_dir(dir_t* dir) {
     closedir(dir->dir);
     free(dir);
+}
+
+int has_command(const char* command) {
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "which %s > /dev/null 2>&1", command);
+
+    return system(buffer) == 0;
 }
 
 #endif
