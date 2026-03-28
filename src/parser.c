@@ -270,13 +270,14 @@ const char* get_subcommand_suggestion(const char* command, const char* unknown) 
 	const command_info_t* command_info = get_command_info(command);
 	const int count = command_info->subcommands_count;
 
-	const char* valid_subcommands[count];
+	const char** valid_subcommands = malloc(sizeof(char*) * count);
 	for (int i = 0; i < count; i++) {
 		valid_subcommands[i] = command_info->subcommands[i].name;
 	}
 
 	// Return suggestion if unknown subcommand is close enough
 	const char* suggestion = suggest(unknown, valid_subcommands, count);
+	free(valid_subcommands);
 	return suggestion;
 }
 
@@ -287,13 +288,14 @@ const char* get_command_option_suggestion(const char* command, const char* unkno
 	const command_info_t* command_info = get_command_info(command);
 	const int count = command_info->valid_options_count;
 
-	const char* valid_options[count];
+	const char** valid_options = malloc(sizeof(char*) * count);
 	for (int i = 0; i < count; i++) {
 		valid_options[i] = command_info->valid_options[i];
 	}
 
 	// Return suggestion if unknown option is close enough
 	const char* suggestion = suggest(unknown, valid_options, count);
+	free(valid_options);
 	return suggestion;
 }
 
@@ -304,13 +306,14 @@ const char* get_subcommand_option_suggestion(const char* command, const char* su
 	const subcommand_info_t* subcommand_info = get_subcommand_info(command, subcommand);
 	const int count = subcommand_info->valid_options_count;
 
-	const char* valid_options[count];
+	const char** valid_options = malloc(sizeof(char*) * count);
 	for (int i = 0; i < count; i++) {
 		valid_options[i] = subcommand_info->valid_options[i];
 	}
 
 	// Return suggestion if unknown option is close enough
 	const char* suggestion = suggest(unknown, valid_options, count);
+	free(valid_options);
 	return suggestion;
 }
 
