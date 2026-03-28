@@ -16,6 +16,9 @@ add_executable(craft ${SOURCES})
 
 target_include_directories(craft PRIVATE . include)
 
+set(VERSION 0.8.0)
+target_compile_definitions(craft PRIVATE VERSION="${VERSION}")
+
 if(EXISTS ${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
     include(${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
 endif()

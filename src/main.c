@@ -11,6 +11,12 @@ int main(int argc, char* argv[])
 {
     // Setup craft home directory on first run
     setup_craft();
+
+    // Print craft version if --version is specified
+    if (argc > 1 && strcmp(argv[1], "--version") == 0) {
+        fprintf(stdout, "craft %s\n", VERSION);
+        return 0;
+    }
     
     // Parse command line arguments
     command_t command_data = {0};
