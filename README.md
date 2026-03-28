@@ -80,23 +80,12 @@ Then restart your terminal or run `source ~/.zshrc` (or `~/.bashrc`) to use craf
 
 Open PowerShell and run:
 ```powershell
-irm https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 | iex
+curl -s https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 | powershell
 ```
 
 Then restart your terminal to use craft.
 
 **Requirements:** git, cmake
-
-### Building from Source
-
-If you prefer to build manually:
-```bash
-git clone https://github.com/randerson112/craft.git
-cd craft
-cmake -S . -B build
-cmake --build build
-cp build/craft ~/.craft/bin/craft
-```
 
 ### Verifying Installation
 ```bash
