@@ -117,7 +117,7 @@ static void write_libs(FILE* file, project_config_t* config) {
 // Writes cmake to embed VERSION macro into binary
 static int write_version_compile_definition(FILE* file, project_config_t* config) {
     fprintf(file, "set(VERSION %s)\n", config->version);
-    fprintf(file, "target_compile_definitions(%s PRIVATE VERSION=\"${VERSION}\")\n\n", config->name);
+    fprintf(file, "target_compile_definitions(%s PRIVATE VERSION=\"${VERSION}\")\n", config->name);
     return 0;
 }
 
@@ -251,7 +251,7 @@ static int write_dependencies(FILE* file, const char* project_path, project_conf
 static void write_escape_hatch(FILE* file) {
     fprintf(file, "if(EXISTS ${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)\n");
     fprintf(file, "    include(${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)\n");
-    fprintf(file, "endif()\n");
+    fprintf(file, "endif()\n\n");
 }
 
 int generate_cmake(const char* project_path, project_config_t* config) {
@@ -265,13 +265,13 @@ int generate_cmake(const char* project_path, project_config_t* config) {
     }
 
     write_header(file, config);
+    write_escape_hatch(file);
     write_sources(file, config);
     write_target(file, config);
     write_includes(file, config);
     write_libs(file, config);
     write_version_compile_definition(file, config);
     write_dependencies(file, project_path, config);
-    write_escape_hatch(file);
 
     fclose(file);
     return 0;

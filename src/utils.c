@@ -225,7 +225,7 @@ int get_craft_home(char* buffer, size_t buffer_size) {
 
 int get_project_root(char* buffer, size_t buffer_size, const char* cwd) {
     char current_path[512];
-    strncpy(current_path, cwd, sizeof(current_path));
+    snprintf(current_path, sizeof(current_path), "%s", cwd);
 
     while (1) {
         char toml_path[512];

@@ -7,6 +7,10 @@ project(craft)
 
 set(CMAKE_C_STANDARD 99)
 
+if(EXISTS ${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
+    include(${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
+endif()
+
 file(GLOB_RECURSE SOURCES "src/*.c")
 
 file(GLOB ROOT_SOURCES "./*.c")
@@ -18,7 +22,3 @@ target_include_directories(craft PRIVATE . include)
 
 set(VERSION 0.8.0)
 target_compile_definitions(craft PRIVATE VERSION="${VERSION}")
-
-if(EXISTS ${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
-    include(${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
-endif()
