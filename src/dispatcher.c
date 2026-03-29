@@ -14,8 +14,8 @@
 #include "remove.h"
 #include "update.h"
 
-int dispatch(const command_t* command_data) {
-    
+int dispatch(command_t* command_data) {
+
     // Get command name
     const char* command = command_data->name;
 
@@ -24,7 +24,7 @@ int dispatch(const command_t* command_data) {
         normalize_path(command_data->args[i]);
     }
     for (int i = 0; i < command_data->option_count; i++) {
-        if (command_data->options[i].arg) {
+        if (strlen(command_data->options[i].arg) > 0) {
             normalize_path(command_data->options[i].arg);
         }
     }

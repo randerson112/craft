@@ -4,6 +4,6 @@
 #include "parser.h"
 
 // Sorts command into correct function call based on command data
-int dispatch(const command_t* command_data);
+int dispatch(command_t* command_data);
 
 #endif
