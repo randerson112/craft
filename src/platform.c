@@ -11,6 +11,14 @@
     #include <dirent.h>
 #endif
 
+char* get_cwd(char* buffer, size_t buffer_size) {
+    if (getcwd(buffer, buffer_size) == NULL) {
+        return NULL;
+    }
+    normalize_path(buffer);
+    return buffer;
+}
+
 // Windows implementation
 #ifdef _WIN32
 

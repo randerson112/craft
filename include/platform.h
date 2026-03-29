@@ -31,6 +31,9 @@ typedef struct {
 
 typedef struct dir_t dir_t;
 
+// Gets the current working directory
+char* get_cwd(char* buffer, size_t buffer_size);
+
 // Opens a directory for iteration
 dir_t* open_dir(const char* path);
 

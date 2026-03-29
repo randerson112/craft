@@ -204,6 +204,7 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir, const char**
 int get_craft_home(char* buffer, size_t buffer_size) {
     char* craft_home = getenv("CRAFT_HOME");
     if (craft_home) {
+        normalize_path(craft_home);
         snprintf(buffer, buffer_size, "%s", craft_home);
         return 0;
     }
@@ -215,6 +216,7 @@ int get_craft_home(char* buffer, size_t buffer_size) {
     #endif
 
     if (user_home) {
+        normalize_path(user_home);
         snprintf(buffer, buffer_size, "%s/.craft", user_home);
         return 0;
     }
@@ -404,4 +406,10 @@ int search_dir_for_file(char* buffer, size_t buffer_size, const char* path, cons
     // File not found
     close_dir(dir);
     return 0;
+}
+
+void normalize_path(char* path) {
+    for (int i = 0; path[i] != '\0'; i++) {
+        if (path[i] == '\\') path[i] = '/';
+    }
 }

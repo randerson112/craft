@@ -61,4 +61,7 @@ void get_dir_name(char* buffer, size_t buffer_size, const char* path);
 // Searches a directory recursively for a file and writes the path to buffer
 int search_dir_for_file(char* buffer, size_t buffer_size, const char* path, const char* filename);
 
+// Replaces all backslashes in a path to forward slashes
+void normalize_path(char* path);
+
 #endif

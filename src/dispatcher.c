@@ -15,8 +15,19 @@
 #include "update.h"
 
 int dispatch(const command_t* command_data) {
+    
     // Get command name
     const char* command = command_data->name;
+
+    // Change backslashes to forward slashes in paths
+    for (int i = 0; i < command_data->arg_count; i++) {
+        normalize_path(command_data->args[i]);
+    }
+    for (int i = 0; i < command_data->option_count; i++) {
+        if (command_data->options[i].arg) {
+            normalize_path(command_data->options[i].arg);
+        }
+    }
 
     // Dispatch to respective command handler
     if (strcmp(command, "project") == 0)  return handle_project(command_data);
