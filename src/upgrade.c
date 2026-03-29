@@ -51,6 +51,8 @@ int handle_upgrade() {
         return -1;
     }
 
+    fprintf(stdout, "%s\n", latest_version);
+
     // Compare latest version to current version
     if (strcmp(latest_version, VERSION) == 0) {
         fprintf(stdout, "Craft already up to date (%s)\n", VERSION);
@@ -64,9 +66,9 @@ int handle_upgrade() {
 
     // Run install script
     #ifdef _WIN32
-    int result = system("curl https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 | powershell > NUL 2>&1");
+    int result = system("curl -s https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 2>NUL | powershell -NonInteractive > NUL 2>&1");
     #else
-    int result = system("curl https://raw.githubusercontent.com/randerson112/craft/main/install.sh | bash > /dev/null 2>&1");
+    int result = system("curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/install.sh 2>/dev/null | sh > /dev/null 2>&1");
     #endif
 
     if (result != 0) {
@@ -76,7 +78,7 @@ int handle_upgrade() {
 
     // Print success message
     fprintf(stdout, "Updated Craft successfully\n");
-    fprintf(stdout, "Current version: %s", latest_version);
+    fprintf(stdout, "Current version: %s\n", latest_version);
     fprintf(stdout, "Restart your terminal to use the latest version\n");
     return 0;
 }
