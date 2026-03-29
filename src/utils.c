@@ -357,3 +357,49 @@ void get_dir_name(char* buffer, size_t buffer_size, const char* path) {
     // Copy to buffer
     strncpy(buffer, name, buffer_size);
 }
+
+int search_dir_for_file(char* buffer, size_t buffer_size, const char* path, const char* filename) {
+
+    // Open source directory
+    dir_t* dir = open_dir(path);
+    if (!dir) {
+        return 0;
+    }
+
+    // Keep track of subdirectories to look into
+    char sub_dirs[128][PATH_SIZE];
+    int sub_dirs_count;
+
+    // Read only files in directory
+    dir_entry_t entry;
+    while (read_dir(dir, &entry)) {
+        if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
+            continue;
+        }
+
+        // If entry is directory save to subdirectories list
+        if (entry.is_dir) {
+            snprintf(sub_dirs[sub_dirs_count], PATH_SIZE, "%s/%s", path, entry.name);
+            sub_dirs_count++;
+            continue;
+        }
+
+        // Check if file matches give file name
+        if (strcmp(entry.name, filename) == 0) {
+            snprintf(buffer, buffer_size, "%s/%s", path, entry.name);
+            close_dir(dir);
+            return 1;
+        }
+    }
+
+    // Now recurse into subdirectories
+    for (int i = 0; i < sub_dirs_count; i++) {
+        if (search_dir_for_file(buffer, buffer_size, sub_dirs[i], filename)) {
+            return 1;
+        }
+    }
+
+    // File not found
+    close_dir(dir);
+    return 0;
+}

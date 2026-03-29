@@ -24,13 +24,6 @@
 
 #endif
 
-typedef enum {
-    COMPILER_GCC,
-    COMPILER_CLANG,
-    COMPILER_MSVC,
-    COMPILER_NONE
-} compiler_t;
-
 typedef struct {
     char name[256];
     int is_dir;
@@ -49,8 +42,5 @@ void close_dir(dir_t* dir);
 
 // Platform abstract function to check if a command exists
 int has_command(const char* command);
-
-// Platform abstract function to detect what compiler is being used
-compiler_t detect_compiler();
 
 #endif // PLATFORM_H

@@ -11,13 +11,6 @@
     #include <dirent.h>
 #endif
 
-compiler_t detect_compiler() {
-    if (has_command("g++")) return COMPILER_GCC;
-    if (has_command("clang++")) return COMPILER_CLANG;
-    if (has_command("cl")) return COMPILER_MSVC;
-    return COMPILER_NONE;
-}
-
 // Windows implementation
 #ifdef _WIN32
 

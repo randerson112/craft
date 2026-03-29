@@ -68,19 +68,16 @@ int run_executable_build(const char* cwd) {
     }
 
     // Get path to executable in build
-    char project_name[32];
-    strncpy(project_name, config.name, sizeof(project_name));
-
-    char executable_path[512];
-
+    char executable_name[128];
     #ifdef _WIN32
-    snprintf(executable_path, sizeof(executable_path), "%s/%s.exe", build_dir, project_name);
+    snprintf(executable_name, sizeof(executable_name), "%s.exe", config.name);
     #else
-    snprintf(executable_path, sizeof(executable_path), "%s/%s", build_dir, project_name);
+    snprintf(executable_name, sizeof(executable_name), "%s", config.name);
     #endif
 
-    if (!file_exists(executable_path)) {
-        fprintf(stderr, "Error: Executable '%s' not found in build directory\n\n", project_name);
+    char executable_path[PATH_SIZE];
+    if (!search_dir_for_file(executable_path, PATH_SIZE, build_dir, executable_name)) {
+        fprintf(stderr, "Error: Executable '%s' not found in build directory\n\n", config.name);
         fprintf(stderr, "Try running 'craft build' to re-build the project first\n");
         return -1;
     }
