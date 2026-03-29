@@ -18,6 +18,7 @@ void print_craft_info() {
     fprintf(stdout, "    add             Add a dependency to the project\n");
     fprintf(stdout, "    remove          Remove a dependency from the project\n");
     fprintf(stdout, "    update          Update git dependencies to their latest version\n");
+    fprintf(stdout, "    upgrade         Update Craft to the latest version\n");
     fprintf(stdout, "    template        Manage project templates\n");
     fprintf(stdout, "    config          Manage global Craft configuration\n\n");
 
@@ -31,6 +32,7 @@ void print_craft_info() {
     fprintf(stdout, "    craft add --path ../my_lib\n");
     fprintf(stdout, "    craft remove my_lib\n");
     fprintf(stdout, "    craft update\n");
+    fprintf(stdout, "    craft upgrade\n");
     fprintf(stdout, "    craft template save my_template\n");
     fprintf(stdout, "    craft config set lang cpp\n\n");
 
@@ -516,6 +518,26 @@ static int print_config_subcommand_help(const char* subcommand) {
     return 0;
 }
 
+static void print_upgrade_help() {
+    fprintf(stdout, "Command:\n");
+    fprintf(stdout, "    craft upgrade - Update Craft to the latest version.\n\n");
+
+    fprintf(stdout, "Description:\n");
+    fprintf(stdout, "    Checks GitHub for the latest version of Craft and updates if a newer\n");
+    fprintf(stdout, "    version is available. Your configuration, templates, and dependencies\n");
+    fprintf(stdout, "    in ~/.craft/ are never touched — only the binary is replaced.\n\n");
+
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft upgrade\n\n");
+
+    fprintf(stdout, "Example:\n");
+    fprintf(stdout, "    craft craft upgrade\n\n");
+
+    fprintf(stdout, "Tips:\n");
+    fprintf(stdout, "    Restart your terminal after updating to use the new version.\n");
+    fprintf(stdout, "    Run 'craft --version' to verify the update was successful.\n");
+}
+
 static void print_craft_toml_help() {
     fprintf(stdout, "craft.toml - Project configuration file\n\n");
 
@@ -610,6 +632,7 @@ int handle_help(const command_t* command_data) {
     if (strcmp(topic, "help") == 0)           { print_help_help();     return 0; }
     if (strcmp(topic, "template") == 0)       { print_template_help(); return 0; }
     if (strcmp(topic, "config") == 0)         { print_config_help();   return 0; }
+    if (strcmp(topic, "upgrade") == 0)        { print_upgrade_help();  return 0; }
 
     // Unknown topic
     fprintf(stderr, "Error: No help available for '%s'\n", topic);

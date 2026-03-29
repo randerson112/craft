@@ -95,6 +95,31 @@ craft help
 
 ---
 
+## Updating Craft
+
+To update Craft to the latest version run:
+```bash
+craft self-update
+```
+
+Craft will check GitHub for the latest version, and if a newer version is available it will update automatically:
+```
+Current version: 0.7.0
+Latest version:  0.8.0
+Updating Craft to 0.8.0...
+Updated successfully!
+Restart your terminal to use the new version.
+```
+
+If you are already on the latest version:
+```
+Craft is already up to date (0.8.0)
+```
+
+Your configuration, templates, and project dependencies in `~/.craft/` are never modified by an update — only the Craft binary itself is replaced.
+
+---
+
 ## Quick Start
 ```bash
 # Create a new project
