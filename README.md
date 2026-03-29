@@ -80,7 +80,7 @@ Then restart your terminal or run `source ~/.zshrc` (or `~/.bashrc`) to use craf
 
 Open PowerShell and run:
 ```powershell
-curl -s https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 | powershell
+irm https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 | iex
 ```
 
 Then restart your terminal to use craft.
