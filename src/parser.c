@@ -338,7 +338,7 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 		}
 		return PARSE_FAIL;
 	}
-	strcpy(command_data->name, command);
+	snprintf(command_data->name, sizeof(command_data->name), "%s", command);
 
 	// Useful flags
 	int next_is_subcommand = 0;
@@ -435,7 +435,8 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 			}
 
 			// Store option and check if it expects an arg
-			strcpy(command_data->options[command_data->option_count].name, option);
+			int count = command_data->option_count;
+			snprintf(command_data->options[count].name, sizeof(command_data->options[count].name), "%s", option);
 			if (option_expects_arg(option)) {
 				next_is_option_arg = 1;
 			}
@@ -451,7 +452,7 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 				if (command_has_subcommand(command, arg)) {
 					next_is_subcommand = 0;
 					subcommand_present = 1;
-					strcpy(command_data->subcommand, arg);
+					snprintf(command_data->subcommand, sizeof(command_data->subcommand), "%s", arg);
 					continue;
 				}
 				else {
@@ -479,13 +480,13 @@ parse_result_t parse(int argc, char** argv, command_t* command_data) {
 					return PARSE_FAIL;
 				}
 
-				strcpy(last_option_info->arg, arg);
+				snprintf(last_option_info->arg, sizeof(last_option_info->arg), "%s", arg);
 				next_is_option_arg = 0;
 			}
 
 			// Arg
 			else {
-				strcpy(command_data->args[command_data->arg_count], arg);
+				snprintf(command_data->args[command_data->arg_count], sizeof(command_data->args[command_data->arg_count]), "%s", arg);
 				command_data->arg_count++;
 
 				// Check if command or subcommand has too many arguments

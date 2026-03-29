@@ -116,12 +116,21 @@ static int dependency_already_exists(project_config_t* config, const char* name)
 
 // Splits the command seperated links into the links field of a dependency
 static void get_links(dependency_t* dep, const char* links) {
-    char links_buf[512];
-    snprintf(links_buf, sizeof(links_buf), "%s", links);
-    char* token = strtok(links_buf, ",");
-    while (token && dep->links_count < 8) {
-        snprintf(dep->links[dep->links_count++], sizeof(dep->links[0]), "%s", token);
-        token = strtok(NULL, ",");
+    dep->links_count = 0;
+
+    const char* start = links;
+    while (*start && dep->links_count < 8) {
+        // Find the next comma
+        const char* comma = strchr(start, ',');
+        size_t len = comma ? (size_t)(comma - start) : strlen(start);
+
+        // Copy the token into dep->links
+        snprintf(dep->links[dep->links_count], sizeof(dep->links[0]), "%.*s", (int)len, start);
+        dep->links_count++;
+
+        // Move start past the comma, or break if at the end
+        if (!comma) break;
+        start = comma + 1;
     }
 }
 

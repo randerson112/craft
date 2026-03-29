@@ -233,7 +233,7 @@ int get_project_root(char* buffer, size_t buffer_size, const char* cwd) {
 
         // Check if craft.toml file exists in this directory
         if (file_exists(toml_path)) {
-            strncpy(buffer, current_path, buffer_size);
+            snprintf(buffer, buffer_size, "%s", current_path);
             return 0;
         }
 
@@ -280,8 +280,8 @@ int get_template_directory(char* buffer, size_t buffer_size, const char* type, c
 // Calculates the minimum number of changes needed to make one string equal another
 // Used for suggestions when the user misspells a value
 static int levenshtein_distance(const char* s1, const char* s2) {
-    int len1 = strlen(s1);
-    int len2 = strlen(s2);
+    int len1 = (int)strlen(s1);
+    int len2 = (int)strlen(s2);
     int matrix[64][64];
 
     for (int i = 0; i <= len1; i++) matrix[i][0] = i;
@@ -316,15 +316,17 @@ const char* suggest(const char* unknown, const char** valid, int valid_count) {
 }
 
 int is_valid_version(const char* version) {
-    int major, minor, patch;
-    if (sscanf(version, "%d.%d.%d", &major, &minor, &patch) != 3)
-        return 0;
-    if (major < 0 || minor < 0 || patch < 0)
-        return 0;
-    // Make sure there's nothing extra after the patch number
-    char expected[32];
-    snprintf(expected, sizeof(expected), "%d.%d.%d", major, minor, patch);
-    return strcmp(version, expected) == 0;
+    char *endptr;
+    int major = (int)strtol(version, &endptr, 10);
+    if (major < 0 || *endptr != '.') return 0;
+
+    int minor = (int)strtol(endptr + 1, &endptr, 10);
+    if (minor < 0 || *endptr != '.') return 0;
+
+    int patch = (int)strtol(endptr + 1, &endptr, 10);
+    if (patch < 0 || *endptr != '\0') return 0;
+
+    return 1;
 }
 
 const option_t* get_option(const command_t* command_data, const char* name) {
@@ -355,7 +357,7 @@ void get_dir_name(char* buffer, size_t buffer_size, const char* path) {
     const char* name = last_slash ? last_slash + 1 : path;
 
     // Copy to buffer
-    strncpy(buffer, name, buffer_size);
+    snprintf(buffer, buffer_size, "%s", name);
 }
 
 int search_dir_for_file(char* buffer, size_t buffer_size, const char* path, const char* filename) {
@@ -368,7 +370,7 @@ int search_dir_for_file(char* buffer, size_t buffer_size, const char* path, cons
 
     // Keep track of subdirectories to look into
     char sub_dirs[128][PATH_SIZE];
-    int sub_dirs_count;
+    int sub_dirs_count = 0;
 
     // Read only files in directory
     dir_entry_t entry;

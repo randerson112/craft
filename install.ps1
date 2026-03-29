@@ -14,7 +14,7 @@ if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
 }
 
 # Temp directory
-$TempDir = "$env:TEMP\craft-install"
+$TempDir = "$env:USERPROFILE\craft-install"
 if (Test-Path $TempDir) {
     Remove-Item $TempDir -Recurse -Force
 }

@@ -35,8 +35,8 @@ int create_project_from_template(const char* path, const char* template, const c
 
     char project_name[32];
     get_dir_name(project_name, sizeof(project_name), path);
-    strncpy(project_config.name, project_name, sizeof(project_config.name));
-    strncpy(project_config.version, "0.1.0", sizeof(project_config.version));
+    snprintf(project_config.name, sizeof(project_config.name), "%s", project_name);
+    snprintf(project_config.version, sizeof(project_config.version), "0.1.0");
 
     // Make sure project configs from the template are valid
     if (validate_project_config(&project_config) != 0) {
@@ -62,7 +62,7 @@ int create_project_from_template(const char* path, const char* template, const c
 }
 
 // Gets the full path to the new project directory from the cwd and relative path
-int get_project_path(const char* cwd, const char* rel_path, char* buffer)
+int get_project_path(char* buffer, size_t buffer_size, const char* cwd, const char* rel_path)
 {
     // Check if directory at path already exists
     char full_path[256];
@@ -74,7 +74,7 @@ int get_project_path(const char* cwd, const char* rel_path, char* buffer)
         return -1;
     }
 
-    strcpy(buffer, full_path);
+    snprintf(buffer, buffer_size, "%s", full_path);
     return 0;
 }
 
@@ -107,7 +107,7 @@ int handle_project(const command_t* command_data) {
 
     // Get path to project
     char project_path[256];
-    if (get_project_path(cwd, rel_project_path, project_path) != 0) { 
+    if (get_project_path(project_path, sizeof(project_path), cwd, rel_project_path) != 0) { 
         return -1;
     }
 

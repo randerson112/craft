@@ -85,10 +85,10 @@ static int check_unknown_keys(toml_datum_t section, const char* section_name, co
 int load_global_config(craft_config_t* config) {
 
     // Set defaults
-    strncpy(config->language, defaults.language, sizeof(config->language));
+    snprintf(config->language, sizeof(config->language), "%s", defaults.language);
     config->c_standard = defaults.c_standard;
     config->cpp_standard = defaults.cpp_standard;
-    strncpy(config->template, defaults.template, sizeof(config->template));
+    snprintf(config->template, sizeof(config->template), "%s", defaults.template);
 
     // Get path to config.toml
     char craft_home[512];
@@ -120,16 +120,16 @@ int load_global_config(craft_config_t* config) {
     toml_datum_t template = toml_seek(result.toptab, "defaults.template");
 
     if (language.type == TOML_STRING) {
-        strncpy(config->language, language.u.s, sizeof(config->language));
+        snprintf(config->language, sizeof(config->language), "%s", language.u.s);
     }
     if (c_standard.type == TOML_INT64) {
-        config->c_standard = c_standard.u.int64;
+        config->c_standard = (int)c_standard.u.int64;
     }
     if (cpp_standard.type == TOML_INT64) {
-        config->cpp_standard = cpp_standard.u.int64;
+        config->cpp_standard = (int)cpp_standard.u.int64;
     }
     if (template.type == TOML_STRING) {
-        strncpy(config->template, template.u.s, sizeof(config->template));
+        snprintf(config->template, sizeof(config->template), "%s", template.u.s);
     }
 
     toml_free(result);
@@ -339,11 +339,11 @@ int load_project_config(project_config_t* config, const char* project_root) {
 
     // Store project values
     if (name.type == TOML_STRING)
-        strncpy(config->name, name.u.s, sizeof(config->name));
+        snprintf(config->name, sizeof(config->name), "%s", name.u.s);
     if (version.type == TOML_STRING)
-        strncpy(config->version, version.u.s, sizeof(config->version));
+        snprintf(config->version, sizeof(config->version), "%s", version.u.s);
     if (language.type == TOML_STRING)
-        strncpy(config->language, language.u.s, sizeof(config->language));
+        snprintf(config->language, sizeof(config->language), "%s", language.u.s);
     if (c_standard.type == TOML_INT64) {
         config->c_standard = (int)c_standard.u.int64;
         config->has_c_standard = 1;
@@ -355,7 +355,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
 
     // Store build values
     if (build_type.type == TOML_STRING)
-        strncpy(config->build_type, build_type.u.s, sizeof(config->build_type));
+        snprintf(config->build_type, sizeof(config->build_type), "%s", build_type.u.s);
 
     // Include directories
     if (include_dirs.type == TOML_ARRAY) {
@@ -363,7 +363,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
         for (int i = 0; i < include_dirs.u.arr.size; i++) {
             toml_datum_t elem = include_dirs.u.arr.elem[i];
             if (elem.type == TOML_STRING)
-                strncpy(config->include_dirs[i], elem.u.s, sizeof(config->include_dirs[i]));
+                snprintf(config->include_dirs[i], sizeof(config->include_dirs[i]), "%s", elem.u.s);
         }
     }
 
@@ -373,7 +373,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
         for (int i = 0; i < source_dirs.u.arr.size; i++) {
             toml_datum_t elem = source_dirs.u.arr.elem[i];
             if (elem.type == TOML_STRING)
-                strncpy(config->source_dirs[i], elem.u.s, sizeof(config->source_dirs[i]));
+                snprintf(config->source_dirs[i], sizeof(config->source_dirs[i]), "%s", elem.u.s);
         }
     }
 
@@ -383,7 +383,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
         for (int i = 0; i < lib_dirs.u.arr.size; i++) {
             toml_datum_t elem = lib_dirs.u.arr.elem[i];
             if (elem.type == TOML_STRING)
-                strncpy(config->lib_dirs[i], elem.u.s, sizeof(config->lib_dirs[i]));
+                snprintf(config->lib_dirs[i], sizeof(config->lib_dirs[i]), "%s", elem.u.s);
         }
     }
 
@@ -393,7 +393,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
         for (int i = 0; i < libs.u.arr.size; i++) {
             toml_datum_t elem = libs.u.arr.elem[i];
             if (elem.type == TOML_STRING)
-                strncpy(config->libs[i], elem.u.s, sizeof(config->libs[i]));
+                snprintf(config->libs[i], sizeof(config->libs[i]), "%s", elem.u.s);
         }
     }
 
@@ -612,9 +612,8 @@ int handle_set(const command_t* command_data) {
 
     char section[32];
     char key[32];
-    strncpy(section, lookup, dot - lookup);
-    section[dot - lookup] = '\0';
-    strncpy(key, dot + 1, sizeof(key));
+    snprintf(section, sizeof(section), "%.*s", (int)(dot - lookup), lookup);
+    snprintf(key, sizeof(key), "%s", dot + 1);
 
     // Default language
     if (strcmp(lookup, "defaults.language") == 0) {
@@ -625,7 +624,7 @@ int handle_set(const command_t* command_data) {
         if (!template_exists(config.template, new_value)) {
             fprintf(stdout, "Warning: Current default template '%s' does not exist for language '%s'\n", config.template, new_value);
         }
-        strncpy(config.language, new_value, sizeof(config.language));
+        snprintf(config.language, sizeof(config.language), "%s", new_value);
     }
 
     // Default C standard
@@ -653,7 +652,7 @@ int handle_set(const command_t* command_data) {
         if (!template_exists(new_value, config.language)) {
             fprintf(stdout, "Warning: Template '%s' does not currently exist for default language '%s'\n", new_value, config.language);
         }
-        strncpy(config.template, new_value, sizeof(config.template));
+        snprintf(config.template, sizeof(config.template), "%s", new_value);
     }
 
     // Not a valid key
@@ -694,9 +693,8 @@ int handle_get(const command_t* command_data) {
 
     char section[32];
     char key[32];
-    strncpy(section, lookup, dot - lookup);
-    section[dot - lookup] = '\0';
-    strncpy(key, dot + 1, sizeof(key));
+    snprintf(section, sizeof(section), "%.*s", (int)(dot - lookup), lookup);
+    snprintf(key, sizeof(key), "%s", dot + 1);
 
     // Get global configs
     craft_config_t config;
