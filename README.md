@@ -69,10 +69,10 @@ Craft validates your `craft.toml` before touching CMake, catches unknown keys, s
 
 ### macOS & Linux
 ```bash
-curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/install.sh | sh
 ```
 
-Then restart your terminal or run `source ~/.zshrc` (or `~/.bashrc`) to use craft.
+Then restart your terminal to use craft.
 
 **Requirements:** git, cmake
 

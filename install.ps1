@@ -1,86 +1,68 @@
-# install.ps1
 $ErrorActionPreference = "Stop"
 
 Write-Host "Installing Craft..."
 
 # Check dependencies
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Error "Error: git is required. Install from https://git-scm.com"
+    Write-Error "git is required: https://git-scm.com"
     exit 1
 }
+
 if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
-    Write-Error "Error: cmake is required. Install from https://cmake.org"
+    Write-Error "cmake is required: https://cmake.org"
     exit 1
 }
 
-# Detect build system and generator
-$Generator = $null
-$BuildTool = $null
-
-if (Get-Command cl -ErrorAction SilentlyContinue) {
-    # MSVC detected
-    $Generator = "Visual Studio 17 2022"
-    $BuildTool = "msvc"
-    Write-Host "Detected MSVC compiler"
-} elseif (Get-Command mingw32-make -ErrorAction SilentlyContinue) {
-    $Generator = "MinGW Makefiles"
-    $BuildTool = "mingw"
-    Write-Host "Detected MinGW compiler"
-} elseif (Get-Command make -ErrorAction SilentlyContinue) {
-    $Generator = "MinGW Makefiles"
-    $BuildTool = "mingw"
-    Write-Host "Detected make"
-} elseif (Get-Command ninja -ErrorAction SilentlyContinue) {
-    $Generator = "Ninja"
-    $BuildTool = "ninja"
-    Write-Host "Detected Ninja build system"
-} else {
-    Write-Error "Error: No supported build system found. Install one of:
-    - MSVC: Visual Studio with C++ workload (https://visualstudio.microsoft.com)
-    - MinGW/MSYS2: https://www.msys2.org
-    - Ninja: https://ninja-build.org"
-    exit 1
-}
-
-# Clone and build
+# Temp directory
 $TempDir = "$env:TEMP\craft-install"
 if (Test-Path $TempDir) {
     Remove-Item $TempDir -Recurse -Force
 }
 
+# Clone repo
 git clone --depth 1 https://github.com/randerson112/craft.git $TempDir
 Set-Location $TempDir
 
-if ($BuildTool -eq "msvc") {
-    # MSVC uses multi-config generators so specify config at build time
-    cmake -S . -B build -G $Generator -A x64
-    cmake --build build --config Release
-    $BinaryPath = "build\Release\craft.exe"
-} else {
-    cmake -S . -B build -G $Generator
-    cmake --build build
-    $BinaryPath = "build\craft.exe"
+# Build (let CMake choose toolchain)
+cmake -S . -B build
+cmake --build build
+
+# Locate executable (primary + fallback)
+$exePath = "build\craft.exe"
+
+if (-not (Test-Path $exePath)) {
+    # fallback: search entire build dir
+    $exe = Get-ChildItem -Path build -Recurse -Filter craft.exe | Select-Object -First 1
+    if (-not $exe) {
+        Write-Error "Build failed: craft.exe not found"
+        exit 1
+    }
+    $exePath = $exe.FullName
 }
 
-# Install
-$CraftBin = "$env:USERPROFILE\.craft\bin"
-New-Item -ItemType Directory -Force -Path $CraftBin | Out-Null
-Copy-Item $BinaryPath "$CraftBin\craft.exe"
+# Install location
+$CraftHome = "$env:USERPROFILE\.craft"
+$CraftBin = "$CraftHome\bin"
 
-# Add to PATH permanently for current user
+New-Item -ItemType Directory -Force -Path $CraftBin | Out-Null
+
+Copy-Item $exePath "$CraftBin\craft.exe" -Force
+
+# Add to PATH (user)
 $CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-if ($CurrentPath -notlike "*\.craft\bin*") {
+if ($CurrentPath -notmatch [regex]::Escape($CraftBin)) {
     [Environment]::SetEnvironmentVariable(
         "PATH",
         "$CraftBin;$CurrentPath",
         "User"
     )
-    Write-Host "Added $CraftBin to PATH"
+    Write-Host "Added Craft to PATH"
 }
 
 # Cleanup
 Set-Location $env:USERPROFILE
 Remove-Item $TempDir -Recurse -Force
 
+Write-Host ""
 Write-Host "Craft installed successfully!"
-Write-Host "Restart your terminal to use craft"
+Write-Host "Restart your terminal and run: craft"
