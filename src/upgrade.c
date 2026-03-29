@@ -51,8 +51,6 @@ int handle_upgrade() {
         return -1;
     }
 
-    fprintf(stdout, "%s\n", latest_version);
-
     // Compare latest version to current version
     if (strcmp(latest_version, VERSION) == 0) {
         fprintf(stdout, "Craft already up to date (%s)\n", VERSION);
