@@ -1,12 +1,14 @@
 #ifndef DEPS_H
 #define DEPS_H
 
+// Enum to denote different types of dependencies
 typedef enum {
     DEP_PATH,
     DEP_GIT,
     DEP_INVALID
 } dep_type_t;
 
+// Struct to hold data about a project dependency
 typedef struct {
     char name[64];
     dep_type_t type;

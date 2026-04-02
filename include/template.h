@@ -3,7 +3,7 @@
 
 #include "parser.h"
 
-// Template command handler
+// template command handler
 int handle_template(const command_t* command_data);
 
 // Checks if a template exists for a certain lenaguage, builtin or custom

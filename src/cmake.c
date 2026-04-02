@@ -1,7 +1,9 @@
 #include "cmake.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+
 #include "config.h"
 #include "utils.h"
 #include "platform.h"

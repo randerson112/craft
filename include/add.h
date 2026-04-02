@@ -3,7 +3,7 @@
 
 #include "parser.h"
 
-// Add command handler
+// add command handler
 int handle_add(const command_t* command_data);
 
 #endif // ADD_H

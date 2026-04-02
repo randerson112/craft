@@ -7,9 +7,9 @@
 int cmake_needs_regeneration(const char* project_root);
 
 // Generates a CMakeLists.txt based on project configs in craft.toml
-int generate_cmake(const char* project_path, project_config_t* config);
+int generate_cmake(const char* project_root, project_config_t* config);
 
 // Backs up an existing CMakeLists.txt to CMakeLists.txt.bak when initializing projects
-int backup_cmake(const char* project_path);
+int backup_cmake(const char* project_root);
 
 #endif // CMAKE_H

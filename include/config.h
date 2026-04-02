@@ -1,12 +1,14 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stdio.h>
+
 #include "utils.h"
 #include "tomlc17.h"
-#include <stdio.h>
 #include "parser.h"
 #include "deps.h"
 
+// Struct to hold global craft config data from config.toml
 typedef struct {
     char language[8];
     int c_standard;
@@ -14,6 +16,7 @@ typedef struct {
     char template[16];
 } craft_config_t;
 
+// Struct to hold project config data from craft.toml
 typedef struct {
 
     // [project]
@@ -45,10 +48,10 @@ typedef struct {
 int load_global_config(craft_config_t* config);
 
 // Loads values from a project craft.toml into a project_config_t struct
-int load_project_config(project_config_t* config, const char* project_path);
+int load_project_config(project_config_t* config, const char* project_root);
 
 // Generates a craft.toml file for a project based on project config values
-int generate_craft_toml(const char* project_path, project_config_t* config);
+int generate_craft_toml(const char* project_root, project_config_t* config);
 
 // Checks if basic required keys and sections are present in a project craft.toml
 int validate_project_config(project_config_t* config);

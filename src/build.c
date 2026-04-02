@@ -1,17 +1,18 @@
 #include "build.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+
 #include "utils.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "sys/stat.h"
 #include "config.h"
 #include "cmake.h"
-#include <string.h>
 #include "deps.h"
 #include "platform.h"
 
 // Builds a project by creating a build directory and running cmake
-int build_project(const char* cwd)
-{
+static int build_project(const char* cwd) {
     // Get path to root of the project
     char project_root[512];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {

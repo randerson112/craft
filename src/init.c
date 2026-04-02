@@ -1,21 +1,15 @@
 #include "init.h"
-#include <string.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
+
 #include "utils.h"
 #include "project.h"
 #include "config.h"
 #include "cmake.h"
 #include "platform.h"
-
-// Checks if a Craft project exists at the path
-static int project_exists(const char* path) {
-    char toml_path[512];
-    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
-
-    return file_exists(toml_path);
-}
 
 // Gets the full path to directory to initialize from the cwd and relative path
 static int get_path_to_init(char* buffer, size_t buffer_size, const char* cwd, const char* rel_path) {
@@ -458,7 +452,7 @@ int handle_init(const command_t* command_data) {
     }
 
     // Check if a project already exists at the init path
-    if (project_exists(init_path)) {
+    if (is_craft_project(init_path)) {
         fprintf(stderr, "Error: Craft project already exists at '%s'\n", init_path);
         return -1;
     }

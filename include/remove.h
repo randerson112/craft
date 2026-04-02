@@ -3,7 +3,7 @@
 
 #include "parser.h"
 
-// Remove command handler
+// remove command handler
 int handle_remove(const command_t* command_data);
 
 #endif // REMOVE_H

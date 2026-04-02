@@ -1,10 +1,11 @@
 #ifndef PROJECT_H
 #define PROJECT_H
 
-#include "parser.h"
 #include <stdlib.h>
 
-// Project command handler
+#include "parser.h"
+
+// project command handler
 int handle_project(const command_t* command_data);
 
 // Gets the name of a project by taking the last name of the path

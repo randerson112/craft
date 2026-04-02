@@ -1,11 +1,14 @@
 #include "config.h"
-#include <string.h>
-#include <stdlib.h>
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "template.h"
 #include "utils.h"
 #include "platform.h"
 
+// Fallback global config values if config.toml is missing or corrupted
 static const craft_config_t defaults = {
     .language = "cpp",
     .c_standard = 99,
@@ -13,11 +16,13 @@ static const craft_config_t defaults = {
     .template = "executable"
 };
 
+// Struct to hold data about a key in craft.toml
 typedef struct {
     const char* name;
     int required;
 } config_key_t;
 
+// Information about the project section keys in craft.toml
 static const config_key_t project_keys[] = {
     {"name",         1},
     {"version",      1},
@@ -27,6 +32,7 @@ static const config_key_t project_keys[] = {
 };
 static const int num_project_keys = 5;
 
+// Information about the build section keys in craft.toml
 static const config_key_t build_keys[] = {
     {"type",         1},
     {"include_dirs", 0},
@@ -593,7 +599,7 @@ int validate_project_config(project_config_t* config) {
 }
 
 // Subcommand handler for config set to set a global config value
-int handle_set(const command_t* command_data) {
+static int handle_set(const command_t* command_data) {
 
     // Load config values
     craft_config_t config;
@@ -679,7 +685,7 @@ int handle_set(const command_t* command_data) {
 }
 
 // Subcommand handler for config get to read a global config value
-int handle_get(const command_t* command_data) {
+static int handle_get(const command_t* command_data) {
 
     // Get config key argument
     const char* lookup = command_data->args[0];
@@ -728,7 +734,7 @@ int handle_get(const command_t* command_data) {
 }
 
 // Subcommand handler for config list, lists all the configs in config.toml
-int handle_list() {
+static int handle_list() {
 
     // Get path to config.toml
     char craft_home[512];

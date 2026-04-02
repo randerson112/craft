@@ -1,8 +1,10 @@
 #include "setup.h"
+
+#include <stdio.h>
+#include <sys/stat.h>
+
 #include "utils.h"
 #include "platform.h"
-#include <sys/stat.h>
-#include <stdio.h>
 
 static int create_global_config_file(const char* craft_home) {
 

@@ -3,7 +3,7 @@
 
 #include "parser.h"
 
-// Run command handler
+// run command handler
 int handle_run(const command_t* command_data);
 
 #endif // RUN_H

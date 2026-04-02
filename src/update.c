@@ -1,7 +1,9 @@
 #include "update.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "deps.h"
 #include "utils.h"
 #include "config.h"

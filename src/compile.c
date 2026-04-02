@@ -1,14 +1,15 @@
 #include "compile.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "utils.h"
-#include "stdio.h"
-#include "ctype.h"
-#include "stdlib.h"
-#include "string.h"
 #include "platform.h"
 
 // Compiles a source file and writes the executable to the output file
-int compile_file(const char* cwd, const char* source_path, const char* output_path) 
-{
+static int compile_file(const char* cwd, const char* source_path, const char* output_path) {
     // Get full path to source and output files
     char full_source_path[512];
     char full_output_path[512];

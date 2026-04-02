@@ -1,10 +1,12 @@
 #include "upgrade.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "platform.h"
 #include "utils.h"
 #include "config.h"
-#include <string.h>
 
 // Fetches the latest version of craft by parsing the craft.toml from github
 static int fetch_latest_version(char* buffer, size_t buffer_size) {

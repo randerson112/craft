@@ -1,10 +1,12 @@
 #include "gen.h"
-#include "config.h"
-#include "utils.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
+#include "config.h"
+#include "utils.h"
 #include "platform.h"
 
 // Writes a cpp header file at the path with starting content

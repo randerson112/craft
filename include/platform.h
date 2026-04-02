@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 
+// Windows macro definitions
 #ifdef _WIN32
 
 #include <windows.h>
@@ -15,6 +16,7 @@
 #define getcwd _getcwd
 
 #else
+// Mac/Linux macro definitions
 
 #include <limits.h>
 #include <unistd.h>
@@ -24,11 +26,14 @@
 
 #endif
 
+// Struct to hold data about a directory entry
 typedef struct {
     char name[256];
     int is_dir;
 } dir_entry_t;
 
+// Forward declaration of directory struct
+// Platform specific implementations in source file
 typedef struct dir_t dir_t;
 
 // Gets the current working directory

@@ -1,6 +1,7 @@
 #ifndef REGISTRY_H
 #define REGISTRY_H
 
+// Struct to store data about a kit from the registry
 typedef struct {
     char name[64];
     char description[256];

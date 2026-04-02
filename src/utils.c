@@ -1,9 +1,10 @@
 #include "utils.h"
-#include "platform.h"
 
-#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#include "platform.h"
 
 void strip_extension(const char* file, char* stripped_file)
 {

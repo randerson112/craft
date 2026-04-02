@@ -1,8 +1,10 @@
 #include "template.h"
+
 #include <stdio.h>
-#include "utils.h"
-#include <sys/stat.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#include "utils.h"
 #include "config.h"
 #include "platform.h"
 

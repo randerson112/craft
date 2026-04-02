@@ -1,8 +1,10 @@
 #include "add.h"
+
 #include <stdio.h>
+#include <string.h>
+
 #include "utils.h"
 #include "config.h"
-#include <string.h>
 #include "cmake.h"
 #include "deps.h"
 #include "registry.h"

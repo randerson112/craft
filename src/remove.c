@@ -1,9 +1,11 @@
 #include "remove.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "utils.h"
 #include "config.h"
-#include <string.h>
 #include "cmake.h"
 #include "deps.h"
 #include "platform.h"

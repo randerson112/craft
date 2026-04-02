@@ -1,10 +1,12 @@
 #include "clean.h"
-#include "utils.h"
+
 #include <stdio.h>
+
+#include "utils.h"
 #include "platform.h"
 
 // Removes the build directory in the current directory
-int remove_build_dir(const char* cwd) {
+static int remove_build_dir(const char* cwd) {
 
     // Get the root of the project
     char project_root[512];

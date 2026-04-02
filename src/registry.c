@@ -1,8 +1,10 @@
 #include "registry.h"
-#include "utils.h"
+
 #include <stdio.h>
-#include "tomlc17.h"
 #include <stdlib.h>
+
+#include "utils.h"
+#include "tomlc17.h"
 
 // Clones the Craft registry repo into the .craft home directory
 static int fetch_craft_registry(const char* dest_path) {

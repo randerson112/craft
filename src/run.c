@@ -1,9 +1,11 @@
 #include "run.h"
-#include "utils.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "config.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#include "utils.h"
+#include "config.h"
 #include "platform.h"
 
 // Runs an executable relative from the current directory

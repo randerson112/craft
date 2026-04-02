@@ -1,6 +1,8 @@
 #include "parser.h"
+
 #include <stdio.h>
 #include <string.h>
+
 #include "utils.h"
 
 static const char* project_options[] = {"template", "lang"};
