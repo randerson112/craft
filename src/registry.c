@@ -14,7 +14,7 @@ static int fetch_craft_registry(const char* dest_path) {
 
     // Fetch registry
     if (system(cmd) != 0) {
-        fprintf(stderr, "Error: failed to clone registry to '%s'\n", dest_path);
+        fprintf(stderr, "Error: Failed to clone registry to '%s'\n", dest_path);
         return -1;
     }
 
@@ -53,20 +53,20 @@ int registry_find(const char* name, registry_kit_t* kit) {
     // Parse the kit toml file
     FILE* file = fopen(kit_toml_path, "r");
     if (!file) {
-        fprintf(stderr, "Error: could not open kit file for '%s'\n", name);
+        fprintf(stderr, "Error: Could not open kit file for '%s'\n", name);
         return -1;
     }
     toml_result_t result = toml_parse_file(file);
     fclose(file);
     if (!result.ok) {
-        fprintf(stderr, "Error: could not parse kit file for '%s': %s\n", name, result.errmsg);
+        fprintf(stderr, "Error: Could not parse kit file for '%s': %s\n", name, result.errmsg);
         return -1;
     }
 
     // Get the [kit] section
     toml_datum_t kit_section = toml_seek(result.toptab, "kit");
     if (kit_section.type != TOML_TABLE) {
-        fprintf(stderr, "Error: missing [kit] section in kit file for '%s'\n", name);
+        fprintf(stderr, "Error: Missing [kit] section in kit file for '%s'\n", name);
         toml_free(result);
         return -1;
     }

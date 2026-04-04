@@ -21,7 +21,7 @@ int create_project_from_template(const char* path, const char* template, const c
         get_template_directory(template_dir, sizeof(template_dir), "builtin", lang, template);
         if (!dir_exists(template_dir)) {
             // Template not found
-            fprintf(stderr, "Template '%s' not found for language '%s'\n", template, lang);
+            fprintf(stderr, "Error: Template '%s' not found for language '%s'\n", template, lang);
             return -1;
         }
     }
@@ -85,7 +85,7 @@ int handle_project(const command_t* command_data) {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
     

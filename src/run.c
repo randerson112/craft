@@ -45,7 +45,7 @@ int run_executable_build(const char* cwd) {
     // Get path to project root
     char project_root[512];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -103,7 +103,7 @@ int handle_run(const command_t* command_data) {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 

@@ -29,7 +29,7 @@ int handle_remove(const command_t* command_data) {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
@@ -55,7 +55,7 @@ int handle_remove(const command_t* command_data) {
 
     // Dependency not found, give a suggestion if close enough
     if (!removed_dep) {
-        fprintf(stderr, "Error: dependency '%s' not found in craft.toml\n", dep_name);
+        fprintf(stderr, "Error: Dependency '%s' not found in craft.toml\n", dep_name);
 
         // Print suggestion if close enough
         const char* suggestion = get_dependency_suggestion(config.dependencies, config.dependencies_count, dep_name);

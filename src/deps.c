@@ -46,7 +46,7 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
     }
 
     if (system(cmd) != 0) {
-        fprintf(stderr, "Error: failed to clone '%s' from '%s'\n", dep->name, dep->value);
+        fprintf(stderr, "Error: Failed to clone '%s' from '%s'\n", dep->name, dep->value);
         return -1;
     }
 

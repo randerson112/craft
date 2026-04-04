@@ -53,7 +53,7 @@ int handle_update(const command_t* command_data) {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 

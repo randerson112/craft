@@ -43,7 +43,7 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
 
         project_config_t dep_config;
         if (load_project_config(&dep_config, dep_project_root) != 0) {
-            fprintf(stderr, "Make sure the craft.toml in the dependency is valid\n");
+            fprintf(stderr, "Error: Make sure the craft.toml in the dependency is valid\n");
             return -1;
         }
 
@@ -55,7 +55,7 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
         // Get the last part of the path and remove the .git
         const char* last_slash = strrchr(value, '/');
         if (!last_slash || *(last_slash + 1) == '\0') {
-            fprintf(stderr, "Error: could not parse repository name from URL '%s'\n", value);
+            fprintf(stderr, "Error: Could not parse repository name from URL '%s'\n", value);
             return -1;
         }
 
@@ -79,7 +79,7 @@ static int validate_path_dependency(const char* project_root, const char* path) 
     char dep_project_root[512];
     snprintf(dep_project_root, sizeof(dep_project_root), "%s/%s", project_root, path);
     if (!dir_exists(dep_project_root)) {
-        fprintf(stderr, "Error: path '%s' does not exist or is not a directory\n", path);
+        fprintf(stderr, "Error: Path '%s' does not exist or is not a directory\n", path);
         return -1;
     }
 
@@ -93,14 +93,13 @@ static int validate_path_dependency(const char* project_root, const char* path) 
     project_config_t dep_config;
     if (load_project_config(&dep_config, dep_project_root) != 0 ||
         validate_project_config(&dep_config) != 0) {
-        fprintf(stderr, "Make sure the craft.toml in the dependency is valid\n");
+        fprintf(stderr, "Error: Make sure the craft.toml in the dependency is valid\n");
         return -1;
     }
 
     // Make sure it's a library not an executable
     if (strcmp(dep_config.build_type, "executable") == 0) {
         fprintf(stderr, "Error: '%s' is an executable project and cannot be linked as a dependency\n", dep_config.name);
-        fprintf(stderr, "       Only static-library, shared-library, and header-only projects can be dependencies\n");
         return -1;
     }
 
@@ -143,7 +142,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
     for (int i = 0; i < command_data->option_count; i++) {
         const char* option_name = command_data->options[i].name;
         if (strcmp(option_name, "tag") != 0 && strcmp(option_name, "branch") != 0) {
-            fprintf(stderr, "Error: option '--%s' cannot be used when adding kits from registry\n", option_name);
+            fprintf(stderr, "Error: Option '--%s' cannot be used when adding kits from registry\n", option_name);
             return -1;
         }
     }
@@ -191,7 +190,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
         return -1;
     }
     if (dependency_already_exists(&config, dep.name)) {
-        fprintf(stderr, "Error: kit '%s' already exists in craft.toml\n", dep.name);
+        fprintf(stderr, "Error: Kit '%s' already exists in craft.toml\n", dep.name);
         return -1;
     }
 
@@ -213,14 +212,14 @@ int handle_add(const command_t* command_data) {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Get the root of the project
     char project_root[512];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 

@@ -49,7 +49,7 @@ int handle_upgrade() {
     // Get latest version of craft
     char latest_version[32];
     if (fetch_latest_version(latest_version, sizeof(latest_version)) != 0) {
-        fprintf(stderr, "Failed to fetch latest data from GitHub\n");
+        fprintf(stderr, "Error: Failed to fetch latest data from GitHub\n");
         return -1;
     }
 

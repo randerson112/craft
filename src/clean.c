@@ -11,7 +11,7 @@ static int remove_build_dir(const char* cwd) {
     // Get the root of the project
     char project_root[512];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -30,7 +30,7 @@ static int remove_build_dir(const char* cwd) {
 
     // Remove the build directory recursively
     if (remove_dir_count(build_dir, &files_removed, &bytes_removed) != 0) {
-        fprintf(stderr, "Failed to remove build directory.\n");
+        fprintf(stderr, "Error: Failed to remove build directory\n");
         return -1;
     }
 
@@ -46,7 +46,7 @@ int handle_clean() {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 

@@ -27,14 +27,14 @@ static int handle_save(const command_t* command_data) {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Find project root
     char project_root[512];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -53,13 +53,13 @@ static int handle_save(const command_t* command_data) {
 
     // Check if there is a builtin template with same name
     if (builtin_template_exists(name, language)) {
-        fprintf(stderr, "Naming Error: Builtin template '%s' already exists for language '%s'\n", name, language);
+        fprintf(stderr, "Error: Builtin template '%s' already exists for language '%s'\n", name, language);
         return -1;
     }
 
     // Check if there is a custom template already with that name
     if (template_exists(name, language)) {
-        fprintf(stderr, "Naming Error: Custom template '%s' already exists for language '%s'\n", name, language);
+        fprintf(stderr, "Error: Custom template '%s' already exists for language '%s'\n", name, language);
         return -1;
     }
 
@@ -88,14 +88,14 @@ static int handle_update(const command_t* command_data) {
     char cwd[4096];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Find project root
     char project_root[512];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -116,7 +116,7 @@ static int handle_update(const command_t* command_data) {
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
     if (!dir_exists(template_dir)) {
-        fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
+        fprintf(stderr, "Error: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
@@ -158,7 +158,7 @@ static int handle_delete(const command_t* command_data) {
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
     if (!dir_exists(template_dir)) {
-        fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
+        fprintf(stderr, "Error: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
@@ -187,7 +187,7 @@ static int handle_where(const command_t* command_data) {
     char template_dir[512];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
     if (!dir_exists(template_dir)) {
-        fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
+        fprintf(stderr, "Error: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
@@ -231,7 +231,7 @@ static int handle_list(const command_t* command_data) {
     get_template_directory(builtin_templates_dir, sizeof(builtin_templates_dir), "builtin", language, NULL);
     dir_t* bi_dir = open_dir(builtin_templates_dir);
     if (!bi_dir) {
-        fprintf(stderr, "[Fatal Error]: Failed to open builtin templates for language '%s'\n", language);
+        fprintf(stderr, "Error: Failed to open builtin templates for language '%s'\n", language);
         return -1;
     }
 
@@ -253,7 +253,7 @@ static int handle_list(const command_t* command_data) {
         get_template_directory(builtin_templates_dir, sizeof(builtin_templates_dir), "builtin", other_language, NULL);
         bi_dir = open_dir(builtin_templates_dir);
         if (!bi_dir) {
-            fprintf(stderr, "[Fatal Error]: Failed to open builtin templates for language '%s'\n", other_language);
+            fprintf(stderr, "Error: Failed to open builtin templates for language '%s'\n", other_language);
             return -1;
         }
 
@@ -275,7 +275,7 @@ static int handle_list(const command_t* command_data) {
     get_template_directory(custom_templates_dir, sizeof(custom_templates_dir), "custom", language, NULL);
     dir_t* c_dir = open_dir(custom_templates_dir);
     if (!c_dir) {
-        fprintf(stderr, "[Fatal Error]: Failed to open custom templates for language '%s'\n", language);
+        fprintf(stderr, "Error: Failed to open custom templates for language '%s'\n", language);
         return -1;
     }
 
@@ -297,7 +297,7 @@ static int handle_list(const command_t* command_data) {
 
         c_dir = open_dir(custom_templates_dir);
         if (!c_dir) {
-            fprintf(stderr, "[Fatal Error]: Failed to open custom templates for language '%s'\n", other_language);
+            fprintf(stderr, "Error: Failed to open custom templates for language '%s'\n", other_language);
             return -1;
         }
 

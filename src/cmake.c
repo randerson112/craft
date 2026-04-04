@@ -130,7 +130,7 @@ static int write_path_dependency(FILE* file, const char* project_path, project_c
 
     project_config_t dep_config;
     if (load_project_config(&dep_config, dep_root) != 0) {
-        fprintf(stderr, "Error: could not load craft.toml for dependency '%s'\n", dep->name);
+        fprintf(stderr, "Error: Could not load craft.toml for dependency '%s'\n", dep->name);
         return -1;
     }
 
@@ -170,7 +170,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
     if (is_craft_project(dep_root)) {
         project_config_t dep_config;
         if (load_project_config(&dep_config, dep_root) != 0) {
-            fprintf(stderr, "Error: could not load craft.toml for dependency '%s'\n", dep->name);
+            fprintf(stderr, "Error: Could not load craft.toml for dependency '%s'\n", dep->name);
             return -1;
         }
 
