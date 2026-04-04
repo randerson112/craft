@@ -36,13 +36,13 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
     // Build git clone command
     char cmd[2048];
     if (strlen(dep->tag) > 0) {
-        snprintf(cmd, sizeof(cmd), "git clone --depth 1 --branch %s %s %s", dep->tag, dep->value, dep_path);
+        snprintf(cmd, sizeof(cmd), "git clone --depth 1 --branch %s %s %s > %s 2>&1", dep->tag, dep->value, dep_path, DEVNULL);
     }
     else if (strlen(dep->branch) > 0) {
-        snprintf(cmd, sizeof(cmd), "git clone --depth 1 --branch %s %s %s", dep->branch, dep->value, dep_path);
+        snprintf(cmd, sizeof(cmd), "git clone --depth 1 --branch %s %s %s > %s 2>&1", dep->branch, dep->value, dep_path, DEVNULL);
     }
     else {
-        snprintf(cmd, sizeof(cmd), "git clone --depth 1 %s %s", dep->value, dep_path);
+        snprintf(cmd, sizeof(cmd), "git clone --depth 1 %s %s > %s 2>&1", dep->value, dep_path, DEVNULL);
     }
 
     if (system(cmd) != 0) {
@@ -50,7 +50,7 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
         return -1;
     }
 
-    fprintf(stdout, "Fetched '%s'\n", dep->name);
+    fprintf(stdout, "Successfully Fetched '%s'\n", dep->name);
     return 0;
 }
 

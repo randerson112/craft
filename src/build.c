@@ -31,6 +31,7 @@ static int build_project(const char* cwd) {
     }
 
     if (cmake_needs_regeneration(project_root)) {
+        fprintf(stdout, "Regenerating CMake");
         generate_cmake(project_root, &config);
     }
 
@@ -65,13 +66,20 @@ static int build_project(const char* cwd) {
     }
 
     // Run cmake to build project
+    fprintf(stdout, "Configuring CMake\n");
+    char configure_command[512];
+    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" > %s 2>&1", project_root, build_dir, DEVNULL);
+
+    if (system(configure_command) != 0) {
+        fprintf(stderr, "Error: Failed to configure cmake\n");
+        return -1;
+    }
+
+    char build_command[512];
+    snprintf(build_command, sizeof(build_command), "cmake --build \"%s\" > %s", build_dir, DEVNULL);
+
     fprintf(stdout, "Building project\n");
-
-    char command[512];
-    snprintf(command, sizeof(command), "cmake -S \"%s\" -B \"%s\" && cmake --build \"%s\"", project_root, build_dir, build_dir);
-
-    if (system(command) != 0)
-    {
+    if (system(build_command) != 0) {
         fprintf(stderr, "Error: Failed to build project\n");
         return -1;
     }

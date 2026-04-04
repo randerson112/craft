@@ -11,6 +11,7 @@
 
 #define PATH_SIZE MAX_PATH
 #define PATH_SEP '\\'
+#define DEVNULL "NUL"
 #define rmdir _rmdir
 #define mkdir(path, mode) _mkdir(path)
 #define getcwd _getcwd
@@ -23,6 +24,7 @@
 
 #define PATH_SIZE PATH_MAX
 #define PATH_SEP '/'
+#define DEVNULL "/dev/null"
 
 #endif
 
