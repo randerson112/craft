@@ -343,7 +343,7 @@ const option_t* get_option(const command_t* command_data, const char* name) {
     return NULL;
 }
 
-const int is_craft_project(const char* path) {
+int is_craft_project(const char* path) {
     // Check if craft.toml exists
     char toml_path[512];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);

@@ -32,7 +32,6 @@ const command_info_t commands_info[] = {
 	{"build",    "craft build",                        NULL,                 0, NULL,            0, 0, 0},
 	{"run",      "craft run [path]",                   NULL,                 0, NULL,            0, 0, 1},
 	{"clean",    "craft clean",                        NULL,                 0, NULL,            0, 0, 0},
-	{"compile",  "craft compile <src> [out]",          NULL,                 0, NULL,            0, 1, 2},
 	{"gen",      "craft gen <file>",                   NULL,                 0, NULL,            0, 1, 1},
 	{"help",     "craft help [command] [subcommand]",  NULL,                 0, NULL,            0, 0, 2},
 	{"template", "craft template <subcommand> [args]", template_subcommands, 5, NULL,            0, 0, 0},
@@ -321,7 +320,7 @@ const char* get_subcommand_option_suggestion(const char* command, const char* su
 }
 
 // Parses the command line arguments into a command struct
-parse_result_t parse(int argc, char** argv, command_t* command_data) {
+parse_result_t parse(command_t* command_data, int argc, char** argv) {
 	if (argc < 2) {
 		return PARSE_MISSING_COMMAND;
 	}
