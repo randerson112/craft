@@ -11,8 +11,8 @@
 int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
     
     // Create .craft/deps if not already there
-    char craft_directory[512];
-    char craft_deps_directory[512];
+    char craft_directory[PATH_SIZE];
+    char craft_deps_directory[PATH_SIZE];
     snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", project_root);
     snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
 
@@ -23,7 +23,7 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
         mkdir(craft_deps_directory, 0755);
     }
 
-    char dep_path[512];
+    char dep_path[PATH_SIZE];
     snprintf(dep_path, sizeof(dep_path), "%s/.craft/deps/%s", project_root, dep->name);
 
     // Skip if dependency is already cloned
@@ -34,7 +34,7 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
     fprintf(stdout, "Fetching '%s'...\n", dep->name);
 
     // Build git clone command
-    char cmd[2048];
+    char cmd[COMMAND_SIZE];
     if (strlen(dep->tag) > 0) {
         snprintf(cmd, sizeof(cmd), "git clone --depth 1 --branch %s %s %s > %s 2>&1", dep->tag, dep->value, dep_path, DEVNULL);
     }
@@ -68,7 +68,7 @@ dependency_t* get_dependency(dependency_t* dependencies, const int count, const 
 }
 
 void delete_dependency_dir(const char* project_root, const char* dep_name) {
-    char dep_dir[512];
+    char dep_dir[PATH_SIZE];
     snprintf(dep_dir, sizeof(dep_dir), "%s/.craft/deps/%s", project_root, dep_name);
 
     if (dir_exists(dep_dir)) {

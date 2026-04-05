@@ -11,7 +11,7 @@
 // Runs an executable relative from the current directory
 int run_executable_relative(const char* cwd, const char* executable_path)
 {
-    char full_path[512];
+    char full_path[PATH_SIZE];
 
     // Combine current working directory with relative path, adding .exe for windows
     #ifdef _WIN32
@@ -26,7 +26,7 @@ int run_executable_relative(const char* cwd, const char* executable_path)
     }
 
     // Run executable
-    char command[512];
+    char command[COMMAND_SIZE];
     snprintf(command, sizeof(command), "\"%s\"", full_path);
 
     if (system(command) != 0)
@@ -43,7 +43,7 @@ int run_executable_relative(const char* cwd, const char* executable_path)
 int run_executable_build(const char* cwd) {
 
     // Get path to project root
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
@@ -61,7 +61,7 @@ int run_executable_build(const char* cwd) {
     }
 
     // Get path to build directory
-    char build_dir[512];
+    char build_dir[PATH_SIZE];
     snprintf(build_dir, sizeof(build_dir), "%s/build", project_root);
     if (!dir_exists(build_dir)) {
         fprintf(stderr, "Error: No build directory found\n\n");
@@ -85,7 +85,7 @@ int run_executable_build(const char* cwd) {
     }
 
     // Run executable
-    char command[512];
+    char command[COMMAND_SIZE];
     snprintf(command, sizeof(command), "%s", executable_path);
 
     if (system(command) != 0)
@@ -100,7 +100,7 @@ int run_executable_build(const char* cwd) {
 
 int handle_run(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
         fprintf(stderr, "Error: Failed to get current working directory\n");

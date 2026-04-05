@@ -9,8 +9,8 @@
 #include "platform.h"
 
 int cmake_needs_regeneration(const char* project_root) {
-    char cmake_path[1024];
-    char toml_path[1024];
+    char cmake_path[PATH_SIZE];
+    char toml_path[PATH_SIZE];
     snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_root);
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_root);
 
@@ -125,7 +125,7 @@ static int write_version_compile_definition(FILE* file, project_config_t* config
 
 // Writes cmake for a local path dependency (must be a Craft project)
 static int write_path_dependency(FILE* file, const char* project_path, project_config_t* config, dependency_t* dep) {
-    char dep_root[1024];
+    char dep_root[PATH_SIZE];
     snprintf(dep_root, sizeof(dep_root), "%s/%s", project_path, dep->value);
 
     project_config_t dep_config;
@@ -158,10 +158,10 @@ static int write_path_dependency(FILE* file, const char* project_path, project_c
 // If it has a CMakeLists.txt use add_subdirectory with user provided links
 // Otherwise warn the user to configure it manually
 static int write_git_dependency(FILE* file, const char* project_path, project_config_t* config, dependency_t* dep) {
-    char dep_root[1024];
+    char dep_root[PATH_SIZE];
     snprintf(dep_root, sizeof(dep_root), "%s/.craft/deps/%s", project_path, dep->name);
 
-    char dep_cmake[1024];
+    char dep_cmake[PATH_SIZE];
     snprintf(dep_cmake, sizeof(dep_cmake), "%s/CMakeLists.txt", dep_root);
 
     fprintf(file, "# %s\n", dep->name);
@@ -257,7 +257,7 @@ static void write_escape_hatch(FILE* file) {
 }
 
 int generate_cmake(const char* project_path, project_config_t* config) {
-    char cmake_path[1024];
+    char cmake_path[PATH_SIZE];
     snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_path);
 
     FILE* file = fopen(cmake_path, "w");
@@ -281,10 +281,10 @@ int generate_cmake(const char* project_path, project_config_t* config) {
 
 int backup_cmake(const char* project_path) {
     char cmake_path[PATH_SIZE];
-    snprintf(cmake_path, PATH_SIZE, "%s/CMakeLists.txt", project_path);
+    snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_path);
 
     char backup_path[PATH_SIZE];
-    snprintf(backup_path, PATH_SIZE, "%s/CMakeLists.backup.cmake", project_path);
+    snprintf(backup_path, sizeof(backup_path), "%s/CMakeLists.backup.cmake", project_path);
 
     if (file_exists(cmake_path)) {
         copy_file(cmake_path, backup_path);

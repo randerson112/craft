@@ -14,7 +14,7 @@
 // Gets the full path to directory to initialize from the cwd and relative path
 static int get_path_to_init(char* buffer, size_t buffer_size, const char* cwd, const char* rel_path) {
     // Get full path to specified directory
-    char full_path[256];
+    char full_path[PATH_SIZE];
     if (rel_path) {
         snprintf(full_path, sizeof(full_path), "%s/%s", cwd, rel_path);
     }
@@ -78,7 +78,7 @@ static void get_language_counts(const char* path, int* cpp_count, int* c_count) 
 
         // Get path to current entry
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
         
         // If directory, recurse into directory
         if (entry.is_dir) {
@@ -132,7 +132,7 @@ static void detect_source_dirs(const char* path, project_config_t* config) {
         }
 
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
 
         // Read entries of subdirectory
         dir_t* sub_dir = open_dir(full_path);
@@ -194,7 +194,7 @@ static void detect_include_dirs(const char* path, project_config_t* config) {
         }
 
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
 
         // Read entries of subdirectory
         dir_t* sub_dir = open_dir(full_path);
@@ -256,7 +256,7 @@ static void detect_libs(const char* path, project_config_t* config) {
 
         // Read entries of subdirectory
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
 
         dir_t* sub_dir = open_dir(full_path);
         if (!sub_dir) {
@@ -390,8 +390,8 @@ static int init_existing_project(const char* path, const char* language_option) 
     }
 
     // Generate .craft directory with deps directory
-    char craft_directory[512];
-    char craft_deps_directory[512];
+    char craft_directory[PATH_SIZE];
+    char craft_deps_directory[PATH_SIZE];
     snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", path);
     snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
 
@@ -416,7 +416,7 @@ static int init_existing_project(const char* path, const char* language_option) 
 int handle_init(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL) {
         fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
@@ -446,7 +446,7 @@ int handle_init(const command_t* command_data) {
     }
 
     // Get path to where project is being initialized
-    char init_path[256];
+    char init_path[PATH_SIZE];
     if (get_path_to_init(init_path, sizeof(init_path), cwd, rel_path) != 0) {
         return -1;
     }

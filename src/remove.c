@@ -26,7 +26,7 @@ static void remove_dependency_from_config(project_config_t* config, const char* 
 int handle_remove(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
         fprintf(stderr, "Error: Failed to get current working directory\n");
@@ -34,7 +34,7 @@ int handle_remove(const command_t* command_data) {
     }
 
     // Find project root and load config
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         fprintf(stderr, "Error: Could not find craft.toml in current or any parent directory\n");
         return -1;

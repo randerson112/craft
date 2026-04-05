@@ -38,7 +38,7 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
     if (type == DEP_PATH) {
 
         // Get path to dependency project root and load config
-        char dep_project_root[512];
+        char dep_project_root[PATH_SIZE];
         snprintf(dep_project_root, sizeof(dep_project_root), "%s/%s", project_root, value);
 
         project_config_t dep_config;
@@ -76,7 +76,7 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
 static int validate_path_dependency(const char* project_root, const char* path) {
     
     // Get path to dependency project root
-    char dep_project_root[512];
+    char dep_project_root[PATH_SIZE];
     snprintf(dep_project_root, sizeof(dep_project_root), "%s/%s", project_root, path);
     if (!dir_exists(dep_project_root)) {
         fprintf(stderr, "Error: Path '%s' does not exist or is not a directory\n", path);
@@ -209,7 +209,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
 int handle_add(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
         fprintf(stderr, "Error: Failed to get current working directory\n");
@@ -217,7 +217,7 @@ int handle_add(const command_t* command_data) {
     }
 
     // Get the root of the project
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;

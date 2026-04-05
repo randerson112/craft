@@ -11,11 +11,11 @@
 // Clones the Craft registry repo into the .craft home directory
 static int fetch_registry_kit(const char* name, const char* cache_path) {
     // Build URL for the kit file
-    char url[512];
+    char url[URL_SIZE];
     snprintf(url, sizeof(url), "https://raw.githubusercontent.com/randerson112/craft-registry/main/kits/%s.toml", name);
 
     // Fetch latest kit file from GitHub
-    char cmd[512];
+    char cmd[COMMAND_SIZE];
     snprintf(cmd, sizeof(cmd), "curl -fsSL \"%s\" -o \"%s\" > %s 2>&1", url, cache_path, DEVNULL);
 
     if (system(cmd) != 0) {
@@ -33,12 +33,12 @@ static int fetch_registry_kit(const char* name, const char* cache_path) {
 int registry_find(const char* name, registry_kit_t* kit) {
 
     // Get path to registry cache
-    char craft_home[512];
+    char craft_home[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
         return -1;
     }
 
-    char registry_cache_path[512];
+    char registry_cache_path[PATH_SIZE];
     snprintf(registry_cache_path, sizeof(registry_cache_path), "%s/registry_cache", craft_home);
     
     // Create registry cache directory if it doesn't exist
@@ -47,7 +47,7 @@ int registry_find(const char* name, registry_kit_t* kit) {
     }
 
     // Build path to cached kit file
-    char kit_cache_path[512];
+    char kit_cache_path[PATH_SIZE];
     snprintf(kit_cache_path, sizeof(kit_cache_path), "%s/%s.toml", registry_cache_path, name);
 
     // Fetch the kit file from GitHub

@@ -97,8 +97,8 @@ int load_global_config(craft_config_t* config) {
     snprintf(config->template, sizeof(config->template), "%s", defaults.template);
 
     // Get path to config.toml
-    char craft_home[512];
-    char config_path[512];
+    char craft_home[PATH_SIZE];
+    char config_path[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
         return -1;
     }
@@ -146,8 +146,8 @@ int load_global_config(craft_config_t* config) {
 int save_global_config(craft_config_t* config) {
 
     // Get path to config.toml
-    char craft_home[512];
-    char config_path[512];
+    char craft_home[PATH_SIZE];
+    char config_path[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
         return -1;
     }
@@ -172,7 +172,7 @@ int save_global_config(craft_config_t* config) {
 
 int generate_craft_toml(const char* project_path, project_config_t* config) {
     // Get path to toml file
-    char toml_path[512];
+    char toml_path[PATH_SIZE];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_path);
 
     // Open the file and write config values
@@ -284,7 +284,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
     memset(config, 0, sizeof(*config));
 
     // Get path to craft.toml
-    char toml_path[1024];
+    char toml_path[PATH_SIZE];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_root);
     if (!file_exists(toml_path)) {
         fprintf(stderr, "Error: No craft.toml found in '%s'\n", project_root);
@@ -738,11 +738,11 @@ static int handle_get(const command_t* command_data) {
 static int handle_list() {
 
     // Get path to config.toml
-    char craft_home[512];
+    char craft_home[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0)
         return -1;
 
-    char config_path[512];
+    char config_path[PATH_SIZE];
     snprintf(config_path, sizeof(config_path), "%s/config.toml", craft_home);
 
     // Open config.toml and write the data to stdout
@@ -752,7 +752,7 @@ static int handle_list() {
         return -1;
     }
 
-    char buf[4096];
+    char buf[FILE_SIZE];
     size_t bytes;
     while ((bytes = fread(buf, 1, sizeof(buf), f)) > 0) {
         fwrite(buf, 1, bytes, stdout);

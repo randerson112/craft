@@ -67,7 +67,7 @@ static int remove_dir_recursive(const char* path, unsigned int* count, unsigned 
     }
 
     dir_entry_t entry;
-    char buffer[1024];
+    char buffer[PATH_SIZE];
 
     while (read_dir(dir, &entry)) {
         if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
@@ -139,7 +139,7 @@ int copy_file(const char* source, const char* dest) {
     }
 
     // Read bits from file and write to destination file
-    char buffer[4096];
+    char buffer[FILE_SIZE];
     size_t bytes;
     while ((bytes = fread(buffer, 1, sizeof(buffer), in)) > 0) {
         fwrite(buffer, 1, bytes, out);
@@ -227,11 +227,11 @@ int get_craft_home(char* buffer, size_t buffer_size) {
 }
 
 int get_project_root(char* buffer, size_t buffer_size, const char* cwd) {
-    char current_path[512];
+    char current_path[PATH_SIZE];
     snprintf(current_path, sizeof(current_path), "%s", cwd);
 
     while (1) {
-        char toml_path[512];
+        char toml_path[PATH_SIZE];
         snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", current_path);
 
         // Check if craft.toml file exists in this directory
@@ -252,7 +252,7 @@ int get_project_root(char* buffer, size_t buffer_size, const char* cwd) {
 
 int get_template_directory(char* buffer, size_t buffer_size, const char* type, const char* language, const char* name) {
     // Get the path to craft home
-    char craft_home[512];
+    char craft_home[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
         return -1;
     }
@@ -345,7 +345,7 @@ const option_t* get_option(const command_t* command_data, const char* name) {
 
 int is_craft_project(const char* path) {
     // Check if craft.toml exists
-    char toml_path[512];
+    char toml_path[PATH_SIZE];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
     if (file_exists(toml_path)) {
         return 1;

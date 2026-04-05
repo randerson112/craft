@@ -12,7 +12,7 @@
 #include "platform.h"
 
 int create_project_from_template(const char* path, const char* template, const char* lang) {
-    char template_dir[256];
+    char template_dir[PATH_SIZE];
 
     // Check for template in custom templates
     get_template_directory(template_dir, sizeof(template_dir), "custom", lang, template);
@@ -54,8 +54,8 @@ int create_project_from_template(const char* path, const char* template, const c
     return generate_cmake(path, &project_config);
 
     // Generate .craft directory with deps directory
-    char craft_directory[512];
-    char craft_deps_directory[512];
+    char craft_directory[PATH_SIZE];
+    char craft_deps_directory[PATH_SIZE];
     snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", path);
     snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
 
@@ -67,7 +67,7 @@ int create_project_from_template(const char* path, const char* template, const c
 int get_project_path(char* buffer, size_t buffer_size, const char* cwd, const char* rel_path)
 {
     // Check if directory at path already exists
-    char full_path[256];
+    char full_path[PATH_SIZE];
     snprintf(full_path, sizeof(full_path), "%s/%s", cwd, rel_path);
 
     if (dir_exists(full_path))
@@ -82,7 +82,7 @@ int get_project_path(char* buffer, size_t buffer_size, const char* cwd, const ch
 
 int handle_project(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
         fprintf(stderr, "Error: Failed to get current working directory\n");
@@ -108,7 +108,7 @@ int handle_project(const command_t* command_data) {
     }
 
     // Get path to project
-    char project_path[256];
+    char project_path[PATH_SIZE];
     if (get_project_path(project_path, sizeof(project_path), cwd, rel_project_path) != 0) { 
         return -1;
     }

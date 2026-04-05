@@ -15,11 +15,12 @@ static int fetch_latest_version(char* buffer, size_t buffer_size) {
     #ifdef _WIN32
     system("curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/craft.toml > %TEMP%\\craft_latest.toml 2>NUL");
     char* temp = getenv("TEMP");
-    char toml_path[512];
+    char toml_path[PATH_SIZE];
     snprintf(toml_path, sizeof(toml_path), "%s\\craft_latest.toml", temp);
     #else
     system("curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/craft.toml > /tmp/craft_latest.toml 2>/dev/null");
-    char toml_path[] = "/tmp/craft_latest.toml";
+    char toml_path[PATH_SIZE];
+    snprintf(toml_path, sizeof(toml_path), "%s", "/tmp/craft_latest.toml");
     #endif
 
     // Parse toml file for version

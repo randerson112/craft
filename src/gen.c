@@ -101,7 +101,7 @@ static int write_c_source(const char* path, const char* filename, int has_header
 
 // Finds a matching header file for a source file by looking in the cwd or include_dirs listed in craft.toml
 static int find_matching_header(const char* cwd, const char* filename, const char* extension) {
-    char path[1024];
+    char path[PATH_SIZE];
 
     // Check cwd first
     snprintf(path, sizeof(path), "%s/%s.%s", cwd, filename, extension);
@@ -111,7 +111,7 @@ static int find_matching_header(const char* cwd, const char* filename, const cha
     }
 
     // If in a project, load the project config
-    char project_root[1024];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         return 0;
     }
@@ -138,7 +138,7 @@ static int generate_header(const char* cwd, const char* filename, const char* ex
 
     // Check if cwd is in a project
     int in_project = 0;
-    char project_root[1024];
+    char project_root[PATH_SIZE];
     project_config_t config;
     if (get_project_root(project_root, sizeof(project_root), cwd) == 0) {
         in_project = 1;
@@ -148,7 +148,7 @@ static int generate_header(const char* cwd, const char* filename, const char* ex
     }
 
     // Get destination for header
-    char dest[1024];
+    char dest[PATH_SIZE];
     if (in_project && config.include_dir_count > 0) {
         snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.include_dirs[0], filename, extension);
 
@@ -180,7 +180,7 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
 
     // Check if cwd is in a project
     int in_project = 0;
-    char project_root[1024];
+    char project_root[PATH_SIZE];
     project_config_t config;
     if (get_project_root(project_root, sizeof(project_root), cwd) == 0) {
         in_project = 1;
@@ -194,7 +194,7 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
     int has_header = find_matching_header(cwd, filename, header_extension);
 
     // Get destination for source file
-    char dest[1024];
+    char dest[PATH_SIZE];
     if (in_project && config.source_dir_count > 0) {
         snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.source_dirs[0], filename, extension);
 
@@ -224,7 +224,7 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
 int handle_gen(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL) {
         fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
