@@ -5,8 +5,8 @@
 
 #include "utils.h"
 
-static const char* project_options[] = {"template", "lang"};
-static const char* init_options[] = {"template", "lang"};
+static const char* project_options[] = {"template", "lang", "no-git"};
+static const char* init_options[] = {"template", "lang", "no-git"};
 static const char* delete_options[] = {"lang"};
 static const char* list_options[] = {"lang", "all"};
 static const char* where_options[] = {"lang"};
@@ -27,8 +27,8 @@ static const subcommand_info_t config_subcommands[] = {
 };
 
 const command_info_t commands_info[] = {
-	{"project",  "craft project <path> [options]",     NULL,                 0, project_options, 2, 1, 1},
-	{"init",     "craft init [path] [options]",        NULL,                 0, init_options,    2, 0, 1},
+	{"project",  "craft project <path> [options]",     NULL,                 0, project_options, 3, 1, 1},
+	{"init",     "craft init [path] [options]",        NULL,                 0, init_options,    3, 0, 1},
 	{"build",    "craft build",                        NULL,                 0, NULL,            0, 0, 0},
 	{"run",      "craft run [path]",                   NULL,                 0, NULL,            0, 0, 1},
 	{"clean",    "craft clean",                        NULL,                 0, NULL,            0, 0, 0},
@@ -47,6 +47,7 @@ static const char* lang_args[] = {"c", "cpp"};
 const option_info_t options_info[] = {
 	{"template",  't', "--template <name>\n\t-t <name>",     1, NULL,      0},
 	{"lang",      'l', "--lang <language>\n\t-l <language>", 1, lang_args, 2},
+	{"no-git",     0,  "--no-git",                           0, NULL,      0},
 	{"all",       'a', "--all\n\t-a",                        0, NULL,      0},
 	{"path",       0,  "--path <local path>",                1, NULL,      0},
     {"git",        0,  "--git <url>",                        1, NULL,      0},

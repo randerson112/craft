@@ -58,10 +58,12 @@ static void print_project_help() {
 
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "    --template, -t <name>   Template to use for the project (defaults to global default)\n");
-    fprintf(stdout, "    --lang, -l <language>   Language to use: c or cpp (defaults to global default)\n\n");
+    fprintf(stdout, "    --lang, -l <language>   Language to use: c or cpp (defaults to global default)\n");
+    fprintf(stdout, "    --no-git                Disable git initialization for the project\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft project my_app\n");
+    fprintf(stdout, "    craft project my_app --no-git\n");
     fprintf(stdout, "    craft project my_app --lang c\n");
     fprintf(stdout, "    craft project my_lib --template static-library\n");
 }
@@ -92,11 +94,13 @@ static void print_init_help() {
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "    --template, -t <name>   Template to use (empty directories only)\n");
     fprintf(stdout, "    --lang, -l <language>   Language override: c or cpp\n");
-    fprintf(stdout, "                            Overrides auto-detection for existing projects\n\n");
+    fprintf(stdout, "                            Overrides auto-detection for existing projects\n");
+    fprintf(stdout, "    --no-git                Disable git initialization for the project\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft init\n");
-    fprintf(stdout, "    craft init MyApp\n");
+    fprintf(stdout, "    craft init my_app\n");
+    fprintf(stdout, "    craft init my_app --no-git\n");
     fprintf(stdout, "    craft init --lang c\n");
     fprintf(stdout, "    craft init --template static-library\n\n");
 

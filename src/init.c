@@ -313,7 +313,7 @@ static void detect_libs(const char* path, project_config_t* config) {
 }
 
 // Initializes a craft project structure in a directory with existing files
-static int init_existing_project(const char* path, const char* language_option) {
+static int init_existing_project(const char* path, const char* language_option, int use_git) {
 
     // Load global defaults for fallbacks
     craft_config_t global_config;
@@ -398,6 +398,9 @@ static int init_existing_project(const char* path, const char* language_option) 
     mkdir(craft_directory, 0755);
     mkdir(craft_deps_directory, 0755);
 
+    // Init git if not already present and not otherwise specified
+    if (use_git) init_git(path);
+
     // Print success message
     fprintf(stdout, "Initialized Craft project at '%s'\n\n", path);
     fprintf(stdout, "Edit craft.toml to adjust the configuration.\n\n");
@@ -428,6 +431,7 @@ int handle_init(const command_t* command_data) {
     
     const char* language = global_config.language;
     const char* template = global_config.template;
+    int use_git = 1;
 
     // Override defaults with option arguments if specified
     for (int i = 0; i < command_data->option_count; i++) {
@@ -437,6 +441,9 @@ int handle_init(const command_t* command_data) {
         }
         if (strcmp(option->name, "lang") == 0) {
             language = option->arg;
+        }
+        if (strcmp(option->name, "no-git") == 0) {
+            use_git = 0;
         }
     }
 
@@ -459,7 +466,7 @@ int handle_init(const command_t* command_data) {
 
     // If init directory is empty, create a new project
     if (dir_is_empty(init_path)) {
-        return create_project_from_template(init_path, template, language);
+        return create_project_from_template(init_path, template, language, use_git);
     }
 
     // Otherwise init from existing project structure
@@ -470,5 +477,5 @@ int handle_init(const command_t* command_data) {
             language_option = option->arg;
         }
     }
-    return init_existing_project(init_path, language_option);
+    return init_existing_project(init_path, language_option, use_git);
 }
