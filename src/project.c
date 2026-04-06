@@ -155,17 +155,13 @@ int handle_project(const command_t* command_data) {
     int use_git = 1;
 
     // Override defaults with option arguments
-    for (int i = 0; i < command_data->option_count; i++) {
-        if (strcmp(command_data->options[i].name, "template") == 0) {
-            template = command_data->options[i].arg;
-        }
-        if (strcmp(command_data->options[i].name, "lang") == 0) {
-            language = command_data->options[i].arg;
-        }
-        if (strcmp(command_data->options[i].name, "no-git") == 0) {
-            use_git = 0;
-        }
-    }
+    const option_t* template_option = get_option(command_data, "template");
+    const option_t* language_option = get_option(command_data, "lang");
+    const option_t* git_option = get_option(command_data, "no-git");
+
+    if (template_option) template = template_option->arg;
+    if (language_option) language = language_option->arg;
+    if (git_option) use_git = 0;
 
     // Get path to project
     char project_path[PATH_SIZE];

@@ -450,18 +450,13 @@ int handle_init(const command_t* command_data) {
     int use_git = 1;
 
     // Override defaults with option arguments if specified
-    for (int i = 0; i < command_data->option_count; i++) {
-        const option_t* option = &command_data->options[i];
-        if (strcmp(option->name, "template") == 0) {
-            template = option->arg;
-        }
-        if (strcmp(option->name, "lang") == 0) {
-            language = option->arg;
-        }
-        if (strcmp(option->name, "no-git") == 0) {
-            use_git = 0;
-        }
-    }
+    const option_t* template_option = get_option(command_data, "template");
+    const option_t* language_option = get_option(command_data, "lang");
+    const option_t* git_option = get_option(command_data, "no-git");
+
+    if (template_option) template = template_option->arg;
+    if (language_option) language = language_option->arg;
+    if (git_option) use_git = 0;
 
     const char* rel_path = NULL;
     if (command_data->arg_count != 0) {
@@ -493,12 +488,6 @@ int handle_init(const command_t* command_data) {
     }
 
     // Otherwise init from existing project structure
-    const char* language_option = NULL;
-    for (int i = 0; i < command_data->option_count; i++) {
-        const option_t* option = &command_data->options[i];
-        if (strcmp(option->name, "lang") == 0) {
-            language_option = option->arg;
-        }
-    }
-    return init_existing_project(init_path, language_option, use_git);
+    const char* language_option_arg = language_option ? language_option->arg : NULL;
+    return init_existing_project(init_path, language_option_arg, use_git);
 }

@@ -90,6 +90,9 @@ static int check_unknown_keys(toml_datum_t section, const char* section_name, co
 
 int load_global_config(craft_config_t* config) {
 
+    // Set all values to 0
+    memset(config, 0, sizeof(*config));
+
     // Set defaults
     snprintf(config->language, sizeof(config->language), "%s", defaults.language);
     config->c_standard = defaults.c_standard;
