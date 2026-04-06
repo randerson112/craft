@@ -1,4 +1,5 @@
 #include "help.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -11,7 +12,6 @@ void print_craft_info() {
     fprintf(stdout, "    project         Create a new project at the given path\n");
     fprintf(stdout, "    init            Initialize a project in the current or given directory\n");
     fprintf(stdout, "    build           Build the project in the current directory\n");
-    fprintf(stdout, "    compile         Compile a single source file\n");
     fprintf(stdout, "    run             Run a compiled executable\n");
     fprintf(stdout, "    gen             Generate a file with boilerplate\n");
     fprintf(stdout, "    clean           Remove the build directory\n");
@@ -26,7 +26,6 @@ void print_craft_info() {
     fprintf(stdout, "    craft project my_app\n");
     fprintf(stdout, "    craft init\n");
     fprintf(stdout, "    craft build\n");
-    fprintf(stdout, "    craft compile main.cpp\n");
     fprintf(stdout, "    craft run\n");
     fprintf(stdout, "    craft clean\n");
     fprintf(stdout, "    craft add --path ../my_lib\n");
@@ -59,10 +58,12 @@ static void print_project_help() {
 
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "    --template, -t <name>   Template to use for the project (defaults to global default)\n");
-    fprintf(stdout, "    --lang, -l <language>   Language to use: c or cpp (defaults to global default)\n\n");
+    fprintf(stdout, "    --lang, -l <language>   Language to use: c or cpp (defaults to global default)\n");
+    fprintf(stdout, "    --no-git                Disable git initialization for the project\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft project my_app\n");
+    fprintf(stdout, "    craft project my_app --no-git\n");
     fprintf(stdout, "    craft project my_app --lang c\n");
     fprintf(stdout, "    craft project my_lib --template static-library\n");
 }
@@ -93,11 +94,13 @@ static void print_init_help() {
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "    --template, -t <name>   Template to use (empty directories only)\n");
     fprintf(stdout, "    --lang, -l <language>   Language override: c or cpp\n");
-    fprintf(stdout, "                            Overrides auto-detection for existing projects\n\n");
+    fprintf(stdout, "                            Overrides auto-detection for existing projects\n");
+    fprintf(stdout, "    --no-git                Disable git initialization for the project\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft init\n");
-    fprintf(stdout, "    craft init MyApp\n");
+    fprintf(stdout, "    craft init my_app\n");
+    fprintf(stdout, "    craft init my_app --no-git\n");
     fprintf(stdout, "    craft init --lang c\n");
     fprintf(stdout, "    craft init --template static-library\n\n");
 
@@ -121,27 +124,6 @@ static void print_build_help() {
 
     fprintf(stdout, "Example:\n");
     fprintf(stdout, "    craft build\n");
-}
-
-static void print_compile_help() {
-    fprintf(stdout, "Command:\n");
-    fprintf(stdout, "    craft compile - Compile a single source file into an executable.\n\n");
-
-    fprintf(stdout, "Description:\n");
-    fprintf(stdout, "    Quickly compiles a single .c or .cpp file without a full project\n");
-    fprintf(stdout, "    structure. Useful for small projects and testing single files. The\n");
-    fprintf(stdout, "    output executable defaults to the source file name without its extension.\n\n");
-
-    fprintf(stdout, "Usage:\n");
-    fprintf(stdout, "    craft compile <source> [output]\n\n");
-
-    fprintf(stdout, "Arguments:\n");
-    fprintf(stdout, "    <source>   Source file to compile.\n");
-    fprintf(stdout, "    [output]   Name for the output executable. Defaults to source name.\n\n");
-
-    fprintf(stdout, "Examples:\n");
-    fprintf(stdout, "    craft compile main.cpp\n");
-    fprintf(stdout, "    craft compile main.cpp app\n");
 }
 
 static void print_run_help() {
@@ -622,7 +604,6 @@ int handle_help(const command_t* command_data) {
     if (strcmp(topic, "project") == 0)        { print_project_help();  return 0; }
     if (strcmp(topic, "init") == 0)           { print_init_help();     return 0; }
     if (strcmp(topic, "build") == 0)          { print_build_help();    return 0; }
-    if (strcmp(topic, "compile") == 0)        { print_compile_help();  return 0; }
     if (strcmp(topic, "run") == 0)            { print_run_help();      return 0; }
     if (strcmp(topic, "gen") == 0)            { print_gen_help();      return 0; }
     if (strcmp(topic, "clean") == 0)          { print_clean_help();    return 0; }

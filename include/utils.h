@@ -1,8 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "parser.h"
 #include <stdlib.h>
+
+#include "parser.h"
 
 // Strips extension off a file and writes it to stripped file buffer
 void strip_extension(const char* file, char* stripped_file);
@@ -38,9 +39,6 @@ int get_craft_home(char* buffer, size_t buffer_size);
 int get_project_root(char* buffer, size_t buffer_size, const char* cwd);
 
 // Gets the path to template directory
-// type: builtin or custom
-// language: c or cpp
-// name: name of template
 int get_template_directory(char* buffer, size_t buffer_size, const char* type, const char* language, const char* name);
 
 // Given an unknown string, suggests a string from a list of valid strings that is closest to it
@@ -53,7 +51,7 @@ int is_valid_version(const char* version);
 const option_t* get_option(const command_t* command_data, const char* name);
 
 // Checks if the given path is a Craft project
-const int is_craft_project(const char* path);
+int is_craft_project(const char* path);
 
 // Gets the name of the current directory from a path
 void get_dir_name(char* buffer, size_t buffer_size, const char* path);

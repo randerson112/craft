@@ -1,10 +1,11 @@
 #include "dispatcher.h"
-#include "string.h"
+
+#include <string.h>
+
 #include "gen.h"
 #include "project.h"
 #include "build.h"
 #include "run.h"
-#include "compile.h"
 #include "init.h"
 #include "help.h"
 #include "clean.h"
@@ -34,7 +35,6 @@ int dispatch(command_t* command_data) {
     if (strcmp(command, "project") == 0)  return handle_project(command_data);
     if (strcmp(command, "init") == 0)     return handle_init(command_data);
     if (strcmp(command, "build") == 0)    return handle_build();
-    if (strcmp(command, "compile") == 0)  return handle_compile(command_data);
     if (strcmp(command, "run") == 0)      return handle_run(command_data);
     if (strcmp(command, "gen") == 0)      return handle_gen(command_data);
     if (strcmp(command, "clean") == 0)    return handle_clean();

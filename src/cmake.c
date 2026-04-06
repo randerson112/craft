@@ -1,14 +1,16 @@
 #include "cmake.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+
 #include "config.h"
 #include "utils.h"
 #include "platform.h"
 
 int cmake_needs_regeneration(const char* project_root) {
-    char cmake_path[1024];
-    char toml_path[1024];
+    char cmake_path[PATH_SIZE];
+    char toml_path[PATH_SIZE];
     snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_root);
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_root);
 
@@ -123,12 +125,12 @@ static int write_version_compile_definition(FILE* file, project_config_t* config
 
 // Writes cmake for a local path dependency (must be a Craft project)
 static int write_path_dependency(FILE* file, const char* project_path, project_config_t* config, dependency_t* dep) {
-    char dep_root[1024];
+    char dep_root[PATH_SIZE];
     snprintf(dep_root, sizeof(dep_root), "%s/%s", project_path, dep->value);
 
     project_config_t dep_config;
     if (load_project_config(&dep_config, dep_root) != 0) {
-        fprintf(stderr, "Error: could not load craft.toml for dependency '%s'\n", dep->name);
+        fprintf(stderr, "Error: Could not load craft.toml for dependency '%s'\n", dep->name);
         return -1;
     }
 
@@ -156,10 +158,10 @@ static int write_path_dependency(FILE* file, const char* project_path, project_c
 // If it has a CMakeLists.txt use add_subdirectory with user provided links
 // Otherwise warn the user to configure it manually
 static int write_git_dependency(FILE* file, const char* project_path, project_config_t* config, dependency_t* dep) {
-    char dep_root[1024];
+    char dep_root[PATH_SIZE];
     snprintf(dep_root, sizeof(dep_root), "%s/.craft/deps/%s", project_path, dep->name);
 
-    char dep_cmake[1024];
+    char dep_cmake[PATH_SIZE];
     snprintf(dep_cmake, sizeof(dep_cmake), "%s/CMakeLists.txt", dep_root);
 
     fprintf(file, "# %s\n", dep->name);
@@ -168,7 +170,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
     if (is_craft_project(dep_root)) {
         project_config_t dep_config;
         if (load_project_config(&dep_config, dep_root) != 0) {
-            fprintf(stderr, "Error: could not load craft.toml for dependency '%s'\n", dep->name);
+            fprintf(stderr, "Error: Could not load craft.toml for dependency '%s'\n", dep->name);
             return -1;
         }
 
@@ -200,8 +202,8 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
             fprintf(file, ")\n");
         }
         else {
-            fprintf(stderr, "Warning: dependency '%s' has no link targets specified\n", dep->name);
-            fprintf(stderr, "         Add --links when running craft add, or configure manually in craft.toml\n");
+            fprintf(stderr, "\nWarning: dependency '%s' has no link targets specified\n", dep->name);
+            fprintf(stderr, "         Add --links when running craft add, or configure manually in craft.toml\n\n");
         }
 
         fprintf(file, "target_include_directories(%s PRIVATE .craft/deps/%s/include)\n", config->name, dep->name);
@@ -222,7 +224,7 @@ static int write_dependencies(FILE* file, const char* project_path, project_conf
 
     // Only write if there are dependencies present
     if (config->dependencies_count > 0) {
-        fprintf(file, "# Dependencies\n\n");
+        fprintf(file, "\n# Dependencies\n\n");
         for (int i = 0; i < config->dependencies_count; i++) {
             dependency_t* dep = &config->dependencies[i];
 
@@ -255,7 +257,7 @@ static void write_escape_hatch(FILE* file) {
 }
 
 int generate_cmake(const char* project_path, project_config_t* config) {
-    char cmake_path[1024];
+    char cmake_path[PATH_SIZE];
     snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_path);
 
     FILE* file = fopen(cmake_path, "w");
@@ -279,10 +281,10 @@ int generate_cmake(const char* project_path, project_config_t* config) {
 
 int backup_cmake(const char* project_path) {
     char cmake_path[PATH_SIZE];
-    snprintf(cmake_path, PATH_SIZE, "%s/CMakeLists.txt", project_path);
+    snprintf(cmake_path, sizeof(cmake_path), "%s/CMakeLists.txt", project_path);
 
     char backup_path[PATH_SIZE];
-    snprintf(backup_path, PATH_SIZE, "%s/CMakeLists.backup.cmake", project_path);
+    snprintf(backup_path, sizeof(backup_path), "%s/CMakeLists.backup.cmake", project_path);
 
     if (file_exists(cmake_path)) {
         copy_file(cmake_path, backup_path);

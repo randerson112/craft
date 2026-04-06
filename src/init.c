@@ -1,26 +1,20 @@
 #include "init.h"
-#include <string.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
+
 #include "utils.h"
 #include "project.h"
 #include "config.h"
 #include "cmake.h"
 #include "platform.h"
 
-// Checks if a Craft project exists at the path
-static int project_exists(const char* path) {
-    char toml_path[512];
-    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
-
-    return file_exists(toml_path);
-}
-
 // Gets the full path to directory to initialize from the cwd and relative path
 static int get_path_to_init(char* buffer, size_t buffer_size, const char* cwd, const char* rel_path) {
     // Get full path to specified directory
-    char full_path[256];
+    char full_path[PATH_SIZE];
     if (rel_path) {
         snprintf(full_path, sizeof(full_path), "%s/%s", cwd, rel_path);
     }
@@ -84,7 +78,7 @@ static void get_language_counts(const char* path, int* cpp_count, int* c_count) 
 
         // Get path to current entry
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
         
         // If directory, recurse into directory
         if (entry.is_dir) {
@@ -138,7 +132,7 @@ static void detect_source_dirs(const char* path, project_config_t* config) {
         }
 
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
 
         // Read entries of subdirectory
         dir_t* sub_dir = open_dir(full_path);
@@ -200,7 +194,7 @@ static void detect_include_dirs(const char* path, project_config_t* config) {
         }
 
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
 
         // Read entries of subdirectory
         dir_t* sub_dir = open_dir(full_path);
@@ -262,7 +256,7 @@ static void detect_libs(const char* path, project_config_t* config) {
 
         // Read entries of subdirectory
         char full_path[PATH_SIZE];
-        snprintf(full_path, PATH_SIZE, "%s/%s", path, entry.name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry.name);
 
         dir_t* sub_dir = open_dir(full_path);
         if (!sub_dir) {
@@ -319,7 +313,7 @@ static void detect_libs(const char* path, project_config_t* config) {
 }
 
 // Initializes a craft project structure in a directory with existing files
-static int init_existing_project(const char* path, const char* language_option) {
+static int init_existing_project(const char* path, const char* language_option, int use_git) {
 
     // Load global defaults for fallbacks
     craft_config_t global_config;
@@ -396,17 +390,36 @@ static int init_existing_project(const char* path, const char* language_option) 
     }
 
     // Generate .craft directory with deps directory
-    char craft_directory[512];
-    char craft_deps_directory[512];
+    char craft_directory[PATH_SIZE];
+    char craft_deps_directory[PATH_SIZE];
     snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", path);
     snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
 
     mkdir(craft_directory, 0755);
     mkdir(craft_deps_directory, 0755);
 
+    // Init git if not already present and not otherwise specified
+    if (use_git) init_git(path);
+
     // Print success message
     fprintf(stdout, "Initialized Craft project at '%s'\n\n", path);
-    fprintf(stdout, "Edit craft.toml to adjust the configuration.\n\n");
+
+    fprintf(stdout, "language: %s\n", config.language);
+    fprintf(stdout, "type: executable\n");
+
+    fprintf(stdout, "source dirs:");
+    for (int i = 0; i < config.source_dir_count; i++) {
+        fprintf(stdout, " '%s'", config.source_dirs[i]);
+    }
+    fprintf(stdout, "\n");
+
+    fprintf(stdout, "include dirs:");
+    for (int i = 0; i < config.include_dir_count; i++) {
+        fprintf(stdout, " '%s'", config.include_dirs[i]);
+    }
+    fprintf(stdout, "\n\n");
+
+    fprintf(stdout, "Edit craft.toml to adjust the configuration\n");
 
     char backup_path[PATH_SIZE];
     snprintf(backup_path, PATH_SIZE, "%s/CMakeLists.backup.cmake", path);
@@ -415,16 +428,16 @@ static int init_existing_project(const char* path, const char* language_option) 
         fprintf(stdout, "Your existing CMakeLists.txt was backed up to CMakeLists.backup.cmake\n\n");
     }
 
-    fprintf(stdout, "Run 'craft build' to build your project.\n");
+    fprintf(stdout, "Run 'craft build' to build your project\n");
     return 0;
 }
 
 int handle_init(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL) {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
@@ -434,17 +447,16 @@ int handle_init(const command_t* command_data) {
     
     const char* language = global_config.language;
     const char* template = global_config.template;
+    int use_git = 1;
 
     // Override defaults with option arguments if specified
-    for (int i = 0; i < command_data->option_count; i++) {
-        const option_t* option = &command_data->options[i];
-        if (strcmp(option->name, "template") == 0) {
-            template = option->arg;
-        }
-        if (strcmp(option->name, "lang") == 0) {
-            language = option->arg;
-        }
-    }
+    const option_t* template_option = get_option(command_data, "template");
+    const option_t* language_option = get_option(command_data, "lang");
+    const option_t* git_option = get_option(command_data, "no-git");
+
+    if (template_option) template = template_option->arg;
+    if (language_option) language = language_option->arg;
+    if (git_option) use_git = 0;
 
     const char* rel_path = NULL;
     if (command_data->arg_count != 0) {
@@ -452,29 +464,30 @@ int handle_init(const command_t* command_data) {
     }
 
     // Get path to where project is being initialized
-    char init_path[256];
+    char init_path[PATH_SIZE];
     if (get_path_to_init(init_path, sizeof(init_path), cwd, rel_path) != 0) {
         return -1;
     }
 
     // Check if a project already exists at the init path
-    if (project_exists(init_path)) {
+    if (is_craft_project(init_path)) {
         fprintf(stderr, "Error: Craft project already exists at '%s'\n", init_path);
         return -1;
     }
 
     // If init directory is empty, create a new project
     if (dir_is_empty(init_path)) {
-        return create_project_from_template(init_path, template, language);
+        if (create_project_from_template(init_path, template, language, use_git) != 0) {
+            return -1;
+        }
+
+        // Print success message
+        fprintf(stdout, "Initialized Craft project at '%s'\n\n", init_path);
+        fprintf(stdout, "Run 'craft build' to build your new project\n");
+        return 0;
     }
 
     // Otherwise init from existing project structure
-    const char* language_option = NULL;
-    for (int i = 0; i < command_data->option_count; i++) {
-        const option_t* option = &command_data->options[i];
-        if (strcmp(option->name, "lang") == 0) {
-            language_option = option->arg;
-        }
-    }
-    return init_existing_project(init_path, language_option);
+    const char* language_option_arg = language_option ? language_option->arg : NULL;
+    return init_existing_project(init_path, language_option_arg, use_git);
 }

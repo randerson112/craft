@@ -1,7 +1,9 @@
 #include "update.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "deps.h"
 #include "utils.h"
 #include "config.h"
@@ -22,13 +24,18 @@ static int update_dependency(const char* project_root, const dependency_t* dep) 
         return 0;
     }
 
-    fprintf(stdout, "Updating '%s'\n", dep->name);
+    fprintf(stdout, "Updating '%s'...\n", dep->name);
 
     // Delete current dep directory
     delete_dependency_dir(project_root, dep->name);
 
     // Fetch the latest version
-    return fetch_git_dependency(project_root, dep);
+    if (fetch_git_dependency(project_root, dep) != 0) {
+        return -1;
+    }
+
+    fprintf(stdout, "Updated '%s' successfully\n", dep->name);
+    return 0;
 }
 
 // Updates all dependencies by fetching the latest version for each, unless a tag is present
@@ -48,15 +55,15 @@ static int update_all_dependencies(const char* project_root, const project_confi
 
 int handle_update(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Find project root and load project config
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         fprintf(stderr, "Error: Could not find craft.toml in current or any parent directory\n");
         return -1;
@@ -100,6 +107,6 @@ int handle_update(const command_t* command_data) {
         }
     }
 
-    fprintf(stdout, "Tip: Run 'craft build' to rebuild the project with the updated dependencies\n");
+    fprintf(stdout, "Run 'craft build' to rebuild the project with the updated dependencies\n");
     return 0;
 }

@@ -1,8 +1,10 @@
 #include "platform.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/stat.h>
+
 #include "utils.h"
 
 #ifdef _WIN32
@@ -37,7 +39,7 @@ dir_t* open_dir(const char* path) {
 
     dir_t* dir = malloc(sizeof(dir_t));
 
-    char search[512];
+    char search[PATH_SIZE];
     snprintf(search, sizeof(search), "%s/*", path);
     dir->handle = FindFirstFile(search, &dir->find_data);
     if (dir->handle == INVALID_HANDLE_VALUE) {
@@ -73,13 +75,6 @@ int read_dir(dir_t* dir, dir_entry_t* entry) {
 void close_dir(dir_t* dir) {
     FindClose(dir->handle);
     free(dir);
-}
-
-int has_command(const char* command) {
-    char buffer[256];
-    snprintf(buffer, sizeof(buffer), "where %s >null 2>&1", command);
-    
-    return system(buffer) == 0;
 }
 
 // MacOS and Linux implementation
@@ -126,13 +121,6 @@ int read_dir(dir_t* dir, dir_entry_t* entry) {
 void close_dir(dir_t* dir) {
     closedir(dir->dir);
     free(dir);
-}
-
-int has_command(const char* command) {
-    char buffer[256];
-    snprintf(buffer, sizeof(buffer), "which %s > /dev/null 2>&1", command);
-
-    return system(buffer) == 0;
 }
 
 #endif

@@ -1,14 +1,16 @@
 #include "setup.h"
+
+#include <stdio.h>
+#include <sys/stat.h>
+
 #include "utils.h"
 #include "platform.h"
-#include <sys/stat.h>
-#include <stdio.h>
 
 static int create_global_config_file(const char* craft_home) {
 
     // If config.toml already exists, return early
     char config_path[PATH_SIZE];
-    snprintf(config_path, PATH_SIZE, "%s/config.toml", craft_home);
+    snprintf(config_path, sizeof(config_path), "%s/config.toml", craft_home);
     if (file_exists(config_path)) {
         return 0;
     }
@@ -16,7 +18,7 @@ static int create_global_config_file(const char* craft_home) {
     // Create config.toml
     FILE* file = fopen(config_path, "w");
     if (!file) {
-        fprintf(stderr, "[Setup Error]: Failed to create global config.toml file\n");
+        fprintf(stderr, "Error: Failed to create global config.toml file\n");
         return -1;
     }
 
@@ -34,7 +36,7 @@ static int create_c_executable_template(const char* path) {
 
     // Return early if executable template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/executable", path);
+    snprintf(template_path, sizeof(template_path), "%s/executable", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -44,10 +46,10 @@ static int create_c_executable_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c executable' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c executable' builtin template\n");
         return -1;
     }
 
@@ -63,20 +65,20 @@ static int create_c_executable_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // Source directory
     char source_path[PATH_SIZE];
-    snprintf(source_path, PATH_SIZE, "%s/src", template_path);
+    snprintf(source_path, sizeof(source_path), "%s/src", template_path);
     mkdir(source_path, 0755);
 
     // main.c
     char main_c_path[PATH_SIZE];
-    snprintf(main_c_path, PATH_SIZE, "%s/main.c", source_path);
+    snprintf(main_c_path, sizeof(main_c_path), "%s/main.c", source_path);
     FILE* main_c_file = fopen(main_c_path, "w");
     if (!main_c_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c executable' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c executable' builtin template\n");
         return -1;
     }
 
@@ -94,7 +96,7 @@ static int create_cpp_executable_template(const char* path) {
 
     // Return early if executable template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/executable", path);
+    snprintf(template_path, sizeof(template_path), "%s/executable", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -104,10 +106,10 @@ static int create_cpp_executable_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp executable' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp executable' builtin template\n");
         return -1;
     }
 
@@ -123,20 +125,20 @@ static int create_cpp_executable_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // Source directory
     char source_path[PATH_SIZE];
-    snprintf(source_path, PATH_SIZE, "%s/src", template_path);
+    snprintf(source_path, sizeof(source_path), "%s/src", template_path);
     mkdir(source_path, 0755);
 
     // main.c
     char main_cpp_path[PATH_SIZE];
-    snprintf(main_cpp_path, PATH_SIZE, "%s/main.cpp", source_path);
+    snprintf(main_cpp_path, sizeof(main_cpp_path), "%s/main.cpp", source_path);
     FILE* main_cpp_file = fopen(main_cpp_path, "w");
     if (!main_cpp_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp executable' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp executable' builtin template\n");
         return -1;
     }
 
@@ -153,7 +155,7 @@ static int create_c_static_library_template(const char* path) {
 
     // Return early if static library template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/static-library", path);
+    snprintf(template_path, sizeof(template_path), "%s/static-library", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -163,10 +165,10 @@ static int create_c_static_library_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c static-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c static-library' builtin template\n");
         return -1;
     }
 
@@ -182,15 +184,15 @@ static int create_c_static_library_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // mylib.h
     char mylib_h_path[PATH_SIZE];
-    snprintf(mylib_h_path, PATH_SIZE, "%s/mylib.h", include_path);
+    snprintf(mylib_h_path, sizeof(mylib_h_path), "%s/mylib.h", include_path);
     FILE* mylib_h_file = fopen(mylib_h_path, "w");
     if (!mylib_h_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c static-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c static-library' builtin template\n");
         return -1;
     }
 
@@ -203,15 +205,15 @@ static int create_c_static_library_template(const char* path) {
 
     // Source directory
     char source_path[PATH_SIZE];
-    snprintf(source_path, PATH_SIZE, "%s/src", template_path);
+    snprintf(source_path, sizeof(source_path), "%s/src", template_path);
     mkdir(source_path, 0755);
 
     // mylib.c
     char mylib_c_path[PATH_SIZE];
-    snprintf(mylib_c_path, PATH_SIZE, "%s/mylib.c", source_path);
+    snprintf(mylib_c_path, sizeof(mylib_c_path), "%s/mylib.c", source_path);
     FILE* mylib_c_file = fopen(mylib_c_path, "w");
     if (!mylib_c_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c static-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c static-library' builtin template\n");
         return -1;
     }
 
@@ -229,7 +231,7 @@ static int create_cpp_static_library_template(const char* path) {
 
     // Return early if static library template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/static-library", path);
+    snprintf(template_path, sizeof(template_path), "%s/static-library", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -239,10 +241,10 @@ static int create_cpp_static_library_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp static-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp static-library' builtin template\n");
         return -1;
     }
 
@@ -258,15 +260,15 @@ static int create_cpp_static_library_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // mylib.h
     char mylib_hpp_path[PATH_SIZE];
-    snprintf(mylib_hpp_path, PATH_SIZE, "%s/mylib.hpp", include_path);
+    snprintf(mylib_hpp_path, sizeof(mylib_hpp_path), "%s/mylib.hpp", include_path);
     FILE* mylib_hpp_file = fopen(mylib_hpp_path, "w");
     if (!mylib_hpp_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp static-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp static-library' builtin template\n");
         return -1;
     }
 
@@ -280,15 +282,15 @@ static int create_cpp_static_library_template(const char* path) {
 
     // Source directory
     char source_path[PATH_SIZE];
-    snprintf(source_path, PATH_SIZE, "%s/src", template_path);
+    snprintf(source_path, sizeof(source_path), "%s/src", template_path);
     mkdir(source_path, 0755);
 
     // mylib.c
     char mylib_cpp_path[PATH_SIZE];
-    snprintf(mylib_cpp_path, PATH_SIZE, "%s/mylib.cpp", source_path);
+    snprintf(mylib_cpp_path, sizeof(mylib_cpp_path), "%s/mylib.cpp", source_path);
     FILE* mylib_cpp_file = fopen(mylib_cpp_path, "w");
     if (!mylib_cpp_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp static-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp static-library' builtin template\n");
         return -1;
     }
 
@@ -306,7 +308,7 @@ static int create_c_shared_library_template(const char* path) {
 
     // Return early if shared library template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/shared-library", path);
+    snprintf(template_path, sizeof(template_path), "%s/shared-library", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -316,10 +318,10 @@ static int create_c_shared_library_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c shared-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c shared-library' builtin template\n");
         return -1;
     }
 
@@ -335,15 +337,15 @@ static int create_c_shared_library_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // mylib.h
     char mylib_h_path[PATH_SIZE];
-    snprintf(mylib_h_path, PATH_SIZE, "%s/mylib.h", include_path);
+    snprintf(mylib_h_path, sizeof(mylib_h_path), "%s/mylib.h", include_path);
     FILE* mylib_h_file = fopen(mylib_h_path, "w");
     if (!mylib_h_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c shared-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c shared-library' builtin template\n");
         return -1;
     }
 
@@ -356,15 +358,15 @@ static int create_c_shared_library_template(const char* path) {
 
     // Source directory
     char source_path[PATH_SIZE];
-    snprintf(source_path, PATH_SIZE, "%s/src", template_path);
+    snprintf(source_path, sizeof(source_path), "%s/src", template_path);
     mkdir(source_path, 0755);
 
     // mylib.c
     char mylib_c_path[PATH_SIZE];
-    snprintf(mylib_c_path, PATH_SIZE, "%s/mylib.c", source_path);
+    snprintf(mylib_c_path, sizeof(mylib_c_path), "%s/mylib.c", source_path);
     FILE* mylib_c_file = fopen(mylib_c_path, "w");
     if (!mylib_c_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c shared-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c shared-library' builtin template\n");
         return -1;
     }
 
@@ -382,7 +384,7 @@ static int create_cpp_shared_library_template(const char* path) {
 
     // Return early if shared library template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/shared-library", path);
+    snprintf(template_path, sizeof(template_path), "%s/shared-library", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -392,10 +394,10 @@ static int create_cpp_shared_library_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp shared-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp shared-library' builtin template\n");
         return -1;
     }
 
@@ -411,15 +413,15 @@ static int create_cpp_shared_library_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // mylib.h
     char mylib_hpp_path[PATH_SIZE];
-    snprintf(mylib_hpp_path, PATH_SIZE, "%s/mylib.hpp", include_path);
+    snprintf(mylib_hpp_path, sizeof(mylib_hpp_path), "%s/mylib.hpp", include_path);
     FILE* mylib_hpp_file = fopen(mylib_hpp_path, "w");
     if (!mylib_hpp_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp shared-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp shared-library' builtin template\n");
         return -1;
     }
 
@@ -433,15 +435,15 @@ static int create_cpp_shared_library_template(const char* path) {
 
     // Source directory
     char source_path[PATH_SIZE];
-    snprintf(source_path, PATH_SIZE, "%s/src", template_path);
+    snprintf(source_path, sizeof(source_path), "%s/src", template_path);
     mkdir(source_path, 0755);
 
     // mylib.c
     char mylib_cpp_path[PATH_SIZE];
-    snprintf(mylib_cpp_path, PATH_SIZE, "%s/mylib.cpp", source_path);
+    snprintf(mylib_cpp_path, sizeof(mylib_cpp_path), "%s/mylib.cpp", source_path);
     FILE* mylib_cpp_file = fopen(mylib_cpp_path, "w");
     if (!mylib_cpp_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp shared-library' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp shared-library' builtin template\n");
         return -1;
     }
 
@@ -459,7 +461,7 @@ static int create_c_header_only_template(const char* path) {
 
     // Return early if header only template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/header-only", path);
+    snprintf(template_path, sizeof(template_path), "%s/header-only", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -469,10 +471,10 @@ static int create_c_header_only_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c header-only' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c header-only' builtin template\n");
         return -1;
     }
 
@@ -487,15 +489,15 @@ static int create_c_header_only_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // mylib.h
     char mylib_h_path[PATH_SIZE];
-    snprintf(mylib_h_path, PATH_SIZE, "%s/mylib.h", include_path);
+    snprintf(mylib_h_path, sizeof(mylib_h_path), "%s/mylib.h", include_path);
     FILE* mylib_h_file = fopen(mylib_h_path, "w");
     if (!mylib_h_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'c header-only' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'c header-only' builtin template\n");
         return -1;
     }
 
@@ -518,7 +520,7 @@ static int create_cpp_header_only_template(const char* path) {
 
     // Return early if header only template already exists
     char template_path[PATH_SIZE];
-    snprintf(template_path, PATH_SIZE, "%s/header-only", path);
+    snprintf(template_path, sizeof(template_path), "%s/header-only", path);
     if (dir_exists(template_path)) {
         return 0;
     }
@@ -528,10 +530,10 @@ static int create_cpp_header_only_template(const char* path) {
 
     // craft.toml
     char toml_path[PATH_SIZE];
-    snprintf(toml_path, PATH_SIZE, "%s/craft.toml", template_path);
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", template_path);
     FILE* toml_file = fopen(toml_path, "w");
     if (!toml_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp header-only' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp header-only' builtin template\n");
         return -1;
     }
 
@@ -546,15 +548,15 @@ static int create_cpp_header_only_template(const char* path) {
 
     // Include directory
     char include_path[PATH_SIZE];
-    snprintf(include_path, PATH_SIZE, "%s/include", template_path);
+    snprintf(include_path, sizeof(include_path), "%s/include", template_path);
     mkdir(include_path, 0755);
 
     // mylib.h
     char mylib_hpp_path[PATH_SIZE];
-    snprintf(mylib_hpp_path, PATH_SIZE, "%s/mylib.hpp", include_path);
+    snprintf(mylib_hpp_path, sizeof(mylib_hpp_path), "%s/mylib.hpp", include_path);
     FILE* mylib_hpp_file = fopen(mylib_hpp_path, "w");
     if (!mylib_hpp_file) {
-        fprintf(stderr, "[Setup Error]: Failed to create 'cpp header-only' builtin template\n");
+        fprintf(stderr, "Error: Failed to create 'cpp header-only' builtin template\n");
         return -1;
     }
 
@@ -572,45 +574,45 @@ static int create_templates(const char* craft_home) {
 
     // Create templates path if not already there
     char templates_path[PATH_SIZE];
-    snprintf(templates_path, PATH_SIZE, "%s/templates", craft_home);
+    snprintf(templates_path, sizeof(templates_path), "%s/templates", craft_home);
     if (!dir_exists(templates_path)) {
         mkdir(templates_path, 0755);
     }
 
     // Create builtin templates directory if not already there
     char builtin_path[PATH_SIZE];
-    snprintf(builtin_path, PATH_SIZE, "%s/builtin", templates_path);
+    snprintf(builtin_path, sizeof(builtin_path), "%s/builtin", templates_path);
     if (!dir_exists(builtin_path)) {
         mkdir(builtin_path, 0755);
     }
 
     char builtin_c_path[PATH_SIZE];
-    snprintf(builtin_c_path, PATH_SIZE, "%s/c", builtin_path);
+    snprintf(builtin_c_path, sizeof(builtin_c_path), "%s/c", builtin_path);
     if (!dir_exists(builtin_c_path)) {
         mkdir(builtin_c_path, 0755);
     }
 
     char builtin_cpp_path[PATH_SIZE];
-    snprintf(builtin_cpp_path, PATH_SIZE, "%s/cpp", builtin_path);
+    snprintf(builtin_cpp_path, sizeof(builtin_cpp_path), "%s/cpp", builtin_path);
     if (!dir_exists(builtin_cpp_path)) {
         mkdir(builtin_cpp_path, 0755);
     }
 
     // Create custom templates directory if not already there
     char custom_path[PATH_SIZE];
-    snprintf(custom_path, PATH_SIZE, "%s/custom", templates_path);
+    snprintf(custom_path, sizeof(custom_path), "%s/custom", templates_path);
     if (!dir_exists(custom_path)) {
         mkdir(custom_path, 0755);
     }
 
     char custom_c_path[PATH_SIZE];
-    snprintf(custom_c_path, PATH_SIZE, "%s/c", custom_path);
+    snprintf(custom_c_path, sizeof(custom_c_path), "%s/c", custom_path);
     if (!dir_exists(custom_c_path)) {
         mkdir(custom_c_path, 0755);
     }
 
     char custom_cpp_path[PATH_SIZE];
-    snprintf(custom_cpp_path, PATH_SIZE, "%s/cpp", custom_path);
+    snprintf(custom_cpp_path, sizeof(custom_cpp_path), "%s/cpp", custom_path);
     if (!dir_exists(custom_cpp_path)) {
         mkdir(custom_cpp_path, 0755);
     }
@@ -632,8 +634,8 @@ int setup_craft() {
 
     // Create craft home directory if it does not exist yet
     char craft_home[PATH_SIZE];
-    if (get_craft_home(craft_home, PATH_SIZE) != 0) {
-        fprintf(stderr, "[Setup Error]: Failed to set up craft home directory\n");
+    if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
+        fprintf(stderr, "Error: Failed to set up craft home directory\n");
         return -1;
     }
 

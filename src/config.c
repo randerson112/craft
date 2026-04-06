@@ -1,11 +1,14 @@
 #include "config.h"
-#include <string.h>
-#include <stdlib.h>
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "template.h"
 #include "utils.h"
 #include "platform.h"
 
+// Fallback global config values if config.toml is missing or corrupted
 static const craft_config_t defaults = {
     .language = "cpp",
     .c_standard = 99,
@@ -13,11 +16,13 @@ static const craft_config_t defaults = {
     .template = "executable"
 };
 
+// Struct to hold data about a key in craft.toml
 typedef struct {
     const char* name;
     int required;
 } config_key_t;
 
+// Information about the project section keys in craft.toml
 static const config_key_t project_keys[] = {
     {"name",         1},
     {"version",      1},
@@ -27,6 +32,7 @@ static const config_key_t project_keys[] = {
 };
 static const int num_project_keys = 5;
 
+// Information about the build section keys in craft.toml
 static const config_key_t build_keys[] = {
     {"type",         1},
     {"include_dirs", 0},
@@ -40,10 +46,10 @@ static const int num_build_keys = 5;
 static int check_unknown_keys(toml_datum_t section, const char* section_name, const config_key_t* valid_keys, int num_keys) {
     for (int i = 0; i < section.u.tab.size; i++) {
         const char* key = section.u.tab.key[i];
-        bool found = false;
+        int found = 0;
         for (int j = 0; j < num_keys; j++) {
             if (strcmp(key, valid_keys[j].name) == 0) {
-                found = true;
+                found = 1;
                 break;
             }
         }
@@ -67,14 +73,14 @@ static int check_unknown_keys(toml_datum_t section, const char* section_name, co
             }
 
             if (suggestion && suggestion_required) {
-                fprintf(stderr, "[Config Error]: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
+                fprintf(stderr, "Error: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
                 return -1;
             }
             else if (suggestion) {
-                fprintf(stderr, "[Config Warning]: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
+                fprintf(stderr, "Warning: Unknown key '%s' in [%s], did you mean '%s'?\n", key, section_name, suggestion);
             }
             else {
-                fprintf(stderr, "[Config Warning]: Unknown key '%s' in [%s]\n", key, section_name);
+                fprintf(stderr, "Warning: Unknown key '%s' in [%s]\n", key, section_name);
             }
         }
     }
@@ -84,6 +90,9 @@ static int check_unknown_keys(toml_datum_t section, const char* section_name, co
 
 int load_global_config(craft_config_t* config) {
 
+    // Set all values to 0
+    memset(config, 0, sizeof(*config));
+
     // Set defaults
     snprintf(config->language, sizeof(config->language), "%s", defaults.language);
     config->c_standard = defaults.c_standard;
@@ -91,8 +100,8 @@ int load_global_config(craft_config_t* config) {
     snprintf(config->template, sizeof(config->template), "%s", defaults.template);
 
     // Get path to config.toml
-    char craft_home[512];
-    char config_path[512];
+    char craft_home[PATH_SIZE];
+    char config_path[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
         return -1;
     }
@@ -108,7 +117,7 @@ int load_global_config(craft_config_t* config) {
     toml_result_t result = toml_parse_file(file);
 
     if (!result.ok) {
-        fprintf(stderr, "Error parsing global config file\n");
+        fprintf(stderr, "Error: Failed to parse global config file\n");
         fprintf(stderr, "%s\n", result.errmsg);
         return -1;
     }
@@ -140,8 +149,8 @@ int load_global_config(craft_config_t* config) {
 int save_global_config(craft_config_t* config) {
 
     // Get path to config.toml
-    char craft_home[512];
-    char config_path[512];
+    char craft_home[PATH_SIZE];
+    char config_path[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
         return -1;
     }
@@ -150,7 +159,7 @@ int save_global_config(craft_config_t* config) {
     // Open config.toml for writing and write config data
     FILE* f = fopen(config_path, "w");
     if (!f) {
-        fprintf(stderr, "Error: could not write to config file\n");
+        fprintf(stderr, "Error: Failed to write to config file\n");
         return -1;
     }
 
@@ -166,7 +175,7 @@ int save_global_config(craft_config_t* config) {
 
 int generate_craft_toml(const char* project_path, project_config_t* config) {
     // Get path to toml file
-    char toml_path[512];
+    char toml_path[PATH_SIZE];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_path);
 
     // Open the file and write config values
@@ -278,37 +287,38 @@ int load_project_config(project_config_t* config, const char* project_root) {
     memset(config, 0, sizeof(*config));
 
     // Get path to craft.toml
-    char toml_path[1024];
+    char toml_path[PATH_SIZE];
     snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", project_root);
     if (!file_exists(toml_path)) {
-        fprintf(stderr, "Error: no craft.toml found in '%s'\n", project_root);
+        fprintf(stderr, "Error: No craft.toml found in '%s'\n", project_root);
         return -1;
     }
 
     // Open craft.toml and read config data
     FILE* file = fopen(toml_path, "r");
     if (!file) {
-        fprintf(stderr, "Error: could not open craft.toml\n");
+        fprintf(stderr, "Error: Could not open craft.toml\n");
         return -1;
     }
     toml_result_t result = toml_parse_file(file);
     fclose(file);
     if (!result.ok) {
-        fprintf(stderr, "Error parsing craft.toml: %s\n", result.errmsg);
+        fprintf(stderr, "Error: Failed to parse craft.toml\n");
+        fprintf(stderr, "%s\n", result.errmsg);
         return -1;
     }
 
     // Check if required sections are present
     toml_datum_t project_section = toml_seek(result.toptab, "project");
     if (project_section.type != TOML_TABLE) {
-        fprintf(stderr, "[Config Error]: Missing required [project] section in craft.toml\n");
+        fprintf(stderr, "Error: Missing required [project] section in craft.toml\n");
         toml_free(result);
         return -1;
     }
 
     toml_datum_t build_section = toml_seek(result.toptab, "build");
     if (build_section.type != TOML_TABLE) {
-        fprintf(stderr, "[Config Error]: Missing required [build] section in craft.toml\n");
+        fprintf(stderr, "Error: Missing required [build] section in craft.toml\n");
         toml_free(result);
         return -1;
     }
@@ -411,7 +421,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
             // Get the value table for this dependency
             toml_datum_t dep_table = deps_section.u.tab.value[i];
             if (dep_table.type != TOML_TABLE) {
-                fprintf(stderr, "[Config Error]: Value for dependency '%s' must be a table\n", dep->name);
+                fprintf(stderr, "Error: Value for dependency '%s' must be a table\n", dep->name);
                 toml_free(result);
                 return -1;
             }
@@ -427,7 +437,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
 
             // Validate exactly one type key is present
             if (has_path + has_git != 1) {
-                fprintf(stderr, "[Config Error]: dependency '%s' must have exactly one of 'path' or 'git'\n", dep->name);
+                fprintf(stderr, "Error: Dependency '%s' must have exactly one of 'path' or 'git'\n", dep->name);
                 toml_free(result);
                 return -1;
             }
@@ -438,7 +448,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
                 for (int j = 0; j < dep_table.u.tab.size; j++) {
                     if (strcmp(dep_table.u.tab.key[j], "path") == 0) {
                         if (dep_table.u.tab.value[j].type != TOML_STRING) {
-                            fprintf(stderr, "[Config Error]: 'path' value for dependency '%s' must be a string\n", dep->name);
+                            fprintf(stderr, "Error: 'path' value for dependency '%s' must be a string\n", dep->name);
                             toml_free(result);
                             return -1;
                         }
@@ -461,7 +471,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
 
                     if (strcmp(key, "git") == 0) {
                         if (val.type != TOML_STRING) {
-                            fprintf(stderr, "[Config Error]: 'git' value for dependency '%s' must be a string\n", dep->name);
+                            fprintf(stderr, "Error: 'git' value for dependency '%s' must be a string\n", dep->name);
                             toml_free(result);
                             return -1;
                         }
@@ -469,7 +479,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
                     }
                     else if (strcmp(key, "tag") == 0) {
                         if (val.type != TOML_STRING) {
-                            fprintf(stderr, "[Config Error]: 'tag' value for dependency '%s' must be a string\n", dep->name);
+                            fprintf(stderr, "Error: 'tag' value for dependency '%s' must be a string\n", dep->name);
                             toml_free(result);
                             return -1;
                         }
@@ -478,7 +488,7 @@ int load_project_config(project_config_t* config, const char* project_root) {
                     }
                     else if (strcmp(key, "branch") == 0) {
                         if (val.type != TOML_STRING) {
-                            fprintf(stderr, "[Config Error]: 'branch' value for dependency '%s' must be a string\n", dep->name);
+                            fprintf(stderr, "Error: 'branch' value for dependency '%s' must be a string\n", dep->name);
                             toml_free(result);
                             return -1;
                         }
@@ -487,13 +497,13 @@ int load_project_config(project_config_t* config, const char* project_root) {
                     }
                     else if (strcmp(key, "links") == 0) {
                         if (val.type != TOML_ARRAY) {
-                            fprintf(stderr, "[Config Error]: 'links' value for dependency '%s' must be an array\n", dep->name);
+                            fprintf(stderr, "Error: 'links' value for dependency '%s' must be an array\n", dep->name);
                             toml_free(result);
                             return -1;
                         }
                         for (int k = 0; k < val.u.arr.size; k++) {
                             if (val.u.arr.elem[k].type != TOML_STRING) {
-                                fprintf(stderr, "[Config Error]: 'links' values for dependency '%s' must be strings\n", dep->name);
+                                fprintf(stderr, "Error: 'links' values for dependency '%s' must be strings\n", dep->name);
                                 toml_free(result);
                                 return -1;
                             }
@@ -505,14 +515,14 @@ int load_project_config(project_config_t* config, const char* project_root) {
 
                 // Validate tag and branch are not both present
                 if (has_tag && has_branch) {
-                    fprintf(stderr, "[Config Error]: dependency '%s' cannot have both 'tag' and 'branch'\n", dep->name);
+                    fprintf(stderr, "Error: Dependency '%s' cannot have both 'tag' and 'branch'\n", dep->name);
                     toml_free(result);
                     return -1;
                 }
 
                 // Validate git URL is present
                 if (strlen(dep->value) == 0) {
-                    fprintf(stderr, "[Config Error]: dependency '%s' is missing a 'git' URL\n", dep->name);
+                    fprintf(stderr, "Error: Dependency '%s' is missing a 'git' URL\n", dep->name);
                     toml_free(result);
                     return -1;
                 }
@@ -527,18 +537,18 @@ int load_project_config(project_config_t* config, const char* project_root) {
 int validate_project_config(project_config_t* config) {
     // Check if there is a project name
     if (strlen(config->name) == 0) {
-        fprintf(stderr, "[Config Error]: Project name is missing from craft.toml\n");
+        fprintf(stderr, "Error: Project name is missing from craft.toml\n");
         return -1;
     }
 
     // Check if there is a version and that it is valid
     if (strlen(config->version) == 0) {
-        fprintf(stderr, "[Config Error]: Version is missing from craft.toml\n");
+        fprintf(stderr, "Error: Version is missing from craft.toml\n");
         return -1;
     }
     else {
         if (!is_valid_version(config->version)) {
-            fprintf(stderr, "[Config Error]: Version '%s' is invalid\n", config->version);
+            fprintf(stderr, "Error: Version '%s' is invalid\n", config->version);
             return -1;
         }
     }
@@ -546,12 +556,12 @@ int validate_project_config(project_config_t* config) {
     // Check if there is a language and it is "c" or "cpp"
     if (strlen(config->language) != 0) {
         if (strcmp(config->language, "c") != 0 && strcmp(config->language, "cpp") != 0) {
-            fprintf(stderr, "[Config Error]: Invalid language '%s' in craft.toml\n", config->language);
+            fprintf(stderr, "Error: Invalid language '%s' in craft.toml\n", config->language);
             return -1;
         }
     }
     else {
-        fprintf(stderr, "[Config Error]: Language is missing from craft.toml\n");
+        fprintf(stderr, "Error: Language is missing from craft.toml\n");
         return -1;
     }
 
@@ -559,7 +569,7 @@ int validate_project_config(project_config_t* config) {
     if (config->has_c_standard) {
         int c_standard = config->c_standard;
         if (c_standard != 89 && c_standard != 99 && c_standard != 11 && c_standard != 17 && c_standard != 23) {
-            fprintf(stderr, "[Config Error]: Invalid c standard '%d' in craft.toml\n", c_standard);
+            fprintf(stderr, "Error: Invalid c standard '%d' in craft.toml\n", c_standard);
             return -1;
         }
     }
@@ -568,7 +578,7 @@ int validate_project_config(project_config_t* config) {
     if (config->has_cpp_standard) {
         int cpp_standard = config->cpp_standard;
         if (cpp_standard != 11 && cpp_standard != 14 && cpp_standard != 17 && cpp_standard != 20 && cpp_standard != 23) {
-            fprintf(stderr, "[Config Error]: Invalid cpp standard '%d' in craft.toml\n", cpp_standard);
+            fprintf(stderr, "Error: Invalid cpp standard '%d' in craft.toml\n", cpp_standard);
             return -1;
         }
     }
@@ -579,12 +589,12 @@ int validate_project_config(project_config_t* config) {
             strcmp(config->build_type, "static-library") != 0 &&
             strcmp(config->build_type, "shared-library") != 0 &&
             strcmp(config->build_type, "header-only") != 0) {
-            fprintf(stderr, "[Config Error]: Invalid build type '%s' in craft.toml\n", config->build_type);
+            fprintf(stderr, "Error: Invalid build type '%s' in craft.toml\n", config->build_type);
             return -1;
         }
     }
     else {
-        fprintf(stderr, "[Config Error]: Build type is missing from craft.toml\n");
+        fprintf(stderr, "Error: Build type is missing from craft.toml\n");
         return -1;
     }
 
@@ -593,7 +603,7 @@ int validate_project_config(project_config_t* config) {
 }
 
 // Subcommand handler for config set to set a global config value
-int handle_set(const command_t* command_data) {
+static int handle_set(const command_t* command_data) {
 
     // Load config values
     craft_config_t config;
@@ -679,7 +689,7 @@ int handle_set(const command_t* command_data) {
 }
 
 // Subcommand handler for config get to read a global config value
-int handle_get(const command_t* command_data) {
+static int handle_get(const command_t* command_data) {
 
     // Get config key argument
     const char* lookup = command_data->args[0];
@@ -728,24 +738,24 @@ int handle_get(const command_t* command_data) {
 }
 
 // Subcommand handler for config list, lists all the configs in config.toml
-int handle_list() {
+static int handle_list() {
 
     // Get path to config.toml
-    char craft_home[512];
+    char craft_home[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0)
         return -1;
 
-    char config_path[512];
+    char config_path[PATH_SIZE];
     snprintf(config_path, sizeof(config_path), "%s/config.toml", craft_home);
 
     // Open config.toml and write the data to stdout
     FILE* f = fopen(config_path, "r");
     if (!f) {
-        fprintf(stderr, "Error: no config file found\n");
+        fprintf(stderr, "Error: No config file found\n");
         return -1;
     }
 
-    char buf[4096];
+    char buf[FILE_SIZE];
     size_t bytes;
     while ((bytes = fread(buf, 1, sizeof(buf), f)) > 0) {
         fwrite(buf, 1, bytes, stdout);

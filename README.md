@@ -127,6 +127,7 @@ craft run
 Creates a new project directory at the given path with a full project structure including `craft.toml`, `src/`, `include/`, and a starter main file.
 ```bash
 craft project my_app
+craft project --no-git
 craft project my_app --lang c
 craft project my_lib --template static-library
 ```
@@ -138,10 +139,11 @@ Initializes a Craft project in the current or specified directory. Behavior depe
 
 **Existing project** — scans the directory to detect language, source dirs, include dirs, and libraries. Generates `craft.toml` and `CMakeLists.txt` from what was found. Existing source files are never modified. If a `CMakeLists.txt` already exists it will be backed up to `CMakeLists.txt.bak` before being replaced.
 ```bash
-craft init                        # initialize in current directory
-craft init my_app                 # initialize in my_app/
-craft init --lang c               # force C language for existing project
-craft init --template static-library  # use template for empty directory
+craft init
+craft init my_app
+craft init my_app --no-git
+craft init --lang c
+craft init --template static-library
 ```
 
 If you are adopting an existing project, Craft will back up your `CMakeLists.txt` and show you how to migrate your dependencies:
@@ -167,13 +169,6 @@ Runs the project executable. Defaults to the project name from `craft.toml`. Opt
 ```bash
 craft run
 craft run my_other_binary
-```
-
-### `craft compile <source> [output]`
-Compiles a single `.c` or `.cpp` file without a full project structure. Useful for quick one-off scripts.
-```bash
-craft compile main.cpp
-craft compile main.cpp app
 ```
 
 ### `craft gen <file>`
@@ -253,6 +248,7 @@ craft help craft.toml
 |--------|-----------|-------------|
 | `--template <name>` | `-t` | Template to use when creating a project |
 | `--lang <language>` | `-l` | Language to use: `c` or `cpp` |
+| `--no-git`          |      | Disable git initialization |
 
 ---
 
@@ -382,8 +378,8 @@ my_app/
 - [x] v0.4.0 — `craft.toml` parsing, global config, `craft config` command
 - [x] v0.5.0 — CMake generation from `craft.toml`, improved error messages, improved older commands
 - [x] v0.6.0 — Dependency management: `craft add`, `craft remove`, `craft update`
-- [ ] v0.7.0 — Existing project adoption via `craft init`, Windows support
-- [ ] v0.8.0 — Install scripts
+- [x] v0.7.0 — Existing project adoption via `craft init`, Windows support
+- [x] v0.8.0 — Install scripts
 - [ ] v0.9.0 — Final polishing before initial release
 - [ ] v1.0.0 — Public release
 

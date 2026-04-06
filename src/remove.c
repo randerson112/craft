@@ -1,9 +1,11 @@
 #include "remove.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "utils.h"
 #include "config.h"
-#include <string.h>
 #include "cmake.h"
 #include "deps.h"
 #include "platform.h"
@@ -24,15 +26,15 @@ static void remove_dependency_from_config(project_config_t* config, const char* 
 int handle_remove(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Find project root and load config
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
         fprintf(stderr, "Error: Could not find craft.toml in current or any parent directory\n");
         return -1;
@@ -53,7 +55,7 @@ int handle_remove(const command_t* command_data) {
 
     // Dependency not found, give a suggestion if close enough
     if (!removed_dep) {
-        fprintf(stderr, "Error: dependency '%s' not found in craft.toml\n", dep_name);
+        fprintf(stderr, "Error: Dependency '%s' not found in craft.toml\n", dep_name);
 
         // Print suggestion if close enough
         const char* suggestion = get_dependency_suggestion(config.dependencies, config.dependencies_count, dep_name);
@@ -82,7 +84,6 @@ int handle_remove(const command_t* command_data) {
     }
 
     fprintf(stdout, "Removed '%s' from dependencies\n\n", dep_name);
-    fprintf(stdout, "Tip: Run 'craft clean' to remove the dependency files from the build directory.\n");
-    fprintf(stdout, "     Then run 'craft build' to rebuild the project.\n");
+    fprintf(stdout, "Tip: Run 'craft clean && craft build' to fully rebuild without this dependency\n");
     return 0;
 }

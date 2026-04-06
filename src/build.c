@@ -1,23 +1,18 @@
 #include "build.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+
 #include "utils.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "sys/stat.h"
 #include "config.h"
 #include "cmake.h"
-#include <string.h>
 #include "deps.h"
 #include "platform.h"
 
 // Builds a project by creating a build directory and running cmake
-int build_project(const char* cwd)
-{
-    // Get path to root of the project
-    char project_root[512];
-    if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
-        return -1;
-    }
+static int build_project(const char* project_root) {
 
     // Regenerate CMakeLists.txt from craft.toml if needed
     project_config_t config;
@@ -30,6 +25,7 @@ int build_project(const char* cwd)
     }
 
     if (cmake_needs_regeneration(project_root)) {
+        fprintf(stdout, "Regenerating CMake...");
         generate_cmake(project_root, &config);
     }
 
@@ -45,7 +41,7 @@ int build_project(const char* cwd)
     }
 
     // Create a build directory if it does not exist
-    char build_dir[256];
+    char build_dir[PATH_SIZE];
     snprintf(build_dir, sizeof(build_dir), "%s/build", project_root);
     if (!dir_exists(build_dir))
     {
@@ -59,18 +55,22 @@ int build_project(const char* cwd)
             return -1;
         }
     }
-    else {
-        fprintf(stdout, "Build directory found\n");
-    }
 
     // Run cmake to build project
-    fprintf(stdout, "Building project\n");
+    fprintf(stdout, "Configuring...\n");
+    char configure_command[COMMAND_SIZE];
+    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" > %s 2>&1", project_root, build_dir, DEVNULL);
 
-    char command[512];
-    snprintf(command, sizeof(command), "cmake -S \"%s\" -B \"%s\" && cmake --build \"%s\"", project_root, build_dir, build_dir);
+    if (system(configure_command) != 0) {
+        fprintf(stderr, "Error: Failed to configure CMake\n");
+        return -1;
+    }
 
-    if (system(command) != 0)
-    {
+    char build_command[COMMAND_SIZE];
+    snprintf(build_command, sizeof(build_command), "cmake --build \"%s\" > %s", build_dir, DEVNULL);
+
+    fprintf(stdout, "Building...\n");
+    if (system(build_command) != 0) {
         fprintf(stderr, "Error: Failed to build project\n");
         return -1;
     }
@@ -82,12 +82,19 @@ int build_project(const char* cwd)
 
 int handle_build() {
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
-    return build_project(cwd);
+    // Get path to root of the project
+    char project_root[PATH_SIZE];
+    if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
+        return -1;
+    }
+
+    return build_project(project_root);
 }

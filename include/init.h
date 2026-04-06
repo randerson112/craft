@@ -3,7 +3,7 @@
 
 #include "parser.h"
 
-// Init command handler
+// init command handler
 int handle_init(const command_t* command_data);
 
 #endif

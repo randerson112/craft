@@ -1,8 +1,10 @@
 #include "add.h"
+
 #include <stdio.h>
+#include <string.h>
+
 #include "utils.h"
 #include "config.h"
-#include <string.h>
 #include "cmake.h"
 #include "deps.h"
 #include "registry.h"
@@ -36,12 +38,12 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
     if (type == DEP_PATH) {
 
         // Get path to dependency project root and load config
-        char dep_project_root[512];
+        char dep_project_root[PATH_SIZE];
         snprintf(dep_project_root, sizeof(dep_project_root), "%s/%s", project_root, value);
 
         project_config_t dep_config;
         if (load_project_config(&dep_config, dep_project_root) != 0) {
-            fprintf(stderr, "Make sure the craft.toml in the dependency is valid\n");
+            fprintf(stderr, "Error: Make sure the craft.toml in the dependency is valid\n");
             return -1;
         }
 
@@ -53,7 +55,7 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
         // Get the last part of the path and remove the .git
         const char* last_slash = strrchr(value, '/');
         if (!last_slash || *(last_slash + 1) == '\0') {
-            fprintf(stderr, "Error: could not parse repository name from URL '%s'\n", value);
+            fprintf(stderr, "Error: Could not parse repository name from URL '%s'\n", value);
             return -1;
         }
 
@@ -74,10 +76,10 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
 static int validate_path_dependency(const char* project_root, const char* path) {
     
     // Get path to dependency project root
-    char dep_project_root[512];
+    char dep_project_root[PATH_SIZE];
     snprintf(dep_project_root, sizeof(dep_project_root), "%s/%s", project_root, path);
     if (!dir_exists(dep_project_root)) {
-        fprintf(stderr, "Error: path '%s' does not exist or is not a directory\n", path);
+        fprintf(stderr, "Error: Path '%s' does not exist or is not a directory\n", path);
         return -1;
     }
 
@@ -91,14 +93,13 @@ static int validate_path_dependency(const char* project_root, const char* path) 
     project_config_t dep_config;
     if (load_project_config(&dep_config, dep_project_root) != 0 ||
         validate_project_config(&dep_config) != 0) {
-        fprintf(stderr, "Make sure the craft.toml in the dependency is valid\n");
+        fprintf(stderr, "Error: Make sure the craft.toml in the dependency is valid\n");
         return -1;
     }
 
     // Make sure it's a library not an executable
     if (strcmp(dep_config.build_type, "executable") == 0) {
         fprintf(stderr, "Error: '%s' is an executable project and cannot be linked as a dependency\n", dep_config.name);
-        fprintf(stderr, "       Only static-library, shared-library, and header-only projects can be dependencies\n");
         return -1;
     }
 
@@ -141,7 +142,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
     for (int i = 0; i < command_data->option_count; i++) {
         const char* option_name = command_data->options[i].name;
         if (strcmp(option_name, "tag") != 0 && strcmp(option_name, "branch") != 0) {
-            fprintf(stderr, "Error: option '--%s' cannot be used when adding kits from registry\n", option_name);
+            fprintf(stderr, "Error: Option '--%s' cannot be used when adding kits from registry\n", option_name);
             return -1;
         }
     }
@@ -149,15 +150,17 @@ static int add_registry_dependency(const char* project_root, const command_t* co
     const char* kit_name = command_data->args[0];
 
     // Look up the kit in the registry
-    registry_kit_t kit;
-    memset(&kit, 0, sizeof(kit));
+    fprintf(stdout, "Looking up '%s' in registry...\n", kit_name);
+
+    registry_kit_t kit = {0};
     if (registry_find(kit_name, &kit) != 0) {
         return -1;
     }
 
+    fprintf(stdout, "Found '%s'\n", kit_name);
+
     // Build the dependency entry from registry info
-    dependency_t dep;
-    memset(&dep, 0, sizeof(dep));
+    dependency_t dep = {0};
     snprintf(dep.name, sizeof(dep.name), "%s", kit.name);
     dep.type = DEP_GIT;
     snprintf(dep.value, sizeof(dep.value), "%s", kit.git_url);
@@ -189,7 +192,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
         return -1;
     }
     if (dependency_already_exists(&config, dep.name)) {
-        fprintf(stderr, "Error: kit '%s' already exists in craft.toml\n", dep.name);
+        fprintf(stderr, "Error: Kit '%s' already exists in craft.toml\n", dep.name);
         return -1;
     }
 
@@ -208,17 +211,17 @@ static int add_registry_dependency(const char* project_root, const command_t* co
 int handle_add(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Get the root of the project
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -277,8 +280,7 @@ int handle_add(const command_t* command_data) {
     }
 
     // Build the dependency entry
-    dependency_t dep;
-    memset(&dep, 0, sizeof(dep));
+    dependency_t dep = {0};
     snprintf(dep.name, sizeof(dep.name), "%s", dep_name);
     dep.type = type;
     snprintf(dep.value, sizeof(dep.value), "%s", value);
@@ -307,16 +309,16 @@ int handle_add(const command_t* command_data) {
 
     config.dependencies[config.dependencies_count++] = dep;
 
-    // Regenerate craft.toml with new dependency
-    if (generate_craft_toml(project_root, &config) != 0) {
-        return -1;
-    }
-
     // Fetch git dependency into .craft/deps
     if (type == DEP_GIT) {
         if (fetch_git_dependency(project_root, &dep) != 0) {
             return -1;
         }
+    }
+
+    // Regenerate craft.toml with new dependency
+    if (generate_craft_toml(project_root, &config) != 0) {
+        return -1;
     }
 
     // Regenerate CMakeLists.txt with new dependency

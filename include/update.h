@@ -3,7 +3,7 @@
 
 #include "parser.h"
 
-// Update command handler
+// update command handler
 int handle_update(const command_t* command_data);
 
 #endif // UPDATE_H

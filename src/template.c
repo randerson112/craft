@@ -1,15 +1,21 @@
 #include "template.h"
+
 #include <stdio.h>
-#include "utils.h"
-#include <sys/stat.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#include "utils.h"
 #include "config.h"
 #include "platform.h"
+
+// Files and directories to exclude when saving a template
+static const char* excludes[] = {".git", "gitignore", ".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
+static size_t excludes_count = 6;
 
 // Checks if a builtin template exists for a certain language
 // Prevents the user from creating custom templates with same name as a builtin
 int builtin_template_exists(const char* name, const char* language) {
-    char builtin_path[512];
+    char builtin_path[PATH_SIZE];
     get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
 
     if (dir_exists(builtin_path)) {
@@ -22,17 +28,17 @@ int builtin_template_exists(const char* name, const char* language) {
 // Saves the current project structure as a template with the given name
 static int handle_save(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Find project root
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -51,24 +57,23 @@ static int handle_save(const command_t* command_data) {
 
     // Check if there is a builtin template with same name
     if (builtin_template_exists(name, language)) {
-        fprintf(stderr, "Naming Error: Builtin template '%s' already exists for language '%s'\n", name, language);
+        fprintf(stderr, "Error: Builtin template '%s' already exists for language '%s'\n", name, language);
         return -1;
     }
 
     // Check if there is a custom template already with that name
     if (template_exists(name, language)) {
-        fprintf(stderr, "Naming Error: Custom template '%s' already exists for language '%s'\n", name, language);
+        fprintf(stderr, "Error: Custom template '%s' already exists for language '%s'\n", name, language);
         return -1;
     }
 
     // Get the path to where the template will be saved
-    char template_dir[512];
+    char template_dir[PATH_SIZE];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
 
     // Copy project contents to template, excluding craft.toml and build
     mkdir(template_dir, 0755);
-    const char* excludes[] = {".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
-    if (copy_dir_contents(project_root, template_dir, excludes, 4) != 0) {
+    if (copy_dir_contents(project_root, template_dir, excludes, excludes_count) != 0) {
         return -1;
     }
 
@@ -77,23 +82,26 @@ static int handle_save(const command_t* command_data) {
     config.version[0] = '\0';
     generate_craft_toml(template_dir, &config);
 
+    // Print success message
+    fprintf(stdout, "Saved template '%s' to %s custom templates\n", name, language);
+
     return 0;
 }
 
 // Updates an existing template with the current project structure
 static int handle_update(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
-    char cwd[4096];
+    char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
-        fprintf(stderr, "[Fatal Error]: Failed to get current working directory\n");
+        fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
     }
 
     // Find project root
-    char project_root[512];
+    char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "could not find craft.toml in current directory or any parent directory\n");
+        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
@@ -111,18 +119,17 @@ static int handle_update(const command_t* command_data) {
     const char* language = config.language;
 
     // Get the path to where the template is saved
-    char template_dir[512];
+    char template_dir[PATH_SIZE];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
     if (!dir_exists(template_dir)) {
-        fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
+        fprintf(stderr, "Error: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
     // Delete old template contents and copy project contents to template, excluding .craft and build
     remove_dir(template_dir);
     mkdir(template_dir, 0755);
-    const char* excludes[] = {".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
-    if (copy_dir_contents(project_root, template_dir, excludes, 4) != 0) {
+    if (copy_dir_contents(project_root, template_dir, excludes, excludes_count) != 0) {
         return -1;
     }
 
@@ -130,6 +137,9 @@ static int handle_update(const command_t* command_data) {
     config.name[0] = '\0';
     config.version[0] = '\0';
     generate_craft_toml(template_dir, &config);
+
+    // Print success message
+    fprintf(stdout, "Updated %s custom template '%s'\n", language, name);
 
     return 0;
 }
@@ -153,15 +163,19 @@ static int handle_delete(const command_t* command_data) {
     }
 
     // Get path to template
-    char template_dir[512];
+    char template_dir[PATH_SIZE];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
     if (!dir_exists(template_dir)) {
-        fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
+        fprintf(stderr, "Error: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
     // Delete template contents
-    return remove_dir(template_dir);
+    remove_dir(template_dir);
+
+    // Print success message
+    fprintf(stdout, "Deleted %s custom template '%s'\n", language, name);
+    return 0;
 }
 
 static int handle_where(const command_t* command_data) {
@@ -182,10 +196,10 @@ static int handle_where(const command_t* command_data) {
     }
 
     // Get the path to where the template is saved
-    char template_dir[512];
+    char template_dir[PATH_SIZE];
     get_template_directory(template_dir, sizeof(template_dir), "custom", language, name);
     if (!dir_exists(template_dir)) {
-        fprintf(stderr, "[File Error]: '%s' custom template with the name '%s' does not exist\n", language, name);
+        fprintf(stderr, "Error: '%s' custom template with the name '%s' does not exist\n", language, name);
         return -1;
     }
 
@@ -219,17 +233,17 @@ static int handle_list(const command_t* command_data) {
     other_language = strcmp(language, "cpp") == 0 ? "c" : "cpp";
 
     // Get the path to where the templates are saved
-    char craft_home[512];
+    char craft_home[PATH_SIZE];
     if (get_craft_home(craft_home, sizeof(craft_home)) != 0) {
         return -1;
     }
 
     // Print builtin templates of specified language
-    char builtin_templates_dir[512];
+    char builtin_templates_dir[PATH_SIZE];
     get_template_directory(builtin_templates_dir, sizeof(builtin_templates_dir), "builtin", language, NULL);
     dir_t* bi_dir = open_dir(builtin_templates_dir);
     if (!bi_dir) {
-        fprintf(stderr, "[Fatal Error]: Failed to open builtin templates for language '%s'\n", language);
+        fprintf(stderr, "Error: Failed to open builtin templates for language '%s'\n", language);
         return -1;
     }
 
@@ -251,7 +265,7 @@ static int handle_list(const command_t* command_data) {
         get_template_directory(builtin_templates_dir, sizeof(builtin_templates_dir), "builtin", other_language, NULL);
         bi_dir = open_dir(builtin_templates_dir);
         if (!bi_dir) {
-            fprintf(stderr, "[Fatal Error]: Failed to open builtin templates for language '%s'\n", other_language);
+            fprintf(stderr, "Error: Failed to open builtin templates for language '%s'\n", other_language);
             return -1;
         }
 
@@ -269,11 +283,11 @@ static int handle_list(const command_t* command_data) {
     }
 
     // Print custom templates of specified language
-    char custom_templates_dir[512];
+    char custom_templates_dir[PATH_SIZE];
     get_template_directory(custom_templates_dir, sizeof(custom_templates_dir), "custom", language, NULL);
     dir_t* c_dir = open_dir(custom_templates_dir);
     if (!c_dir) {
-        fprintf(stderr, "[Fatal Error]: Failed to open custom templates for language '%s'\n", language);
+        fprintf(stderr, "Error: Failed to open custom templates for language '%s'\n", language);
         return -1;
     }
 
@@ -295,7 +309,7 @@ static int handle_list(const command_t* command_data) {
 
         c_dir = open_dir(custom_templates_dir);
         if (!c_dir) {
-            fprintf(stderr, "[Fatal Error]: Failed to open custom templates for language '%s'\n", other_language);
+            fprintf(stderr, "Error: Failed to open custom templates for language '%s'\n", other_language);
             return -1;
         }
 
@@ -315,8 +329,8 @@ static int handle_list(const command_t* command_data) {
 }
 
 int template_exists(const char* name, const char* language) {
-    char builtin_path[512];
-    char custom_path[512];
+    char builtin_path[PATH_SIZE];
+    char custom_path[PATH_SIZE];
     get_template_directory(builtin_path, sizeof(builtin_path), "builtin", language, name);
     get_template_directory(custom_path, sizeof(custom_path), "custom", language, name);
 

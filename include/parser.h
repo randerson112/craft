@@ -1,9 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#define NUM_COMMANDS 14
-#define NUM_OPTIONS 8
+#define NUM_COMMANDS 13
+#define NUM_OPTIONS 9
 
+// Enum to denote the parse status
 typedef enum {
     PARSE_SUCCESS,
     PARSE_MISSING_COMMAND,
@@ -58,14 +59,8 @@ typedef struct {
 	const int valid_args_count;
 } option_info_t;
 
-// Info for all valid commands
-extern const command_info_t commands_info[];
-
-// Info for all valid options
-extern const option_info_t options_info[];
-
 // Parses the command line arguments into a command struct
 // Returns an enum describing the parse result
-parse_result_t parse(int argc, char** argv, command_t* command_data);
+parse_result_t parse(command_t* command_data, int argc, char** argv);
 
 #endif

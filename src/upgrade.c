@@ -1,10 +1,12 @@
 #include "upgrade.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "platform.h"
 #include "utils.h"
 #include "config.h"
-#include <string.h>
 
 // Fetches the latest version of craft by parsing the craft.toml from github
 static int fetch_latest_version(char* buffer, size_t buffer_size) {
@@ -13,11 +15,12 @@ static int fetch_latest_version(char* buffer, size_t buffer_size) {
     #ifdef _WIN32
     system("curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/craft.toml > %TEMP%\\craft_latest.toml 2>NUL");
     char* temp = getenv("TEMP");
-    char toml_path[512];
+    char toml_path[PATH_SIZE];
     snprintf(toml_path, sizeof(toml_path), "%s\\craft_latest.toml", temp);
     #else
     system("curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/craft.toml > /tmp/craft_latest.toml 2>/dev/null");
-    char toml_path[] = "/tmp/craft_latest.toml";
+    char toml_path[PATH_SIZE];
+    snprintf(toml_path, sizeof(toml_path), "%s", "/tmp/craft_latest.toml");
     #endif
 
     // Parse toml file for version
@@ -47,7 +50,7 @@ int handle_upgrade() {
     // Get latest version of craft
     char latest_version[32];
     if (fetch_latest_version(latest_version, sizeof(latest_version)) != 0) {
-        fprintf(stderr, "Failed to fetch latest data from GitHub\n");
+        fprintf(stderr, "Error: Failed to fetch latest data from GitHub\n");
         return -1;
     }
 
@@ -75,8 +78,7 @@ int handle_upgrade() {
     }
 
     // Print success message
-    fprintf(stdout, "Updated Craft successfully\n");
-    fprintf(stdout, "Current version: %s\n", latest_version);
+    fprintf(stdout, "Updated Craft to %s successfully\n", latest_version);
     fprintf(stdout, "Restart your terminal to use the latest version\n");
     return 0;
 }
