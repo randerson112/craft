@@ -380,7 +380,7 @@ my_app/
 - [x] v0.6.0 — Dependency management: `craft add`, `craft remove`, `craft update`
 - [x] v0.7.0 — Existing project adoption via `craft init`, Windows support
 - [x] v0.8.0 — Install scripts
-- [ ] v0.9.0 — Final polishing before initial release
+- [x] v0.9.0 — Final polishing before initial release
 - [ ] v1.0.0 — Public release
 
 ---
