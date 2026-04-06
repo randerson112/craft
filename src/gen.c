@@ -21,7 +21,7 @@ static int write_cpp_header(const char* path, const char* filename) {
     fprintf(file, "\n// Code here\n");
     fclose(file);
 
-    fprintf(stdout, "Generated '%s.hpp'\n", filename);
+    fprintf(stdout, "'%s.hpp' successfully generated\n", filename);
     return 0;
 }
 
@@ -45,7 +45,7 @@ static int write_c_header(const char* path, const char* filename) {
     fprintf(file, "#endif // %s\n", macro);
     fclose(file);
 
-    fprintf(stdout, "Generated '%s.h'\n", filename);
+    fprintf(stdout, "'%s.h' successfully generated\n", filename);
     return 0;
 }
 
@@ -70,7 +70,7 @@ static int write_cpp_source(const char* path, const char* filename, int has_head
     }
     fclose(file);
 
-    fprintf(stdout, "Generated '%s.cpp'\n", filename);
+    fprintf(stdout, "'%s.cpp' successfully generated\n", filename);
     return 0;
 }
 
@@ -95,7 +95,7 @@ static int write_c_source(const char* path, const char* filename, int has_header
     }
     fclose(file);
 
-    fprintf(stdout, "Generated '%s.c'\n", filename);
+    fprintf(stdout, "'%s.c' successfully generated\n", filename);
     return 0;
 }
 
@@ -136,6 +136,8 @@ static int find_matching_header(const char* cwd, const char* filename, const cha
 // Generates a header file in project include directory or current directory
 static int generate_header(const char* cwd, const char* filename, const char* extension) {
 
+    fprintf(stdout, "Generating '%s.%s'...\n", filename, extension);
+
     // Check if cwd is in a project
     int in_project = 0;
     char project_root[PATH_SIZE];
@@ -151,13 +153,11 @@ static int generate_header(const char* cwd, const char* filename, const char* ex
     char dest[PATH_SIZE];
     if (in_project && config.include_dir_count > 0) {
         snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.include_dirs[0], filename, extension);
-
-        if (config.include_dir_count > 1) {
-            fprintf(stdout, "Note: placing in '%s' (first include_dirs in craft.toml)\n", config.include_dirs[0]);
-        }
+        fprintf(stdout, "Placing in '%s' (first include_dirs in craft.toml)\n", config.include_dirs[0]);
     }
     else {
         snprintf(dest, sizeof(dest), "%s/%s.%s", cwd, filename, extension);
+        fprintf(stdout, "Placing in current directory\n");
     }
 
     // Make sure file doesn't already exist at the destination
@@ -178,6 +178,8 @@ static int generate_header(const char* cwd, const char* filename, const char* ex
 // Generates a header file in project source directory or current directory
 static int generate_source(const char* cwd, const char* filename, const char* extension) {
 
+    fprintf(stdout, "Generating '%s.%s'...\n", filename, extension);
+
     // Check if cwd is in a project
     int in_project = 0;
     char project_root[PATH_SIZE];
@@ -197,13 +199,11 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
     char dest[PATH_SIZE];
     if (in_project && config.source_dir_count > 0) {
         snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.source_dirs[0], filename, extension);
-
-        if (config.source_dir_count > 1) {
-            fprintf(stdout, "Note: placing in '%s' (first source_dirs in craft.toml)\n", config.source_dirs[0]);
-        }
+        fprintf(stdout, "Placing in '%s' (first source_dirs in craft.toml)\n", config.source_dirs[0]);
     }
     else {
         snprintf(dest, sizeof(dest), "%s/%s.%s", cwd, filename, extension);
+        fprintf(stdout, "Placing in current directory\n");
     }
 
     // Make sure file doesn't already exist

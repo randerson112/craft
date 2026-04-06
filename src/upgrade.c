@@ -78,8 +78,7 @@ int handle_upgrade() {
     }
 
     // Print success message
-    fprintf(stdout, "Updated Craft successfully\n");
-    fprintf(stdout, "Current version: %s\n", latest_version);
+    fprintf(stdout, "Updated Craft to %s successfully\n", latest_version);
     fprintf(stdout, "Restart your terminal to use the latest version\n");
     return 0;
 }

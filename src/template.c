@@ -8,6 +8,10 @@
 #include "config.h"
 #include "platform.h"
 
+// Files and directories to exclude when saving a template
+static const char* excludes[] = {".git", "gitignore", ".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
+static size_t excludes_count = 6;
+
 // Checks if a builtin template exists for a certain language
 // Prevents the user from creating custom templates with same name as a builtin
 int builtin_template_exists(const char* name, const char* language) {
@@ -69,8 +73,7 @@ static int handle_save(const command_t* command_data) {
 
     // Copy project contents to template, excluding craft.toml and build
     mkdir(template_dir, 0755);
-    const char* excludes[] = {".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
-    if (copy_dir_contents(project_root, template_dir, excludes, 4) != 0) {
+    if (copy_dir_contents(project_root, template_dir, excludes, excludes_count) != 0) {
         return -1;
     }
 
@@ -78,6 +81,9 @@ static int handle_save(const command_t* command_data) {
     config.name[0] = '\0';
     config.version[0] = '\0';
     generate_craft_toml(template_dir, &config);
+
+    // Print success message
+    fprintf(stdout, "Saved template '%s' to %s custom templates\n", name, language);
 
     return 0;
 }
@@ -123,8 +129,7 @@ static int handle_update(const command_t* command_data) {
     // Delete old template contents and copy project contents to template, excluding .craft and build
     remove_dir(template_dir);
     mkdir(template_dir, 0755);
-    const char* excludes[] = {".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
-    if (copy_dir_contents(project_root, template_dir, excludes, 4) != 0) {
+    if (copy_dir_contents(project_root, template_dir, excludes, excludes_count) != 0) {
         return -1;
     }
 
@@ -132,6 +137,9 @@ static int handle_update(const command_t* command_data) {
     config.name[0] = '\0';
     config.version[0] = '\0';
     generate_craft_toml(template_dir, &config);
+
+    // Print success message
+    fprintf(stdout, "Updated %s custom template '%s'\n", language, name);
 
     return 0;
 }
@@ -163,7 +171,11 @@ static int handle_delete(const command_t* command_data) {
     }
 
     // Delete template contents
-    return remove_dir(template_dir);
+    remove_dir(template_dir);
+
+    // Print success message
+    fprintf(stdout, "Deleted %s custom template '%s'\n", language, name);
+    return 0;
 }
 
 static int handle_where(const command_t* command_data) {

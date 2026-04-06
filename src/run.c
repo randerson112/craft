@@ -88,6 +88,7 @@ int run_executable_build(const char* cwd) {
     char command[COMMAND_SIZE];
     snprintf(command, sizeof(command), "%s", executable_path);
 
+    fprintf(stdout, "Running '%s'...\n\n", executable_name);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to run executable\n");

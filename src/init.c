@@ -403,7 +403,23 @@ static int init_existing_project(const char* path, const char* language_option, 
 
     // Print success message
     fprintf(stdout, "Initialized Craft project at '%s'\n\n", path);
-    fprintf(stdout, "Edit craft.toml to adjust the configuration.\n\n");
+
+    fprintf(stdout, "language: %s\n", config.language);
+    fprintf(stdout, "type: executable\n");
+
+    fprintf(stdout, "source dirs:");
+    for (int i = 0; i < config.source_dir_count; i++) {
+        fprintf(stdout, " '%s'", config.source_dirs[i]);
+    }
+    fprintf(stdout, "\n");
+
+    fprintf(stdout, "include dirs:");
+    for (int i = 0; i < config.include_dir_count; i++) {
+        fprintf(stdout, " '%s'", config.include_dirs[i]);
+    }
+    fprintf(stdout, "\n\n");
+
+    fprintf(stdout, "Edit craft.toml to adjust the configuration\n");
 
     char backup_path[PATH_SIZE];
     snprintf(backup_path, PATH_SIZE, "%s/CMakeLists.backup.cmake", path);
@@ -412,7 +428,7 @@ static int init_existing_project(const char* path, const char* language_option, 
         fprintf(stdout, "Your existing CMakeLists.txt was backed up to CMakeLists.backup.cmake\n\n");
     }
 
-    fprintf(stdout, "Run 'craft build' to build your project.\n");
+    fprintf(stdout, "Run 'craft build' to build your project\n");
     return 0;
 }
 
@@ -466,7 +482,14 @@ int handle_init(const command_t* command_data) {
 
     // If init directory is empty, create a new project
     if (dir_is_empty(init_path)) {
-        return create_project_from_template(init_path, template, language, use_git);
+        if (create_project_from_template(init_path, template, language, use_git) != 0) {
+            return -1;
+        }
+
+        // Print success message
+        fprintf(stdout, "Initialized Craft project at '%s'\n\n", init_path);
+        fprintf(stdout, "Run 'craft build' to build your new project\n");
+        return 0;
     }
 
     // Otherwise init from existing project structure

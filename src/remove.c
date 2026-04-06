@@ -84,7 +84,6 @@ int handle_remove(const command_t* command_data) {
     }
 
     fprintf(stdout, "Removed '%s' from dependencies\n\n", dep_name);
-    fprintf(stdout, "Tip: Run 'craft clean' to remove the dependency files from the build directory.\n");
-    fprintf(stdout, "     Then run 'craft build' to rebuild the project.\n");
+    fprintf(stdout, "Tip: Run 'craft clean && craft build' to fully rebuild without this dependency\n");
     return 0;
 }

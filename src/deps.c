@@ -31,7 +31,7 @@ int fetch_git_dependency(const char* project_root, const dependency_t* dep) {
         return 0;
     }
 
-    fprintf(stdout, "Fetching '%s'...\n", dep->name);
+    fprintf(stdout, "Fetching '%s' from GitHub...\n", dep->name);
 
     // Build git clone command
     char cmd[COMMAND_SIZE];

@@ -175,5 +175,15 @@ int handle_project(const command_t* command_data) {
 
     // Create new directory and create the project
     mkdir(project_path, 0755);
-    return create_project_from_template(project_path, template, language, use_git);
+    if (create_project_from_template(project_path, template, language, use_git) != 0) {
+        return -1;
+    }
+
+    // Print success mesage
+    char project_name[32];
+    get_dir_name(project_name, sizeof(project_name), project_path);
+    fprintf(stdout, "Created Craft project '%s'\n\n", project_name);
+
+    fprintf(stdout, "Tip: Run 'craft build' to build your new project\n");
+    return 0;
 }

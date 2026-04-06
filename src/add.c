@@ -150,15 +150,17 @@ static int add_registry_dependency(const char* project_root, const command_t* co
     const char* kit_name = command_data->args[0];
 
     // Look up the kit in the registry
-    registry_kit_t kit;
-    memset(&kit, 0, sizeof(kit));
+    fprintf(stdout, "Looking up '%s' in registry...\n", kit_name);
+
+    registry_kit_t kit = {0};
     if (registry_find(kit_name, &kit) != 0) {
         return -1;
     }
 
+    fprintf(stdout, "Found '%s'\n", kit_name);
+
     // Build the dependency entry from registry info
-    dependency_t dep;
-    memset(&dep, 0, sizeof(dep));
+    dependency_t dep = {0};
     snprintf(dep.name, sizeof(dep.name), "%s", kit.name);
     dep.type = DEP_GIT;
     snprintf(dep.value, sizeof(dep.value), "%s", kit.git_url);
@@ -278,8 +280,7 @@ int handle_add(const command_t* command_data) {
     }
 
     // Build the dependency entry
-    dependency_t dep;
-    memset(&dep, 0, sizeof(dep));
+    dependency_t dep = {0};
     snprintf(dep.name, sizeof(dep.name), "%s", dep_name);
     dep.type = type;
     snprintf(dep.value, sizeof(dep.value), "%s", value);
@@ -308,16 +309,16 @@ int handle_add(const command_t* command_data) {
 
     config.dependencies[config.dependencies_count++] = dep;
 
-    // Regenerate craft.toml with new dependency
-    if (generate_craft_toml(project_root, &config) != 0) {
-        return -1;
-    }
-
     // Fetch git dependency into .craft/deps
     if (type == DEP_GIT) {
         if (fetch_git_dependency(project_root, &dep) != 0) {
             return -1;
         }
+    }
+
+    // Regenerate craft.toml with new dependency
+    if (generate_craft_toml(project_root, &config) != 0) {
+        return -1;
     }
 
     // Regenerate CMakeLists.txt with new dependency

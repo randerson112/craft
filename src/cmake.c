@@ -202,8 +202,8 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
             fprintf(file, ")\n");
         }
         else {
-            fprintf(stderr, "Warning: dependency '%s' has no link targets specified\n", dep->name);
-            fprintf(stderr, "         Add --links when running craft add, or configure manually in craft.toml\n");
+            fprintf(stderr, "\nWarning: dependency '%s' has no link targets specified\n", dep->name);
+            fprintf(stderr, "         Add --links when running craft add, or configure manually in craft.toml\n\n");
         }
 
         fprintf(file, "target_include_directories(%s PRIVATE .craft/deps/%s/include)\n", config->name, dep->name);
@@ -224,7 +224,7 @@ static int write_dependencies(FILE* file, const char* project_path, project_conf
 
     // Only write if there are dependencies present
     if (config->dependencies_count > 0) {
-        fprintf(file, "# Dependencies\n\n");
+        fprintf(file, "\n# Dependencies\n\n");
         for (int i = 0; i < config->dependencies_count; i++) {
             dependency_t* dep = &config->dependencies[i];
 

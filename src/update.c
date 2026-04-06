@@ -24,13 +24,18 @@ static int update_dependency(const char* project_root, const dependency_t* dep) 
         return 0;
     }
 
-    fprintf(stdout, "Updating '%s'\n", dep->name);
+    fprintf(stdout, "Updating '%s'...\n", dep->name);
 
     // Delete current dep directory
     delete_dependency_dir(project_root, dep->name);
 
     // Fetch the latest version
-    return fetch_git_dependency(project_root, dep);
+    if (fetch_git_dependency(project_root, dep) != 0) {
+        return -1;
+    }
+
+    fprintf(stdout, "Updated '%s' successfully\n", dep->name);
+    return 0;
 }
 
 // Updates all dependencies by fetching the latest version for each, unless a tag is present
@@ -102,6 +107,6 @@ int handle_update(const command_t* command_data) {
         }
     }
 
-    fprintf(stdout, "Tip: Run 'craft build' to rebuild the project with the updated dependencies\n");
+    fprintf(stdout, "Run 'craft build' to rebuild the project with the updated dependencies\n");
     return 0;
 }
