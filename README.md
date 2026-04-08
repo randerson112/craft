@@ -6,10 +6,36 @@ C and C++ development has always required wrestling with CMake, configuring buil
 
 ---
 
-## What Makes Craft Different
+## How Craft Works
+1. Define your project in `craft.toml`
+2. Craft generates `CMakeLists.txt`
+3. Dependencies are fetched automatically
+4. CMake builds your project behind the scenes
 
-### One file describes your entire project
-Instead of writing CMake directly, you define your project in `craft.toml`, a clean, human-readable config file inspired by Rust's `Cargo.toml`. Craft reads it and generates a correct `CMakeLists.txt` automatically. You never touch CMake unless you want to.
+---
+
+## Quick Example
+```bash
+# Create a new project
+craft project my_app
+cd my_app
+
+# Add a dependency
+craft add --git https://github.com/SFML/SFML.git
+
+# Build it
+craft build
+
+# Run it
+craft run
+```
+
+---
+
+## What Does Craft Solve
+
+### One file defines your project
+Describe your project in a simple, readable config:
 ```toml
 [project]
 name = "my_app"
@@ -22,47 +48,26 @@ type = "executable"
 include_dirs = ["include"]
 source_dirs = ["src"]
 ```
-Fun Fact: Craft itself is a Craft project. There is a `craft.toml` and an automatically generated `CMakeLists.txt` in the repo. Craft has been building and managing itself from the early days of development.
-
-### Adopt existing projects instantly
-Already have a C/C++ project? Just run `craft init` in your project directory. Craft scans your project structure, detects your language, source directories, include directories, and libraries, then generates `craft.toml` and `CMakeLists.txt` automatically. Your existing source files are never touched.
-```bash
-cd my_existing_project
-craft init
-```
-
-Craft will scan your project and generate a `craft.toml` based on what it finds. Since detection is best-effort, you should open `craft.toml` and verify everything looks correct before building — check the language, build type, source dirs, and include dirs and adjust anything that doesn't look right.
-
-If a `CMakeLists.txt` already exists it will be automatically backed up to `CMakeLists.backup.cmake` before being replaced. You can reference it to migrate any custom CMake into `CMakeLists.extra.cmake`, then delete it when you are done.
-
-To migrate your dependencies to Craft:
-  find_package(SFML ...)     -> craft add --git https://github.com/SFML/SFML --links SFML::Graphics,...
-  add_subdirectory(../MyLib) -> craft add --path ../MyLib
-  FetchContent_Declare(...)  -> craft add --git <url>
-
-For anything else use CMakeLists.extra.cmake as an escape hatch.
-
-Once you are happy with `craft.toml` run `craft build` to build your project.
+Craft turns this into a working `CMakeLists.txt` automatically.
 
 ### Dependency management that just works
-Add libraries to your project with a single command. Craft clones git dependencies automatically and wires everything up in CMake. No manual `find_package` calls, no copy-pasting CMake boilerplate.
+Add dependecies to your project with a single command.
 ```bash
 craft add --path ../PhysicsEngine          # local Craft project
 craft add --git https://github.com/raysan5/raylib --tag 5.5   # git dependency
 craft remove raylib                        # remove it just as easily
 craft update                               # update all dependencies
 ```
+- Git repos are cloned automatically
+- CMake wiring is handled for you
 
-### A template system for your project structures
-Save any project as a reusable template and spin up new projects from it instantly. Craft ships with built-in templates for executables, static libraries, shared libraries, and header-only libraries — for both C and C++.
+### Templates for fast project setup
+Save any project as a reusable template and spin up new projects from it instantly.
 ```bash
 craft template save my_game_template
 craft project new_game --template my_game_template
 ```
-
-### Helpful errors, not cryptic CMake output
-Craft validates your `craft.toml` before touching CMake, catches unknown keys, suggests corrections for typos, and gives you clear actionable error messages, not raw CMake stack traces.
-
+Craft also comes with a few built-in templates for executables and libraries.
 ---
 
 ## Installation
@@ -72,18 +77,10 @@ Craft validates your `craft.toml` before touching CMake, catches unknown keys, s
 curl -fsSL https://raw.githubusercontent.com/randerson112/craft/main/install.sh | sh
 ```
 
-Then restart your terminal to use craft.
-
-**Requirements:** git, cmake
-
-### Windows
-
-Open PowerShell and run:
+### Windows (PowerShell)
 ```powershell
 irm https://raw.githubusercontent.com/randerson112/craft/main/install.ps1 | iex
 ```
-
-Then restart your terminal to use craft.
 
 **Requirements:** git, cmake
 
@@ -95,33 +92,17 @@ craft help
 
 ---
 
-## Updating Craft
-
-To update Craft to the latest version run:
-```bash
-craft upgrade
-```
-
-Craft will check GitHub for the latest version, and if a newer version is available it will update automatically:
-
----
-
 ## Quick Start
 ```bash
-# Create a new project
 craft project my_app
-
-# Build it
 cd my_app
 craft build
-
-# Run it
 craft run
 ```
 
 ---
 
-## Commands
+## Commands and Documentation
 
 ### `craft project <path>`
 Creates a new project directory at the given path with a full project structure including `craft.toml`, `src/`, `include/`, and a starter main file.
@@ -146,17 +127,14 @@ craft init --lang c
 craft init --template static-library
 ```
 
-If you are adopting an existing project, Craft will back up your `CMakeLists.txt` and show you how to migrate your dependencies:
-```
-Your existing CMakeLists.txt was backed up to CMakeLists.txt.bak
+If you are adopting an existing project, Craft will back up your `CMakeLists.txt` to `CMakeLists.backup.cmake`.
 
 To migrate your dependencies to Craft:
-  find_package(SFML ...)     -> craft add --git https://github.com/SFML/SFML --links SFML::Graphics,...
-  add_subdirectory(../MyLib) -> craft add --path ../MyLib
-  FetchContent_Declare(...)  -> craft add --git <url>
+find_package(SFML ...)     -> craft add --git https://github.com/SFML/SFML --links SFML::Graphics,...
+add_subdirectory(../MyLib) -> craft add --path ../MyLib
+FetchContent_Declare(...)  -> craft add --git <url>
 
 For anything else use CMakeLists.extra.cmake as an escape hatch.
-```
 
 ### `craft build`
 Reads `craft.toml`, regenerates `CMakeLists.txt` if needed, fetches any missing git dependencies, and builds the project using CMake. Can be run from any subdirectory — Craft walks up the directory tree to find the project root.
@@ -331,29 +309,6 @@ These are used when creating new projects. Project-level settings in `craft.toml
 ---
 
 ## Directory Structure
-
-Craft uses `~/.craft/` to store its configuration and templates:
-```
-~/.craft/
-├── bin/craft
-├── config.toml
-└── templates/
-    ├── builtin/
-    │   ├── c/
-    │   │   ├── executable/
-    │   │   ├── static-library/
-    │   │   ├── shared-library/
-    │   │   └── header-only/
-    │   └── cpp/
-    │       ├── executable/
-    │       ├── static-library/
-    │       ├── shared-library/
-    │       └── header-only/
-    └── custom/
-        ├── c/
-        └── cpp/
-```
-
 A typical Craft project looks like:
 ```
 my_app/
@@ -367,21 +322,6 @@ my_app/
 └── .craft/
     └── deps/                # cloned git dependencies
 ```
-
----
-
-## Roadmap
-
-- [x] v0.1.0 — Core commands: `project`, `init`, `build`, `run`, `compile`, `gen`, `clean`
-- [x] v0.2.0 — `craft clean` with file count and byte reporting
-- [x] v0.3.0 — Template system with builtin and custom templates
-- [x] v0.4.0 — `craft.toml` parsing, global config, `craft config` command
-- [x] v0.5.0 — CMake generation from `craft.toml`, improved error messages, improved older commands
-- [x] v0.6.0 — Dependency management: `craft add`, `craft remove`, `craft update`
-- [x] v0.7.0 — Existing project adoption via `craft init`, Windows support
-- [x] v0.8.0 — Install scripts
-- [x] v0.9.0 — Final polishing before initial release
-- [ ] v1.0.0 — Public release
 
 ---
 
