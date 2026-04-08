@@ -170,9 +170,14 @@ craft clean
 ### `craft add`
 Adds a dependency to the project. Git dependencies are cloned to `.craft/deps/` automatically. Regenerates `CMakeLists.txt` immediately so the project is always in a consistent state.
 ```bash
-craft add --path ../my_lib
-craft add --git https://github.com/raysan5/raylib --tag 5.5
-craft add --git https://github.com/nlohmann/json --tag v3.11.2
+# Local Craft dependency
+craft add --path ../my_lib 
+
+# Git dependency in registry
+craft add raylib
+
+# Git dependencies not in registry
+craft add --git https://github.com/nlohmann/json --links nlohmann_json::nlohmann_json
 craft add --git https://github.com/SFML/SFML --tag 3.0.0 --links SFML::Graphics,SFML::Window,SFML::System
 ```
 

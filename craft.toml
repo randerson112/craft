@@ -1,6 +1,6 @@
 [project]
 name = "craft"
-version = "0.9.0"
+version = "1.0.0"
 language = "c"
 c_standard = 99
 
