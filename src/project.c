@@ -12,9 +12,8 @@
 #include "platform.h"
 
 int create_project_from_template(const char* path, const char* template, const char* lang, int use_git) {
-    char template_dir[PATH_SIZE];
-
     // Check for template in custom templates
+    char template_dir[PATH_SIZE];
     get_template_directory(template_dir, sizeof(template_dir), "custom", lang, template);
     if (!dir_exists(template_dir)) {
         // Check for template in builtin templates
@@ -26,8 +25,16 @@ int create_project_from_template(const char* path, const char* template, const c
         }
     }
 
+    // Get project name and write initial feedback messages
+    char project_name[32];
+    get_dir_name(project_name, sizeof(project_name), path);
+    fprintf(stdout, "Creating project '%s'...\n", project_name);
+    fprintf(stdout, "language: %s\n", lang);
+    fprintf(stdout, "template: %s\n\n", template);
+
     // Copy template over to project directory
     copy_dir_contents(template_dir, path, NULL, 0);
+    fprintf(stdout, "Loaded template '%s'\n", template);
 
     // Load the project config from the craft.toml and set the project name and version
     project_config_t project_config;
@@ -35,8 +42,6 @@ int create_project_from_template(const char* path, const char* template, const c
         return -1;
     }
 
-    char project_name[32];
-    get_dir_name(project_name, sizeof(project_name), path);
     snprintf(project_config.name, sizeof(project_config.name), "%s", project_name);
     snprintf(project_config.version, sizeof(project_config.version), "0.1.0");
 
@@ -50,11 +55,6 @@ int create_project_from_template(const char* path, const char* template, const c
         return -1;
     }
 
-    // Generate starting CMakeLists.txt based on configs
-    if (generate_cmake(path, &project_config) != 0) {
-        return -1;
-    }
-
     // Generate .craft directory with deps directory
     char craft_directory[PATH_SIZE];
     char craft_deps_directory[PATH_SIZE];
@@ -63,6 +63,28 @@ int create_project_from_template(const char* path, const char* template, const c
 
     mkdir(craft_directory, 0755);
     mkdir(craft_deps_directory, 0755);
+
+    // Fetch git dependencies into .craft/deps
+    int dep_count = project_config.dependencies_count;
+
+    if (dep_count > 0) {
+        fprintf(stdout, "Fetching dependencies...\n");
+
+        for (int i = 0; i < project_config.dependencies_count; i++) {
+            dependency_t* dep = &project_config.dependencies[i];
+
+            if (dep->type == DEP_GIT) {
+                if (fetch_git_dependency(path, dep) != 0) {
+                    return -1;
+                }
+            }
+        }
+    }
+
+    // Generate starting CMakeLists.txt based on configs
+    if (generate_cmake(path, &project_config) != 0) {
+        return -1;
+    }
 
     // Init git unless specified not to
     if (use_git) return init_git(path);

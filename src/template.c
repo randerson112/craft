@@ -9,7 +9,7 @@
 #include "platform.h"
 
 // Files and directories to exclude when saving a template
-static const char* excludes[] = {".git", "gitignore", ".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
+static const char* excludes[] = {".git", ".gitignore", ".craft", "build", "CMakeLists.txt", "CMakeLists.extra.cmake"};
 static size_t excludes_count = 6;
 
 // Checks if a builtin template exists for a certain language
