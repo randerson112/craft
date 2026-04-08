@@ -21,7 +21,7 @@ craft project my_app
 cd my_app
 
 # Add a dependency
-craft add --git https://github.com/SFML/SFML.git
+craft add --git https://github.com/raysan5/raylib.git --links raylib
 
 # Build it
 craft build
@@ -32,7 +32,7 @@ craft run
 
 ---
 
-## What Does Craft Solve
+## What Craft Solves
 
 ### One file defines your project
 Describe your project in a simple, readable config:
@@ -68,6 +68,7 @@ craft template save my_game_template
 craft project new_game --template my_game_template
 ```
 Craft also comes with a few built-in templates for executables and libraries.
+
 ---
 
 ## Installation
@@ -118,7 +119,7 @@ Initializes a Craft project in the current or specified directory. Behavior depe
 
 **Empty directory** — generates `craft.toml`, `CMakeLists.txt`, `src/`, `include/`, and a starter main file using the specified or default template.
 
-**Existing project** — scans the directory to detect language, source dirs, include dirs, and libraries. Generates `craft.toml` and `CMakeLists.txt` from what was found. Existing source files are never modified. If a `CMakeLists.txt` already exists it will be backed up to `CMakeLists.txt.bak` before being replaced.
+**Existing project** — scans the directory to detect language, source dirs, include dirs, and libraries. Generates `craft.toml` and `CMakeLists.txt` from what was found. Existing source files are never modified. If a `CMakeLists.txt` already exists it will be backed up to `CMakeLists.backup.cmake` before being replaced.
 ```bash
 craft init
 craft init my_app
@@ -130,9 +131,11 @@ craft init --template static-library
 If you are adopting an existing project, Craft will back up your `CMakeLists.txt` to `CMakeLists.backup.cmake`.
 
 To migrate your dependencies to Craft:
+```
 find_package(SFML ...)     -> craft add --git https://github.com/SFML/SFML --links SFML::Graphics,...
 add_subdirectory(../MyLib) -> craft add --path ../MyLib
 FetchContent_Declare(...)  -> craft add --git <url>
+```
 
 For anything else use CMakeLists.extra.cmake as an escape hatch.
 
@@ -218,15 +221,27 @@ craft help config set
 craft help craft.toml
 ```
 
+### `craft upgrade`
+Updates Craft itself to the latest version. Craft will check if the version on GitHub is newer than your local version and update it if so.
+```bash
+craft upgrade
+```
+
 ---
 
-## Options
+## Built-in Templates
 
-| Option | Shorthand | Description |
-|--------|-----------|-------------|
-| `--template <name>` | `-t` | Template to use when creating a project |
-| `--lang <language>` | `-l` | Language to use: `c` or `cpp` |
-| `--no-git`          |      | Disable git initialization |
+Craft ships with built-in templates for both C and C++:
+
+| Template | Description |
+|----------|-------------|
+| `executable` | Standard executable project (default) |
+| `static-library` | Static library project |
+| `shared-library` | Shared library project |
+| `header-only` | Header-only library |
+```bash
+craft project my_lib --template static-library --lang c
+```
 
 ---
 
@@ -274,22 +289,6 @@ SFML = { git = "https://github.com/SFML/SFML", tag = "3.0.0", links = ["SFML::Gr
 | `links` | CMake link targets, required for non-Craft CMake projects |
 
 > **Note:** `CMakeLists.txt` is generated automatically by Craft and should not be edited directly. Add a `CMakeLists.extra.cmake` file to your project root for any custom CMake — it will be included at the end of the generated file.
-
----
-
-## Built-in Templates
-
-Craft ships with built-in templates for both C and C++:
-
-| Template | Description |
-|----------|-------------|
-| `executable` | Standard executable project (default) |
-| `static-library` | Static library project |
-| `shared-library` | Shared library project |
-| `header-only` | Header-only library |
-```bash
-craft project my_lib --template static-library --lang c
-```
 
 ---
 
