@@ -20,5 +20,5 @@ add_executable(craft ${SOURCES})
 
 target_include_directories(craft PRIVATE . include)
 
-set(VERSION 1.0.0)
+set(VERSION 1.0.1)
 target_compile_definitions(craft PRIVATE VERSION="${VERSION}")
