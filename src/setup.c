@@ -174,7 +174,7 @@ static int create_c_static_library_template(const char* path) {
 
     fprintf(toml_file, "[project]\n");
     fprintf(toml_file, "language = \"c\"\n");
-    fprintf(toml_file, "cpp_standard = 99\n\n");
+    fprintf(toml_file, "c_standard = 99\n\n");
     fprintf(toml_file, "[build]\n");
     fprintf(toml_file, "type = \"static-library\"\n");
     fprintf(toml_file, "include_dirs = [\"include\"]\n");
@@ -327,7 +327,7 @@ static int create_c_shared_library_template(const char* path) {
 
     fprintf(toml_file, "[project]\n");
     fprintf(toml_file, "language = \"c\"\n");
-    fprintf(toml_file, "cpp_standard = 99\n\n");
+    fprintf(toml_file, "c_standard = 99\n\n");
     fprintf(toml_file, "[build]\n");
     fprintf(toml_file, "type = \"shared-library\"\n");
     fprintf(toml_file, "include_dirs = [\"include\"]\n");
@@ -480,7 +480,7 @@ static int create_c_header_only_template(const char* path) {
 
     fprintf(toml_file, "[project]\n");
     fprintf(toml_file, "language = \"c\"\n");
-    fprintf(toml_file, "cpp_standard = 99\n\n");
+    fprintf(toml_file, "c_standard = 99\n\n");
     fprintf(toml_file, "[build]\n");
     fprintf(toml_file, "type = \"header-only\"\n");
     fprintf(toml_file, "include_dirs = [\"include\"]\n");
