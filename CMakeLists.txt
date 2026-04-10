@@ -3,7 +3,7 @@
 # For additional custom CMake use CMakeLists.extra.cmake instead.
 
 cmake_minimum_required(VERSION 3.14)
-project(craft)
+project("craft")
 
 set(CMAKE_C_STANDARD 99)
 
@@ -20,5 +20,5 @@ add_executable(craft ${SOURCES})
 
 target_include_directories(craft PRIVATE . include)
 
-set(VERSION 1.0.1)
+set(VERSION 1.0.2)
 target_compile_definitions(craft PRIVATE VERSION="${VERSION}")
