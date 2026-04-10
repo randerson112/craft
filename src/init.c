@@ -405,7 +405,7 @@ static int init_existing_project(const char* path, const char* language_option, 
     fprintf(stdout, "Initialized Craft project at '%s'\n\n", path);
 
     fprintf(stdout, "language: %s\n", config.language);
-    fprintf(stdout, "type: executable\n");
+    fprintf(stdout, "type: %s\n", config.build_type);
 
     fprintf(stdout, "source dirs:");
     for (int i = 0; i < config.source_dir_count; i++) {

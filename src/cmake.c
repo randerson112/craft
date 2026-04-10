@@ -30,7 +30,7 @@ static void write_header(FILE* file, project_config_t* config) {
     fprintf(file, "# For additional custom CMake use CMakeLists.extra.cmake instead.\n\n");
 
     fprintf(file, "cmake_minimum_required(VERSION 3.14)\n");
-    fprintf(file, "project(%s)\n\n", config->name);
+    fprintf(file, "project(\"%s\")\n\n", config->name);
 
     if (config->has_c_standard) {
         fprintf(file, "set(CMAKE_C_STANDARD %d)\n", config->c_standard);
