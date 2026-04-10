@@ -101,10 +101,11 @@ int remove_dir(const char* path) {
 // Removes a directory and keeps track of counts
 int remove_dir_count(const char* path, unsigned int* count, unsigned int* bytes) {
     struct stat statbuff;
-    stat(path, &statbuff);
-    *bytes += statbuff.st_size;
+    if (stat(path, &statbuff) == 0) {
+        *bytes += statbuff.st_size;
+    }
     (*count)++;
-    
+
     return remove_dir_recursive(path, count, bytes);
 }
 
@@ -132,9 +133,15 @@ int copy_file(const char* source, const char* dest) {
 
     // Open files
     FILE* in = fopen(source, "rb");
-    FILE* out = fopen(dest, "wb");
-    if (!in || !out) {
+    if (!in) {
         fprintf(stderr, "Error: Failed to copy file.\n");
+        return -1;
+    }
+
+    FILE* out = fopen(dest, "wb");
+    if (!out) {
+        fprintf(stderr, "Error: Failed to copy file.\n");
+        fclose(in);
         return -1;
     }
 
@@ -189,7 +196,10 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir, const char**
         // If entry is directory, copy contents recursively
         if (entry.is_dir) {
             mkdir(dest_path, 0755);
-            copy_dir_contents(source_path, dest_path, excludes, exclude_count);
+            if (copy_dir_contents(source_path, dest_path, excludes, exclude_count) != 0) {
+                close_dir(dir);
+                return -1;
+            }
         }
         // Entry is a file, copy contents to destination
         else {
@@ -285,6 +295,11 @@ int get_template_directory(char* buffer, size_t buffer_size, const char* type, c
 static int levenshtein_distance(const char* s1, const char* s2) {
     int len1 = (int)strlen(s1);
     int len2 = (int)strlen(s2);
+
+    // Clamp lengths to prevent buffer overflow (matrix is 64x64)
+    if (len1 > 62) len1 = 62;
+    if (len2 > 62) len2 = 62;
+
     int matrix[64][64];
 
     for (int i = 0; i <= len1; i++) matrix[i][0] = i;
