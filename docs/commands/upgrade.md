@@ -1,4 +1,4 @@
-# craft self-update
+# craft upgrade
 
 Updates Craft to the latest version.
 
