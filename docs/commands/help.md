@@ -40,7 +40,7 @@ craft help craft.toml
 All commands:
 - `project`, `init`, `build`, `run`, `gen`, `clean`
 - `add`, `remove`, `update`
-- `template`, `config`, `self-update`
+- `template`, `config`, `upgrade`
 - `help`
 
 Special topics:
