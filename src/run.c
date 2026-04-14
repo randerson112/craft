@@ -6,6 +6,7 @@
 
 #include "utils.h"
 #include "config.h"
+#include "build.h"
 #include "platform.h"
 
 // Runs an executable relative from the current directory
@@ -57,6 +58,11 @@ int run_executable_build(const char* cwd) {
     // Make sure project is an executable
     if (strcmp(config.build_type, "executable") != 0) {
         fprintf(stderr, "Error: '%s' is not an executable project\n", config.name);
+        return -1;
+    }
+
+    // Build project before run
+    if (build_project(project_root) != 0) {
         return -1;
     }
 

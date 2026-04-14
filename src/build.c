@@ -11,8 +11,7 @@
 #include "deps.h"
 #include "platform.h"
 
-// Builds a project by creating a build directory and running cmake
-static int build_project(const char* project_root) {
+int build_project(const char* project_root) {
 
     // Regenerate CMakeLists.txt from craft.toml if needed
     project_config_t config;
