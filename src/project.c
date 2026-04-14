@@ -8,6 +8,7 @@
 
 #include "utils.h"
 #include "config.h"
+#include "craft_toml.h"
 #include "cmake.h"
 #include "platform.h"
 
@@ -42,8 +43,8 @@ int create_project_from_template(const char* path, const char* template, const c
         return -1;
     }
 
-    snprintf(project_config.name, sizeof(project_config.name), "%s", project_name);
-    snprintf(project_config.version, sizeof(project_config.version), "0.1.0");
+    snprintf(project_config.project.name, sizeof(project_config.project.name), "%s", project_name);
+    snprintf(project_config.project.version, sizeof(project_config.project.version), "0.1.0");
 
     // Make sure project configs from the template are valid
     if (validate_project_config(&project_config) != 0) {
@@ -65,13 +66,13 @@ int create_project_from_template(const char* path, const char* template, const c
     mkdir(craft_deps_directory, 0755);
 
     // Fetch git dependencies into .craft/deps
-    int dep_count = project_config.dependencies_count;
+    int dep_count = project_config.dependencies.dependencies_count;
 
     if (dep_count > 0) {
         fprintf(stdout, "Fetching dependencies...\n");
 
-        for (int i = 0; i < project_config.dependencies_count; i++) {
-            dependency_t* dep = &project_config.dependencies[i];
+        for (int i = 0; i < project_config.dependencies.dependencies_count; i++) {
+            dependency_t* dep = &project_config.dependencies.dependencies[i];
 
             if (dep->type == DEP_GIT) {
                 if (fetch_git_dependency(path, dep) != 0) {

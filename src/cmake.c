@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "config.h"
+#include "craft_toml.h"
 #include "utils.h"
 #include "platform.h"
 
@@ -30,26 +30,26 @@ static void write_header(FILE* file, project_config_t* config) {
     fprintf(file, "# For additional custom CMake use CMakeLists.extra.cmake instead.\n\n");
 
     fprintf(file, "cmake_minimum_required(VERSION 3.14)\n");
-    fprintf(file, "project(\"%s\")\n\n", config->name);
+    fprintf(file, "project(\"%s\")\n\n", config->project.name);
 
-    if (config->has_c_standard) {
-        fprintf(file, "set(CMAKE_C_STANDARD %d)\n", config->c_standard);
+    if (config->project.has_c_standard) {
+        fprintf(file, "set(CMAKE_C_STANDARD %d)\n", config->project.c_standard);
     }
-    if (config->has_cpp_standard) {
-        fprintf(file, "set(CMAKE_CXX_STANDARD %d)\n", config->cpp_standard);
+    if (config->project.has_cpp_standard) {
+        fprintf(file, "set(CMAKE_CXX_STANDARD %d)\n", config->project.cpp_standard);
     }
     fprintf(file, "\n");
 }
 
 // Writes the GLOB_RECURSE sources
 static void write_sources(FILE* file, project_config_t* config) {
-    const char* extension = strcmp(config->language, "c") == 0 ? "*.c" : "*.cpp";
+    const char* extension = strcmp(config->project.language, "c") == 0 ? "*.c" : "*.cpp";
 
     fprintf(file, "file(GLOB_RECURSE SOURCES");
 
-    if (config->source_dir_count > 0) {
-        for (int i = 0; i < config->source_dir_count; i++) {
-            fprintf(file, " \"%s/%s\"", config->source_dirs[i], extension);
+    if (config->build.source_dir_count > 0) {
+        for (int i = 0; i < config->build.source_dir_count; i++) {
+            fprintf(file, " \"%s/%s\"", config->build.source_dirs[i], extension);
         }
     }
     else {
@@ -65,29 +65,29 @@ static void write_sources(FILE* file, project_config_t* config) {
 
 // Writes the add_executable or add_library target
 static void write_target(FILE* file, project_config_t* config) {
-    if (strcmp(config->build_type, "executable") == 0) {
-        fprintf(file, "add_executable(%s ${SOURCES})\n\n", config->name);
+    if (strcmp(config->build.type, "executable") == 0) {
+        fprintf(file, "add_executable(%s ${SOURCES})\n\n", config->project.name);
     }
-    else if (strcmp(config->build_type, "static-library") == 0) {
-        fprintf(file, "add_library(%s STATIC ${SOURCES})\n\n", config->name);
+    else if (strcmp(config->build.type, "static-library") == 0) {
+        fprintf(file, "add_library(%s STATIC ${SOURCES})\n\n", config->project.name);
     }
-    else if (strcmp(config->build_type, "shared-library") == 0) {
-        fprintf(file, "add_library(%s SHARED ${SOURCES})\n\n", config->name);
+    else if (strcmp(config->build.type, "shared-library") == 0) {
+        fprintf(file, "add_library(%s SHARED ${SOURCES})\n\n", config->project.name);
     }
-    else if (strcmp(config->build_type, "header-only") == 0) {
-        fprintf(file, "add_library(%s INTERFACE)\n\n", config->name);
+    else if (strcmp(config->build.type, "header-only") == 0) {
+        fprintf(file, "add_library(%s INTERFACE)\n\n", config->project.name);
     }
 }
 
 // Writes target_include_directories for the project itself
 static void write_includes(FILE* file, project_config_t* config) {
-    const char* visibility = strcmp(config->build_type, "header-only") == 0 ? "INTERFACE" : "PRIVATE";
+    const char* visibility = strcmp(config->build.type, "header-only") == 0 ? "INTERFACE" : "PRIVATE";
 
-    fprintf(file, "target_include_directories(%s %s .", config->name, visibility);
+    fprintf(file, "target_include_directories(%s %s .", config->project.name, visibility);
 
-    if (config->include_dir_count > 0) {
-        for (int i = 0; i < config->include_dir_count; i++) {
-            fprintf(file, " %s", config->include_dirs[i]);
+    if (config->build.include_dir_count > 0) {
+        for (int i = 0; i < config->build.include_dir_count; i++) {
+            fprintf(file, " %s", config->build.include_dirs[i]);
         }
     }
     else {
@@ -99,18 +99,18 @@ static void write_includes(FILE* file, project_config_t* config) {
 
 // Writes target_link_directories and target_link_libraries for manual libs
 static void write_libs(FILE* file, project_config_t* config) {
-    if (config->lib_dir_count > 0) {
-        fprintf(file, "target_link_directories(%s PRIVATE .", config->name);
-        for (int i = 0; i < config->lib_dir_count; i++) {
-            fprintf(file, " ${CMAKE_SOURCE_DIR}/%s", config->lib_dirs[i]);
+    if (config->build.lib_dir_count > 0) {
+        fprintf(file, "target_link_directories(%s PRIVATE .", config->project.name);
+        for (int i = 0; i < config->build.lib_dir_count; i++) {
+            fprintf(file, " ${CMAKE_SOURCE_DIR}/%s", config->build.lib_dirs[i]);
         }
         fprintf(file, ")\n\n");
     }
 
-    if (config->lib_count > 0) {
-        fprintf(file, "target_link_libraries(%s PRIVATE", config->name);
-        for (int i = 0; i < config->lib_count; i++) {
-            fprintf(file, " %s", config->libs[i]);
+    if (config->build.lib_count > 0) {
+        fprintf(file, "target_link_libraries(%s PRIVATE", config->project.name);
+        for (int i = 0; i < config->build.lib_count; i++) {
+            fprintf(file, " %s", config->build.libs[i]);
         }
         fprintf(file, ")\n\n");
     }
@@ -118,8 +118,8 @@ static void write_libs(FILE* file, project_config_t* config) {
 
 // Writes cmake to embed VERSION macro into binary
 static int write_version_compile_definition(FILE* file, project_config_t* config) {
-    fprintf(file, "set(VERSION %s)\n", config->version);
-    fprintf(file, "target_compile_definitions(%s PRIVATE VERSION=\"${VERSION}\")\n", config->name);
+    fprintf(file, "set(VERSION %s)\n", config->project.version);
+    fprintf(file, "target_compile_definitions(%s PRIVATE VERSION=\"${VERSION}\")\n", config->project.name);
     return 0;
 }
 
@@ -136,17 +136,17 @@ static int write_path_dependency(FILE* file, const char* project_path, project_c
 
     fprintf(file, "# %s\n", dep->name);
     fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->value, dep->name);
-    fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->name, dep->name);
+    fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->project.name, dep->name);
 
-    if (dep_config.include_dir_count > 0) {
-        fprintf(file, "target_include_directories(%s PRIVATE", config->name);
-        for (int j = 0; j < dep_config.include_dir_count; j++) {
-            fprintf(file, " %s/%s", dep->value, dep_config.include_dirs[j]);
+    if (dep_config.build.include_dir_count > 0) {
+        fprintf(file, "target_include_directories(%s PRIVATE", config->project.name);
+        for (int j = 0; j < dep_config.build.include_dir_count; j++) {
+            fprintf(file, " %s/%s", dep->value, dep_config.build.include_dirs[j]);
         }
         fprintf(file, ")\n");
     }
     else {
-        fprintf(file, "target_include_directories(%s PRIVATE %s/include)\n", config->name, dep->value);
+        fprintf(file, "target_include_directories(%s PRIVATE %s/include)\n", config->project.name, dep->value);
     }
 
     fprintf(file, "\n");
@@ -175,17 +175,17 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
         }
 
         fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
-        fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->name, dep->name);
+        fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->project.name, dep->name);
 
-        if (dep_config.include_dir_count > 0) {
-            fprintf(file, "target_include_directories(%s PRIVATE", config->name);
-            for (int j = 0; j < dep_config.include_dir_count; j++) {
-                fprintf(file, " .craft/deps/%s/%s", dep->name, dep_config.include_dirs[j]);
+        if (dep_config.build.include_dir_count > 0) {
+            fprintf(file, "target_include_directories(%s PRIVATE", config->project.name);
+            for (int j = 0; j < dep_config.build.include_dir_count; j++) {
+                fprintf(file, " .craft/deps/%s/%s", dep->name, dep_config.build.include_dirs[j]);
             }
             fprintf(file, ")\n");
         }
         else {
-            fprintf(file, "target_include_directories(%s PRIVATE .craft/deps/%s/include)\n", config->name, dep->name);
+            fprintf(file, "target_include_directories(%s PRIVATE .craft/deps/%s/include)\n", config->project.name, dep->name);
         }
     }
 
@@ -195,7 +195,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
         fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
 
         if (dep->links_count > 0) {
-            fprintf(file, "target_link_libraries(%s PRIVATE", config->name);
+            fprintf(file, "target_link_libraries(%s PRIVATE", config->project.name);
             for (int j = 0; j < dep->links_count; j++) {
                 fprintf(file, " %s", dep->links[j]);
             }
@@ -206,7 +206,7 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
             fprintf(stderr, "         Add --links when running craft add, or configure manually in craft.toml\n\n");
         }
 
-        fprintf(file, "target_include_directories(%s PRIVATE .craft/deps/%s/include)\n", config->name, dep->name);
+        fprintf(file, "target_include_directories(%s PRIVATE .craft/deps/%s/include)\n", config->project.name, dep->name);
     }
 
     // No CMakeLists.txt - warn the user
@@ -223,10 +223,10 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
 static int write_dependencies(FILE* file, const char* project_path, project_config_t* config) {
 
     // Only write if there are dependencies present
-    if (config->dependencies_count > 0) {
+    if (config->dependencies.dependencies_count > 0) {
         fprintf(file, "\n# Dependencies\n\n");
-        for (int i = 0; i < config->dependencies_count; i++) {
-            dependency_t* dep = &config->dependencies[i];
+        for (int i = 0; i < config->dependencies.dependencies_count; i++) {
+            dependency_t* dep = &config->dependencies.dependencies[i];
 
             // Local path dependency to another craft project
             if (dep->type == DEP_PATH) {

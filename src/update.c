@@ -6,7 +6,7 @@
 
 #include "deps.h"
 #include "utils.h"
-#include "config.h"
+#include "craft_toml.h"
 #include "platform.h"
 
 // Updates a single dependency by fetching the latest version, unless a tag is present
@@ -42,8 +42,8 @@ static int update_dependency(const char* project_root, const dependency_t* dep) 
 static int update_all_dependencies(const char* project_root, const project_config_t* config) {
     
     // Call update_dependency on all dependencies
-    for (int i = 0; i < config->dependencies_count; i++) {
-        const dependency_t* dep = &config->dependencies[i];
+    for (int i = 0; i < config->dependencies.dependencies_count; i++) {
+        const dependency_t* dep = &config->dependencies.dependencies[i];
 
         if (update_dependency(project_root, dep) != 0) {
             return -1;
@@ -82,12 +82,12 @@ int handle_update(const command_t* command_data) {
         const char* dep_name = command_data->args[0];
 
         // Check if dependency exists
-        const dependency_t* dep = get_dependency(config.dependencies, config.dependencies_count, dep_name);
+        const dependency_t* dep = get_dependency(config.dependencies.dependencies, config.dependencies.dependencies_count, dep_name);
         if (!dep) {
             fprintf(stderr, "Error: Could not find dependency '%s' in craft.toml\n", dep_name);
 
             // Print suggestion if close enough
-            const char* suggestion = get_dependency_suggestion(config.dependencies, config.dependencies_count, dep_name);
+            const char* suggestion = get_dependency_suggestion(config.dependencies.dependencies, config.dependencies.dependencies_count, dep_name);
             if (suggestion) {
                 fprintf(stderr, "\nDid you mean '%s'?\n", suggestion);
             }

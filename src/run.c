@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "utils.h"
-#include "config.h"
+#include "craft_toml.h"
 #include "build.h"
 #include "platform.h"
 
@@ -56,8 +56,8 @@ int run_executable_build(const char* cwd) {
     }
 
     // Make sure project is an executable
-    if (strcmp(config.build_type, "executable") != 0) {
-        fprintf(stderr, "Error: '%s' is not an executable project\n", config.name);
+    if (strcmp(config.build.type, "executable") != 0) {
+        fprintf(stderr, "Error: '%s' is not an executable project\n", config.project.name);
         return -1;
     }
 
@@ -80,12 +80,12 @@ int run_executable_build(const char* cwd) {
     #ifdef _WIN32
     snprintf(executable_name, sizeof(executable_name), "%s.exe", config.name);
     #else
-    snprintf(executable_name, sizeof(executable_name), "%s", config.name);
+    snprintf(executable_name, sizeof(executable_name), "%s", config.project.name);
     #endif
 
     char executable_path[PATH_SIZE];
     if (!search_dir_for_file(executable_path, PATH_SIZE, build_dir, executable_name)) {
-        fprintf(stderr, "Error: Executable '%s' not found in build directory\n\n", config.name);
+        fprintf(stderr, "Error: Executable '%s' not found in build directory\n\n", config.project.name);
         fprintf(stderr, "Try running 'craft build' to re-build the project first\n");
         return -1;
     }

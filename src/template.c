@@ -6,6 +6,7 @@
 
 #include "utils.h"
 #include "config.h"
+#include "craft_toml.h"
 #include "platform.h"
 
 // Files and directories to exclude when saving a template
@@ -53,7 +54,7 @@ static int handle_save(const command_t* command_data) {
     }
 
     const char* name = command_data->args[0];
-    const char* language = config.language;
+    const char* language = config.project.language;
 
     // Check if there is a builtin template with same name
     if (builtin_template_exists(name, language)) {
@@ -78,8 +79,8 @@ static int handle_save(const command_t* command_data) {
     }
 
     // Rewrite the craft.toml in the template without name and version
-    config.name[0] = '\0';
-    config.version[0] = '\0';
+    config.project.name[0] = '\0';
+    config.project.version[0] = '\0';
     generate_craft_toml(template_dir, &config);
 
     // Print success message
@@ -116,7 +117,7 @@ static int handle_update(const command_t* command_data) {
     }
 
     const char* name = command_data->args[0];
-    const char* language = config.language;
+    const char* language = config.project.language;
 
     // Get the path to where the template is saved
     char template_dir[PATH_SIZE];
@@ -134,8 +135,8 @@ static int handle_update(const command_t* command_data) {
     }
 
     // Rewrite the craft.toml in the template without name and version
-    config.name[0] = '\0';
-    config.version[0] = '\0';
+    config.project.name[0] = '\0';
+    config.project.version[0] = '\0';
     generate_craft_toml(template_dir, &config);
 
     // Print success message

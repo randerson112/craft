@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 
 #include "utils.h"
-#include "config.h"
+#include "craft_toml.h"
 #include "cmake.h"
 #include "deps.h"
 #include "platform.h"
@@ -29,8 +29,8 @@ int build_project(const char* project_root) {
     }
 
     // Fetch git dependencies into .craft/deps
-    for (int i = 0; i < config.dependencies_count; i++) {
-        dependency_t* dep = &config.dependencies[i];
+    for (int i = 0; i < config.dependencies.dependencies_count; i++) {
+        dependency_t* dep = &config.dependencies.dependencies[i];
 
         if (dep->type == DEP_GIT) {
             if (fetch_git_dependency(project_root, dep) != 0) {

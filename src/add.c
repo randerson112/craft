@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "utils.h"
-#include "config.h"
+#include "craft_toml.h"
 #include "cmake.h"
 #include "deps.h"
 #include "registry.h"
@@ -48,7 +48,7 @@ static int get_dependency_name(char* buffer, size_t buffer_size, const char* pro
         }
 
         // Copy project name to buffer
-        snprintf(buffer, buffer_size, "%s", dep_config.name);
+        snprintf(buffer, buffer_size, "%s", dep_config.project.name);
     }
     else if (type == DEP_GIT) {
 
@@ -98,8 +98,8 @@ static int validate_path_dependency(const char* project_root, const char* path) 
     }
 
     // Make sure it's a library not an executable
-    if (strcmp(dep_config.build_type, "executable") == 0) {
-        fprintf(stderr, "Error: '%s' is an executable project and cannot be linked as a dependency\n", dep_config.name);
+    if (strcmp(dep_config.build.type, "executable") == 0) {
+        fprintf(stderr, "Error: '%s' is an executable project and cannot be linked as a dependency\n", dep_config.project.name);
         return -1;
     }
 
@@ -108,8 +108,8 @@ static int validate_path_dependency(const char* project_root, const char* path) 
 
 // Checks if a dependency with the given name already exists
 static int dependency_already_exists(project_config_t* config, const char* name) {
-    for (int i = 0; i < config->dependencies_count; i++) {
-        if (strcmp(config->dependencies[i].name, name) == 0)
+    for (int i = 0; i < config->dependencies.dependencies_count; i++) {
+        if (strcmp(config->dependencies.dependencies[i].name, name) == 0)
             return 1;
     }
     return 0;
@@ -197,7 +197,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
     }
 
     // Add dependency and regenerate files
-    config.dependencies[config.dependencies_count++] = dep;
+    config.dependencies.dependencies[config.dependencies.dependencies_count++] = dep;
 
     if (generate_craft_toml(project_root, &config) != 0) return -1;
     if (fetch_git_dependency(project_root, &dep) != 0) return -1;
@@ -307,7 +307,7 @@ int handle_add(const command_t* command_data) {
         return -1;
     }
 
-    config.dependencies[config.dependencies_count++] = dep;
+    config.dependencies.dependencies[config.dependencies.dependencies_count++] = dep;
 
     // Fetch git dependency into .craft/deps
     if (type == DEP_GIT) {

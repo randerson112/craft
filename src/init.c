@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "project.h"
 #include "config.h"
+#include "craft_toml.h"
 #include "cmake.h"
 #include "platform.h"
 
@@ -158,9 +159,9 @@ static void detect_source_dirs(const char* path, project_config_t* config) {
 
         // If directory contains sources, add to config source directories
         if (has_sources) {
-            int count = config->source_dir_count;
-            snprintf(config->source_dirs[count], sizeof(config->source_dirs[count]), "%s", entry.name);
-            config->source_dir_count++;
+            int count = config->build.source_dir_count;
+            snprintf(config->build.source_dirs[count], sizeof(config->build.source_dirs[count]), "%s", entry.name);
+            config->build.source_dir_count++;
         }
     }
 
@@ -219,9 +220,9 @@ static void detect_include_dirs(const char* path, project_config_t* config) {
 
         // If directory contains headers, add to config include directories
         if (has_headers) {
-            int count = config->include_dir_count;
-            snprintf(config->include_dirs[count], sizeof(config->include_dirs[count]), "%s", entry.name);
-            config->include_dir_count++;
+            int count = config->build.include_dir_count;
+            snprintf(config->build.include_dirs[count], sizeof(config->build.include_dirs[count]), "%s", entry.name);
+            config->build.include_dir_count++;
         }
     }
 
@@ -275,17 +276,17 @@ static void detect_libs(const char* path, project_config_t* config) {
                 
                 // Add lib dir if not already added
                 int already_added = 0;
-                for (int i = 0; i < config->lib_dir_count; i++) {
-                    if (strcmp(config->lib_dirs[i], entry.name) == 0) {
+                for (int i = 0; i < config->build.lib_dir_count; i++) {
+                    if (strcmp(config->build.lib_dirs[i], entry.name) == 0) {
                         already_added = 1;
                         break;
                     }
                 }
 
-                if (!already_added && config->lib_dir_count < 8) {
-                    int count = config->lib_dir_count;
-                    snprintf(config->lib_dirs[count], sizeof(config->lib_dirs[count]), "%s", entry.name);
-                    config->lib_dir_count++;
+                if (!already_added && config->build.lib_dir_count < 8) {
+                    int count = config->build.lib_dir_count;
+                    snprintf(config->build.lib_dirs[count], sizeof(config->build.lib_dirs[count]), "%s", entry.name);
+                    config->build.lib_dir_count++;
                 }
 
                 // Strip lib prefix and extension to get library name
@@ -302,7 +303,7 @@ static void detect_libs(const char* path, project_config_t* config) {
                     name = lib_name + 3;
                 }
 
-                snprintf(config->libs[config->lib_count++], sizeof(config->libs[0]), "%s", name);
+                snprintf(config->build.libs[config->build.lib_count++], sizeof(config->build.libs[0]), "%s", name);
             }
         }
 
@@ -327,14 +328,14 @@ static int init_existing_project(const char* path, const char* language_option, 
     // Get project name
     char project_name[32];
     get_dir_name(project_name, sizeof(project_name), path);
-    snprintf(config.name, sizeof(config.name), "%s", project_name);
+    snprintf(config.project.name, sizeof(config.project.name), "%s", project_name);
 
     // Write default version
-    snprintf(config.version, sizeof(config.version), "0.1.0");
+    snprintf(config.project.version, sizeof(config.project.version), "0.1.0");
 
     // Get language
     if (language_option) {
-        snprintf(config.language, sizeof(config.language), "%s", language_option);
+        snprintf(config.project.language, sizeof(config.project.language), "%s", language_option);
     }
     else {
         int cpp_count = 0;
@@ -342,37 +343,37 @@ static int init_existing_project(const char* path, const char* language_option, 
         get_language_counts(path, &cpp_count, &c_count);
         if (cpp_count > 0 || c_count > 0) {
             const char* language = cpp_count >= c_count ? "cpp" : "c";
-            snprintf(config.language, sizeof(config.language), "%s", language);
+            snprintf(config.project.language, sizeof(config.project.language), "%s", language);
         }
         else {
-            snprintf(config.language, sizeof(config.language), "%s", global_config.language);
+            snprintf(config.project.language, sizeof(config.project.language), "%s", global_config.language);
         }
     }
 
     // Get standard
-    if (strcmp(config.language, "cpp") == 0) {
-        config.cpp_standard = global_config.cpp_standard;
-        config.has_cpp_standard = 1;
+    if (strcmp(config.project.language, "cpp") == 0) {
+        config.project.cpp_standard = global_config.cpp_standard;
+        config.project.has_cpp_standard = 1;
     }
     else {
-        config.c_standard = global_config.c_standard;
-        config.has_c_standard = 1;
+        config.project.c_standard = global_config.c_standard;
+        config.project.has_c_standard = 1;
     }
 
     // Set build type
-    snprintf(config.build_type, sizeof(config.build_type), "%s", global_config.template);
+    snprintf(config.build.type, sizeof(config.build.type), "%s", global_config.template);
 
     // Get include and source directories
     detect_include_dirs(path, &config);
     detect_source_dirs(path, &config);
 
-    if (config.include_dir_count == 0) {
-        snprintf(config.include_dirs[0], sizeof(config.include_dirs[0]), "%s", "include");
-        config.include_dir_count++;
+    if (config.build.include_dir_count == 0) {
+        snprintf(config.build.include_dirs[0], sizeof(config.build.include_dirs[0]), "%s", "include");
+        config.build.include_dir_count++;
     }
-    if (config.source_dir_count == 0) {
-        snprintf(config.source_dirs[0], sizeof(config.source_dirs[0]), "%s", "src");
-        config.source_dir_count++;
+    if (config.build.source_dir_count == 0) {
+        snprintf(config.build.source_dirs[0], sizeof(config.build.source_dirs[0]), "%s", "src");
+        config.build.source_dir_count++;
     }
 
     // Get library directories and library names
@@ -404,18 +405,18 @@ static int init_existing_project(const char* path, const char* language_option, 
     // Print success message
     fprintf(stdout, "Initialized Craft project at '%s'\n\n", path);
 
-    fprintf(stdout, "language: %s\n", config.language);
-    fprintf(stdout, "type: %s\n", config.build_type);
+    fprintf(stdout, "language: %s\n", config.project.language);
+    fprintf(stdout, "type: %s\n", config.build.type);
 
     fprintf(stdout, "source dirs:");
-    for (int i = 0; i < config.source_dir_count; i++) {
-        fprintf(stdout, " '%s'", config.source_dirs[i]);
+    for (int i = 0; i < config.build.source_dir_count; i++) {
+        fprintf(stdout, " '%s'", config.build.source_dirs[i]);
     }
     fprintf(stdout, "\n");
 
     fprintf(stdout, "include dirs:");
-    for (int i = 0; i < config.include_dir_count; i++) {
-        fprintf(stdout, " '%s'", config.include_dirs[i]);
+    for (int i = 0; i < config.build.include_dir_count; i++) {
+        fprintf(stdout, " '%s'", config.build.include_dirs[i]);
     }
     fprintf(stdout, "\n\n");
 

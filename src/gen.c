@@ -5,7 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "config.h"
+#include "craft_toml.h"
 #include "utils.h"
 #include "platform.h"
 
@@ -122,10 +122,10 @@ static int find_matching_header(const char* cwd, const char* filename, const cha
     }
 
     // Look in include_dirs in craft.toml for header
-    for (int i = 0; i < config.include_dir_count; i++) {
-        snprintf(path, sizeof(path), "%s/%s/%s.%s", project_root, config.include_dirs[i], filename, extension);
+    for (int i = 0; i < config.build.include_dir_count; i++) {
+        snprintf(path, sizeof(path), "%s/%s/%s.%s", project_root, config.build.include_dirs[i], filename, extension);
         if (file_exists(path)) {
-            fprintf(stdout, "Matching header found in '%s'\n", config.include_dirs[i]);
+            fprintf(stdout, "Matching header found in '%s'\n", config.build.include_dirs[i]);
             return 1;
         }
     }
@@ -151,9 +151,9 @@ static int generate_header(const char* cwd, const char* filename, const char* ex
 
     // Get destination for header
     char dest[PATH_SIZE];
-    if (in_project && config.include_dir_count > 0) {
-        snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.include_dirs[0], filename, extension);
-        fprintf(stdout, "Placing in '%s' (first include_dirs in craft.toml)\n", config.include_dirs[0]);
+    if (in_project && config.build.include_dir_count > 0) {
+        snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.build.include_dirs[0], filename, extension);
+        fprintf(stdout, "Placing in '%s' (first include_dirs in craft.toml)\n", config.build.include_dirs[0]);
     }
     else {
         snprintf(dest, sizeof(dest), "%s/%s.%s", cwd, filename, extension);
@@ -197,9 +197,9 @@ static int generate_source(const char* cwd, const char* filename, const char* ex
 
     // Get destination for source file
     char dest[PATH_SIZE];
-    if (in_project && config.source_dir_count > 0) {
-        snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.source_dirs[0], filename, extension);
-        fprintf(stdout, "Placing in '%s' (first source_dirs in craft.toml)\n", config.source_dirs[0]);
+    if (in_project && config.build.source_dir_count > 0) {
+        snprintf(dest, sizeof(dest), "%s/%s/%s.%s", project_root, config.build.source_dirs[0], filename, extension);
+        fprintf(stdout, "Placing in '%s' (first source_dirs in craft.toml)\n", config.build.source_dirs[0]);
     }
     else {
         snprintf(dest, sizeof(dest), "%s/%s.%s", cwd, filename, extension);

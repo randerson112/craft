@@ -1,7 +1,7 @@
 #ifndef CMAKE_H
 #define CMAKE_H
 
-#include "config.h"
+#include "craft_toml.h"
 
 // Checks if the craft.toml has been modified and cmake needs to be regenerated
 int cmake_needs_regeneration(const char* project_root);

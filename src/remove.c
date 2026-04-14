@@ -5,19 +5,19 @@
 #include <string.h>
 
 #include "utils.h"
-#include "config.h"
+#include "craft_toml.h"
 #include "cmake.h"
 #include "deps.h"
 #include "platform.h"
 
 // Removes a dependency from a project's config by name
 static void remove_dependency_from_config(project_config_t* config, const char* dep_name) {
-    for (int i = 0; i < config->dependencies_count; i++) {
-        if (strcmp(config->dependencies[i].name, dep_name) == 0) {
-            for (int j = i; j < config->dependencies_count - 1; j++) {
-                config->dependencies[j] = config->dependencies[j + 1];
+    for (int i = 0; i < config->dependencies.dependencies_count; i++) {
+        if (strcmp(config->dependencies.dependencies[i].name, dep_name) == 0) {
+            for (int j = i; j < config->dependencies.dependencies_count - 1; j++) {
+                config->dependencies.dependencies[j] = config->dependencies.dependencies[j + 1];
             }
-            config->dependencies_count--;
+            config->dependencies.dependencies_count--;
             break;
         }
     }
@@ -51,14 +51,14 @@ int handle_remove(const command_t* command_data) {
     // Get dependency name from command argument
     const char* dep_name = command_data->args[0];
 
-    dependency_t* removed_dep = get_dependency(config.dependencies, config.dependencies_count, dep_name);
+    dependency_t* removed_dep = get_dependency(config.dependencies.dependencies, config.dependencies.dependencies_count, dep_name);
 
     // Dependency not found, give a suggestion if close enough
     if (!removed_dep) {
         fprintf(stderr, "Error: Dependency '%s' not found in craft.toml\n", dep_name);
 
         // Print suggestion if close enough
-        const char* suggestion = get_dependency_suggestion(config.dependencies, config.dependencies_count, dep_name);
+        const char* suggestion = get_dependency_suggestion(config.dependencies.dependencies, config.dependencies.dependencies_count, dep_name);
         if (suggestion) {
             fprintf(stderr, "\nDid you mean '%s'?\n", suggestion);
         }

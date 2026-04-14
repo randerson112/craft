@@ -1,8 +1,6 @@
 #ifndef PROJECT_H
 #define PROJECT_H
 
-#include <stdlib.h>
-
 #include "parser.h"
 
 // project command handler
