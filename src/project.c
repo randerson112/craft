@@ -83,7 +83,7 @@ int create_project_from_template(const char* path, const char* template, const c
     }
 
     // Generate starting CMakeLists.txt based on configs
-    if (generate_cmake(path, &project_config) != 0) {
+    if (generate_project_cmake(path, &project_config) != 0) {
         return -1;
     }
 

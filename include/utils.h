@@ -35,9 +35,6 @@ int copy_dir_contents(const char* source_dir, const char* dest_dir, const char**
 // Gets the path to craft config directory
 int get_craft_home(char* buffer, size_t buffer_size);
 
-// Gets the root path of a project by searching cwd and parent directories
-int get_project_root(char* buffer, size_t buffer_size, const char* cwd);
-
 // Gets the path to template directory
 int get_template_directory(char* buffer, size_t buffer_size, const char* type, const char* language, const char* name);
 
@@ -49,9 +46,6 @@ int is_valid_version(const char* version);
 
 // Gets the option struct from a command data struct based on name, returns NULL if not found
 const option_t* get_option(const command_t* command_data, const char* name);
-
-// Checks if the given path is a Craft project
-int is_craft_project(const char* path);
 
 // Gets the name of the current directory from a path
 void get_dir_name(char* buffer, size_t buffer_size, const char* path);

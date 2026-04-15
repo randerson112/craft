@@ -236,30 +236,6 @@ int get_craft_home(char* buffer, size_t buffer_size) {
     return -1;
 }
 
-int get_project_root(char* buffer, size_t buffer_size, const char* cwd) {
-    char current_path[PATH_SIZE];
-    snprintf(current_path, sizeof(current_path), "%s", cwd);
-
-    while (1) {
-        char toml_path[PATH_SIZE];
-        snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", current_path);
-
-        // Check if craft.toml file exists in this directory
-        if (file_exists(toml_path)) {
-            snprintf(buffer, buffer_size, "%s", current_path);
-            return 0;
-        }
-
-        // Move up a directory
-        char* last_slash = strrchr(current_path, '/');
-        if (!last_slash || last_slash == current_path) {
-            return -1;
-        }
-        
-        *last_slash = '\0';
-    }
-}
-
 int get_template_directory(char* buffer, size_t buffer_size, const char* type, const char* language, const char* name) {
     // Get the path to craft home
     char craft_home[PATH_SIZE];
@@ -356,17 +332,6 @@ const option_t* get_option(const command_t* command_data, const char* name) {
     }
 
     return NULL;
-}
-
-int is_craft_project(const char* path) {
-    // Check if craft.toml exists
-    char toml_path[PATH_SIZE];
-    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
-    if (file_exists(toml_path)) {
-        return 1;
-    }
-
-    return 0;
 }
 
 void get_dir_name(char* buffer, size_t buffer_size, const char* path) {

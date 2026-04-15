@@ -2,6 +2,7 @@
 #define CRAFT_TOML_H
 
 #include "deps.h"
+#include "tomlc17.h"
 
 // Struct to store project section data
 typedef struct {
@@ -39,6 +40,21 @@ typedef struct {
     build_section_t build;
     dependencies_section_t dependencies;
 } project_config_t;
+
+// Struct to hold data about a key in craft.toml
+typedef struct {
+    const char* name;
+    int required;
+} config_key_t;
+
+// Checks if given path is a Craft project
+int is_craft_project(const char* path);
+
+// Gets the root path of a project where craft.toml is present with project section
+int get_project_root(char* buffer, size_t buffer_size, const char* cwd);
+
+// Checks a section for any unknown keys and prints an error or warning message
+int check_unknown_keys(toml_datum_t section, const char* section_name, const config_key_t* valid_keys, int num_keys);
 
 // Loads values from a project craft.toml into a project_config_t struct
 int load_project_config(project_config_t* config, const char* project_root);

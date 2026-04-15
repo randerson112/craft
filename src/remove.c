@@ -79,7 +79,7 @@ int handle_remove(const command_t* command_data) {
     }
 
     // Regnerate CMake file
-    if (generate_cmake(project_root, &config) != 0) {
+    if (generate_project_cmake(project_root, &config) != 0) {
         return -1;
     }
 

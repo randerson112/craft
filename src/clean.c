@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "utils.h"
+#include "craft_toml.h"
 #include "platform.h"
 
 // Removes the build directory in the current directory

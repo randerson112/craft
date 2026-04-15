@@ -7,6 +7,7 @@
 
 #include "utils.h"
 #include "craft_toml.h"
+#include "workspace.h"
 #include "cmake.h"
 #include "deps.h"
 #include "platform.h"
@@ -25,7 +26,7 @@ int build_project(const char* project_root) {
 
     if (cmake_needs_regeneration(project_root)) {
         fprintf(stdout, "Regenerating CMake...\n");
-        generate_cmake(project_root, &config);
+        generate_project_cmake(project_root, &config);
     }
 
     // Fetch git dependencies into .craft/deps
@@ -79,6 +80,59 @@ int build_project(const char* project_root) {
     return 0;
 }
 
+int build_workspace(const char* workspace_root) {
+
+    // Regenerate CMakeLists.txt from craft.toml if needed
+    workspace_config_t config;
+    if (load_workspace_config(&config, workspace_root) != 0) {
+        return -1;
+    }
+
+    if (cmake_needs_regeneration(workspace_root)) {
+        fprintf(stdout, "Regenerating CMake...\n");
+        generate_workspace_cmake(workspace_root, &config);
+    }
+
+    // Create a build directory if it does not exist
+    char build_dir[PATH_SIZE];
+    snprintf(build_dir, sizeof(build_dir), "%s/build", workspace_root);
+    if (!dir_exists(build_dir))
+    {
+        if (mkdir(build_dir, 0755) == 0)
+        {
+            fprintf(stdout, "Generated build directory\n");
+        }
+        else
+        {
+            fprintf(stderr, "Error: Failed to create build directory\n");
+            return -1;
+        }
+    }
+
+    // Run cmake to build project
+    fprintf(stdout, "Configuring...\n");
+    char configure_command[COMMAND_SIZE];
+    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" > %s", workspace_root, build_dir, DEVNULL);
+
+    if (system(configure_command) != 0) {
+        fprintf(stderr, "Error: Failed to configure CMake\n");
+        return -1;
+    }
+
+    char build_command[COMMAND_SIZE];
+    snprintf(build_command, sizeof(build_command), "cmake --build \"%s\" > %s", build_dir, DEVNULL);
+
+    fprintf(stdout, "Building...\n");
+    if (system(build_command) != 0) {
+        fprintf(stderr, "Error: Failed to build workspace\n");
+        return -1;
+    }
+
+    // Build successful
+    fprintf(stdout, "Workspace built successfully\n");
+    return 0;
+}
+
 int handle_build() {
     // Retrive path of current working directory where craft is being called
     char cwd[PATH_SIZE];
@@ -88,11 +142,15 @@ int handle_build() {
         return -1;
     }
 
-    // Get path to root of the project
+    // Determine if in a workspace or a project and build
     char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
-        return -1;
+        char workspace_root[PATH_SIZE];
+        if (get_workspace_root(workspace_root, sizeof(workspace_root), cwd) != 0) {
+            fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
+            return -1;
+        }
+        return build_workspace(workspace_root);
     }
 
     return build_project(project_root);

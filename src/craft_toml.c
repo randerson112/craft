@@ -4,14 +4,7 @@
 #include <string.h>
 
 #include "platform.h"
-#include "tomlc17.h"
 #include "utils.h"
-
-// Struct to hold data about a key in craft.toml
-typedef struct {
-    const char* name;
-    int required;
-} config_key_t;
 
 // Information about the project section keys in craft.toml
 static const config_key_t project_keys[] = {
@@ -33,8 +26,67 @@ static const config_key_t build_keys[] = {
 };
 static const int num_build_keys = 5;
 
-// Checks a section for any unknown keys and prints an error or warning message
-static int check_unknown_keys(toml_datum_t section, const char* section_name, const config_key_t* valid_keys, int num_keys) {
+// Checks if given path is a Craft project
+int is_craft_project(const char* path) {
+
+    // Check if craft.toml exists at path
+    char toml_path[PATH_SIZE];
+    snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", path);
+    if (!file_exists(toml_path)) {
+        return 0;
+    }
+
+    // Check if craft.toml contains project section and not a workspace section
+    FILE* file = fopen(toml_path, "r");
+    if (!file) {
+        fprintf(stderr, "Error: Could not open craft.toml\n");
+        return 0;
+    }
+    toml_result_t result = toml_parse_file(file);
+    fclose(file);
+    if (!result.ok) {
+        fprintf(stderr, "Error: Failed to parse craft.toml\n");
+        fprintf(stderr, "%s\n", result.errmsg);
+        return 0;
+    }
+
+    toml_datum_t project_section = toml_seek(result.toptab, "project");
+    toml_datum_t workspace_section = toml_seek(result.toptab, "workspace");
+    if (project_section.type == TOML_TABLE && workspace_section.type != TOML_TABLE) {
+        toml_free(result);
+        return 1;
+    }
+    else {
+        toml_free(result);
+        return 0;
+    }
+}
+
+int get_project_root(char* buffer, size_t buffer_size, const char* cwd) {
+    char current_path[PATH_SIZE];
+    snprintf(current_path, sizeof(current_path), "%s", cwd);
+
+    while (1) {
+        char toml_path[PATH_SIZE];
+        snprintf(toml_path, sizeof(toml_path), "%s/craft.toml", current_path);
+
+        // Check if craft.toml file exists in this directory
+        if (file_exists(toml_path) && is_craft_project(current_path)) {
+            snprintf(buffer, buffer_size, "%s", current_path);
+            return 0;
+        }
+
+        // Move up a directory
+        char* last_slash = strrchr(current_path, '/');
+        if (!last_slash || last_slash == current_path) {
+            return -1;
+        }
+        
+        *last_slash = '\0';
+    }
+}
+
+int check_unknown_keys(toml_datum_t section, const char* section_name, const config_key_t* valid_keys, int num_keys) {
     for (int i = 0; i < section.u.tab.size; i++) {
         const char* key = section.u.tab.key[i];
         int found = 0;

@@ -386,7 +386,7 @@ static int init_existing_project(const char* path, const char* language_option, 
     if (generate_craft_toml(path, &config) != 0) {
         return -1;
     }
-    if (generate_cmake(path, &config) != 0) {
+    if (generate_project_cmake(path, &config) != 0) {
         return -1;
     }
 

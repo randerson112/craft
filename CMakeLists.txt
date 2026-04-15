@@ -7,8 +7,8 @@ project("craft")
 
 set(CMAKE_C_STANDARD 99)
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
-    include(${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.extra.cmake)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.extra.cmake)
 endif()
 
 file(GLOB_RECURSE SOURCES "src/*.c")

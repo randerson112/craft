@@ -201,7 +201,7 @@ static int add_registry_dependency(const char* project_root, const command_t* co
 
     if (generate_craft_toml(project_root, &config) != 0) return -1;
     if (fetch_git_dependency(project_root, &dep) != 0) return -1;
-    if (generate_cmake(project_root, &config) != 0) return -1;
+    if (generate_project_cmake(project_root, &config) != 0) return -1;
 
     fprintf(stdout, "Added kit '%s'\n\n", dep.name);
     fprintf(stdout, "Run 'craft build' to build with the new dependency\n");
@@ -322,7 +322,7 @@ int handle_add(const command_t* command_data) {
     }
 
     // Regenerate CMakeLists.txt with new dependency
-    if (generate_cmake(project_root, &config) != 0) {
+    if (generate_project_cmake(project_root, &config) != 0) {
         return -1;
     }
 
