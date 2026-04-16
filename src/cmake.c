@@ -135,7 +135,9 @@ static int write_path_dependency(FILE* file, const char* project_path, project_c
     }
 
     fprintf(file, "# %s\n", dep->name);
-    fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->value, dep->name);
+    fprintf(file, "if(NOT TARGET %s)\n", dep->name);
+    fprintf(file, "    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n", dep->value, dep->name);
+    fprintf(file, "endif()\n");
     fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->project.name, dep->name);
 
     if (dep_config.build.include_dir_count > 0) {
@@ -174,7 +176,9 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
             return -1;
         }
 
-        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
+        fprintf(file, "if(NOT TARGET %s)\n", dep->name);
+        fprintf(file, "    add_subdirectory(${CMAKE_SOURCE_DIR}/.craft/deps/%s ${CMAKE_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
+        fprintf(file, "endif()\n");
         fprintf(file, "target_link_libraries(%s PRIVATE %s)\n", config->project.name, dep->name);
 
         if (dep_config.build.include_dir_count > 0) {
@@ -192,7 +196,9 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
     // Has CMakeLists.txt but not a Craft project
     // Use add_subdirectory with user provided links
     else if (file_exists(dep_cmake)) {
-        fprintf(file, "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s ${CMAKE_CURRENT_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
+        fprintf(file, "if(NOT TARGET %s)\n", dep->name);
+        fprintf(file, "    add_subdirectory(${CMAKE_SOURCE_DIR}/.craft/deps/%s ${CMAKE_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
+        fprintf(file, "endif()\n");
 
         if (dep->links_count > 0) {
             fprintf(file, "target_link_libraries(%s PRIVATE", config->project.name);
@@ -303,7 +309,25 @@ int generate_workspace_cmake(const char* workspace_root, workspace_config_t* con
 
     fprintf(file, "# Members\n");
     for (int i = 0; i < config->member_count; i++) {
-        fprintf(file, "add_subdirectory(${CMAKE_SOURCE_DIR}/%s)\n", config->members[i]);
+        char member_path[PATH_SIZE];
+        snprintf(member_path, sizeof(member_path), "%s/%s", workspace_root, config->members[i]);
+
+        // Load member config and regenerate CMake if needed
+        project_config_t member_config = {0};
+        if (load_project_config(&member_config, member_path) != 0) {
+            return -1;
+        }
+        if (validate_project_config(&member_config) != 0) {
+            return -1;
+        }
+        if (cmake_needs_regeneration(member_path)) {
+            generate_project_cmake(member_path, &member_config);
+        }
+
+        // Add member project as a subdirectory of the build
+        fprintf(file, "if (NOT TARGET %s)\n", member_config.project.name);
+        fprintf(file, "    add_subdirectory(${CMAKE_SOURCE_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n", config->members[i], config->members[i]);
+        fprintf(file, "endif()\n");
     }
 
     return 0;

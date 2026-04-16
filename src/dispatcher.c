@@ -15,6 +15,7 @@
 #include "remove.h"
 #include "update.h"
 #include "upgrade.h"
+#include "workspace.h"
 
 int dispatch(command_t* command_data) {
 
@@ -45,6 +46,7 @@ int dispatch(command_t* command_data) {
     if (strcmp(command, "remove") == 0)   return handle_remove(command_data);
     if (strcmp(command, "update") == 0)   return handle_update(command_data);
     if (strcmp(command, "upgrade") == 0)  return handle_upgrade();
+    if (strcmp(command, "workspace") == 0) return handle_workspace(command_data);
 
     return -1;
 }

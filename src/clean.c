@@ -5,19 +5,20 @@
 #include "utils.h"
 #include "craft_toml.h"
 #include "platform.h"
+#include "workspace.h"
 
-// Removes the build directory in the current directory
+// Removes the build directory in the current project or workspace
 static int remove_build_dir(const char* cwd) {
 
-    // Get the root of the project
-    char project_root[PATH_SIZE];
-    if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
+    // Get the root of the project or workspace
+    char root[PATH_SIZE];
+    if (get_project_root(root, sizeof(root), cwd) != 0 && get_workspace_root(root, sizeof(root), cwd) != 0) {
         fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
         return -1;
     }
 
     char build_dir[PATH_SIZE];
-    snprintf(build_dir, sizeof(build_dir), "%s/build", project_root);
+    snprintf(build_dir, sizeof(build_dir), "%s/build", root);
 
     // No build directory
     if (!dir_exists(build_dir)) {

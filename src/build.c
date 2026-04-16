@@ -59,7 +59,7 @@ int build_project(const char* project_root) {
     // Run cmake to build project
     fprintf(stdout, "Configuring...\n");
     char configure_command[COMMAND_SIZE];
-    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" > %s", project_root, build_dir, DEVNULL);
+    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" -Wno-dev > %s", project_root, build_dir, DEVNULL);
 
     if (system(configure_command) != 0) {
         fprintf(stderr, "Error: Failed to configure CMake\n");
@@ -83,7 +83,7 @@ int build_project(const char* project_root) {
 int build_workspace(const char* workspace_root) {
 
     // Regenerate CMakeLists.txt from craft.toml if needed
-    workspace_config_t config;
+    workspace_config_t config = {0};
     if (load_workspace_config(&config, workspace_root) != 0) {
         return -1;
     }
@@ -91,6 +91,11 @@ int build_workspace(const char* workspace_root) {
     if (cmake_needs_regeneration(workspace_root)) {
         fprintf(stdout, "Regenerating CMake...\n");
         generate_workspace_cmake(workspace_root, &config);
+    }
+
+    // Fetch member dependencies if not already
+    if (fetch_workspace_dependencies(workspace_root, &config) != 0) {
+        return -1;
     }
 
     // Create a build directory if it does not exist
@@ -112,7 +117,7 @@ int build_workspace(const char* workspace_root) {
     // Run cmake to build project
     fprintf(stdout, "Configuring...\n");
     char configure_command[COMMAND_SIZE];
-    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" > %s", workspace_root, build_dir, DEVNULL);
+    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" -Wno-dev > %s", workspace_root, build_dir, DEVNULL);
 
     if (system(configure_command) != 0) {
         fprintf(stderr, "Error: Failed to configure CMake\n");

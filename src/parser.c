@@ -27,19 +27,20 @@ static const subcommand_info_t config_subcommands[] = {
 };
 
 const command_info_t commands_info[] = {
-	{"project",  "craft project <path> [options]",     NULL,                 0, project_options, 3, 1, 1},
-	{"init",     "craft init [path] [options]",        NULL,                 0, init_options,    3, 0, 1},
-	{"build",    "craft build",                        NULL,                 0, NULL,            0, 0, 0},
-	{"run",      "craft run [path]",                   NULL,                 0, NULL,            0, 0, 1},
-	{"clean",    "craft clean",                        NULL,                 0, NULL,            0, 0, 0},
-	{"gen",      "craft gen <file>",                   NULL,                 0, NULL,            0, 1, 1},
-	{"help",     "craft help [command] [subcommand]",  NULL,                 0, NULL,            0, 0, 2},
-	{"template", "craft template <subcommand> [args]", template_subcommands, 5, NULL,            0, 0, 0},
-	{"config",   "craft config <subcommand> [args]",   config_subcommands,   3, NULL,            0, 0, 0},
-	{"add",      "craft add <options>",                NULL,                 0, add_options,     5, 0, 1},
-	{"remove",   "craft remove <dep name>",            NULL,                 0, NULL,            0, 1, 1},
-	{"update",   "craft update [dep name]",            NULL,                 0, NULL,            0, 0, 1},
-	{"upgrade",  "craft upgrade",                      NULL,                 0, NULL,            0, 0, 0}
+	{"project",   "craft project <path> [options]",     NULL,                 0, project_options, 3, 1, 1},
+	{"init",      "craft init [path] [options]",        NULL,                 0, init_options,    3, 0, 1},
+	{"build",     "craft build",                        NULL,                 0, NULL,            0, 0, 0},
+	{"run",       "craft run [path]",                   NULL,                 0, NULL,            0, 0, 1},
+	{"clean",     "craft clean",                        NULL,                 0, NULL,            0, 0, 0},
+	{"gen",       "craft gen <file>",                   NULL,                 0, NULL,            0, 1, 1},
+	{"help",      "craft help [command] [subcommand]",  NULL,                 0, NULL,            0, 0, 2},
+	{"template",  "craft template <subcommand> [args]", template_subcommands, 5, NULL,            0, 0, 0},
+	{"config",    "craft config <subcommand> [args]",   config_subcommands,   3, NULL,            0, 0, 0},
+	{"add",       "craft add <options>",                NULL,                 0, add_options,     5, 0, 1},
+	{"remove",    "craft remove <dep name>",            NULL,                 0, NULL,            0, 1, 1},
+	{"update",    "craft update [dep name]",            NULL,                 0, NULL,            0, 0, 1},
+	{"upgrade",   "craft upgrade",                      NULL,                 0, NULL,            0, 0, 0},
+	{"workspace", "craft workspace [path]",             NULL,                 0, NULL,            0, 0, 1}
 };
 
 static const char* lang_args[] = {"c", "cpp"};
