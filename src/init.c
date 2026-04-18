@@ -390,15 +390,6 @@ static int init_existing_project(const char* path, const char* language_option, 
         return -1;
     }
 
-    // Generate .craft directory with deps directory
-    char craft_directory[PATH_SIZE];
-    char craft_deps_directory[PATH_SIZE];
-    snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", path);
-    snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
-
-    mkdir(craft_directory, 0755);
-    mkdir(craft_deps_directory, 0755);
-
     // Init git if not already present and not otherwise specified
     if (use_git) init_git(path);
 

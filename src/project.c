@@ -56,15 +56,6 @@ int create_project_from_template(const char* path, const char* template, const c
         return -1;
     }
 
-    // Generate .craft directory with deps directory
-    char craft_directory[PATH_SIZE];
-    char craft_deps_directory[PATH_SIZE];
-    snprintf(craft_directory, sizeof(craft_directory), "%s/.craft", path);
-    snprintf(craft_deps_directory, sizeof(craft_deps_directory), "%s/deps", craft_directory);
-
-    mkdir(craft_directory, 0755);
-    mkdir(craft_deps_directory, 0755);
-
     // Fetch git dependencies into .craft/deps
     int dep_count = project_config.dependencies.dependencies_count;
 

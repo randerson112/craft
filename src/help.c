@@ -19,6 +19,7 @@ void print_craft_info() {
     fprintf(stdout, "    remove          Remove a dependency from the project\n");
     fprintf(stdout, "    update          Update git dependencies to their latest version\n");
     fprintf(stdout, "    upgrade         Update Craft to the latest version\n");
+    fprintf(stdout, "    workspace       Initialize a workspace in the current or given directory\n");
     fprintf(stdout, "    template        Manage project templates\n");
     fprintf(stdout, "    config          Manage global Craft configuration\n\n");
 
@@ -32,6 +33,7 @@ void print_craft_info() {
     fprintf(stdout, "    craft remove my_lib\n");
     fprintf(stdout, "    craft update\n");
     fprintf(stdout, "    craft upgrade\n");
+    fprintf(stdout, "    craft workspace my_workspace\n");
     fprintf(stdout, "    craft template save my_template\n");
     fprintf(stdout, "    craft config set lang cpp\n\n");
 
@@ -112,12 +114,12 @@ static void print_init_help() {
 
 static void print_build_help() {
     fprintf(stdout, "Command:\n");
-    fprintf(stdout, "    craft build - Build the project in the current directory.\n\n");
+    fprintf(stdout, "    craft build - Builds the current project or workspace.\n\n");
 
     fprintf(stdout, "Description:\n");
     fprintf(stdout, "    Reads craft.toml, regenerates CMakeLists.txt if needed, then runs CMake\n");
-    fprintf(stdout, "    and make to compile the project. Craft walks up the directory tree to\n");
-    fprintf(stdout, "    find the project root so you can run this from any subdirectory.\n\n");
+    fprintf(stdout, "    and make to build the project or workspace. Craft walks up the directory\n");
+    fprintf(stdout, "    tree to find the root so you can run this from any subdirectory.\n\n");
 
     fprintf(stdout, "Usage:\n");
     fprintf(stdout, "    craft build\n\n");
@@ -131,15 +133,15 @@ static void print_run_help() {
     fprintf(stdout, "    craft run - Run a compiled executable.\n\n");
 
     fprintf(stdout, "Description:\n");
-    fprintf(stdout, "    Executes the compiled binary of the project or a different binary if specified.\n");
-    fprintf(stdout, "    With no arguments, it looks in the build directory for an executable with the same\n");
-    fprintf(stdout, "    name as the project. If a path is specified it will look there from the current directory instead.\n\n");
+    fprintf(stdout, "    Executes a compiled binary of a project or workspace. With no arguments, it looks\n");
+    fprintf(stdout, "    in the build directory for an executable with the same name as the project.\n");
+    fprintf(stdout, "    A name needs to be specified if in a workspace with multiple executable members.\n\n");
 
     fprintf(stdout, "Usage:\n");
-    fprintf(stdout, "    craft run [path]\n\n");
+    fprintf(stdout, "    craft run [name]\n\n");
 
     fprintf(stdout, "Arguments:\n");
-    fprintf(stdout, "    [path]   Optional path to the executable. Defaults to build directory executable.\n\n");
+    fprintf(stdout, "    [path]   Optional name of the executable. Must specify name if there are multiple executables.\n\n");
 
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft run\n");
@@ -281,6 +283,34 @@ static void print_help_help() {
     fprintf(stdout, "    craft help template save\n");
     fprintf(stdout, "    craft help config set\n");
     fprintf(stdout, "    craft help craft.toml\n");
+}
+
+static void print_workspace_help() {
+    fprintf(stdout, "Command:\n");
+    fprintf(stdout, "    craft workspace - Initialize a Craft workspace.\n\n");
+
+    fprintf(stdout, "Description:\n");
+    fprintf(stdout, "    Sets up a Craft workspace by scanning the directory for existing\n");
+    fprintf(stdout, "    Craft projects and generating a craft.toml with a [workspace] section\n");
+    fprintf(stdout, "    listing all detected members. Also generates a root CMakeLists.txt\n");
+    fprintf(stdout, "    that builds all members together in dependency order.\n\n");
+
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft workspace [path]\n\n");
+
+    fprintf(stdout, "Arguments:\n");
+    fprintf(stdout, "    [path]   Optional path to initialize. Defaults to current directory.\n\n");
+
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft workspace\n");
+    fprintf(stdout, "    craft workspace my_workspace\n\n");
+
+    fprintf(stdout, "Tips:\n");
+    fprintf(stdout, "    Review the generated craft.toml to verify all members were detected.\n");
+    fprintf(stdout, "    Add any missing members manually to the members array.\n");
+    fprintf(stdout, "    Run 'craft build' from the workspace root to build all members.\n");
+    fprintf(stdout, "    Members can still be built independently with 'craft build' inside\n");
+    fprintf(stdout, "    the member directory.\n");
 }
 
 static void print_template_help() {
@@ -601,19 +631,20 @@ int handle_help(const command_t* command_data) {
     }
 
     // Command help
-    if (strcmp(topic, "project") == 0)        { print_project_help();  return 0; }
-    if (strcmp(topic, "init") == 0)           { print_init_help();     return 0; }
-    if (strcmp(topic, "build") == 0)          { print_build_help();    return 0; }
-    if (strcmp(topic, "run") == 0)            { print_run_help();      return 0; }
-    if (strcmp(topic, "gen") == 0)            { print_gen_help();      return 0; }
-    if (strcmp(topic, "clean") == 0)          { print_clean_help();    return 0; }
-    if (strcmp(topic, "add") == 0)            { print_add_help();      return 0; }
-    if (strcmp(topic, "remove") == 0)         { print_remove_help();   return 0; }
-    if (strcmp(topic, "update") == 0)         { print_update_help();   return 0; }
-    if (strcmp(topic, "help") == 0)           { print_help_help();     return 0; }
-    if (strcmp(topic, "template") == 0)       { print_template_help(); return 0; }
-    if (strcmp(topic, "config") == 0)         { print_config_help();   return 0; }
-    if (strcmp(topic, "upgrade") == 0)        { print_upgrade_help();  return 0; }
+    if (strcmp(topic, "project") == 0)        { print_project_help();   return 0; }
+    if (strcmp(topic, "init") == 0)           { print_init_help();      return 0; }
+    if (strcmp(topic, "build") == 0)          { print_build_help();     return 0; }
+    if (strcmp(topic, "run") == 0)            { print_run_help();       return 0; }
+    if (strcmp(topic, "gen") == 0)            { print_gen_help();       return 0; }
+    if (strcmp(topic, "clean") == 0)          { print_clean_help();     return 0; }
+    if (strcmp(topic, "add") == 0)            { print_add_help();       return 0; }
+    if (strcmp(topic, "remove") == 0)         { print_remove_help();    return 0; }
+    if (strcmp(topic, "update") == 0)         { print_update_help();    return 0; }
+    if (strcmp(topic, "help") == 0)           { print_help_help();      return 0; }
+    if (strcmp(topic, "template") == 0)       { print_template_help();  return 0; }
+    if (strcmp(topic, "config") == 0)         { print_config_help();    return 0; }
+    if (strcmp(topic, "upgrade") == 0)        { print_upgrade_help();   return 0; }
+    if (strcmp(topic, "workspace") == 0)      { print_workspace_help(); return 0; }
 
     // Unknown topic
     fprintf(stderr, "Error: No help available for '%s'\n", topic);

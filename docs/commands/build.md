@@ -1,6 +1,6 @@
 # craft build
 
-Builds the project in the current directory.
+Builds the local project or workspace.
 
 ## Usage
 
@@ -10,9 +10,9 @@ craft build
 
 ## Description
 
-Reads `craft.toml`, regenerates `CMakeLists.txt` if needed, fetches any missing git dependencies, and builds the project using CMake.
+Reads `craft.toml`, regenerates `CMakeLists.txt` if needed, fetches any missing git dependencies, and builds the project or workspace using CMake.
 
-Craft walks up the directory tree to find the project root so you can run `craft build` from any subdirectory of your project.
+Craft walks up the directory tree to find the root so you can run `craft build` from any subdirectory.
 
 ### Build Steps
 
@@ -25,16 +25,16 @@ Craft walks up the directory tree to find the project root so you can run `craft
 
 ### Dependency Caching
 
-Git dependencies are built inside `.craft/deps/<name>/build/` rather than inside the project's `build/` directory. This means:
+Git dependencies are built inside `.craft/deps/<name>/build/` rather than inside the `build/` directory. This means:
 
 - Dependencies only need to be built once
-- `craft clean` removes your project's build artifacts but leaves dependency builds intact
-- Running `craft build` after `craft clean` only recompiles your project, not its dependencies
+- `craft clean` removes the build artifacts but leaves dependency builds intact
+- Running `craft build` after `craft clean` only recompiles your project or workspace, not its dependencies
 
 ## Examples
 
 ```bash
-# Build from project root
+# Build from root
 craft build
 
 # Build from a subdirectory
@@ -42,16 +42,9 @@ cd src
 craft build
 ```
 
-## Output
-
-```
-Configuring...
-Building...
-Build successful
-```
-
 ## See Also
 
+- [craft workspace](workspace.md) - managing a workspace
 - [craft run](run.md) — run the built executable
 - [craft clean](clean.md) — remove build artifacts
 - [craft add](add.md) — add dependencies

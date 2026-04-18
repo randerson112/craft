@@ -8,8 +8,9 @@ Complete documentation for every Craft command.
 |---------|-------------|
 | [craft project](project.md) | Create a new project at a given path |
 | [craft init](init.md) | Initialize a project in an existing directory |
-| [craft build](build.md) | Build a project |
-| [craft run](run.md) | Run the compiled executable |
+| [craft workspace](workspace.md) | Initialize a workspace in an existing directory |
+| [craft build](build.md) | Build a project or workspace |
+| [craft run](run.md) | Run a compiled executable |
 | [craft gen](gen.md) | Generate a file with boilerplate |
 | [craft clean](clean.md) | Remove build artifacts |
 
