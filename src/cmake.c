@@ -342,7 +342,7 @@ int generate_workspace_cmake(const char* workspace_root, workspace_config_t* con
         // Add member project as a subdirectory of the build
         fprintf(file, "if(NOT TARGET %s)\n", member_config.project.name);
         fprintf(file, "    add_subdirectory(${CMAKE_SOURCE_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n", config->members[i], config->members[i]);
-        fprintf(file, "endif()\n");
+        fprintf(file, "endif()\n\n");
     }
 
     write_after_escape_hatch(file);
