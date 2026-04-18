@@ -86,4 +86,4 @@ Then run `craft build` to build the workspace.
 ## See Also
 
 - [craft build](build.md) — build the workspace
-- [craft.toml workspace reference](../craft-toml.md#workspaces)
+- [craft.toml workspace reference](../craft-toml.md#workspace)

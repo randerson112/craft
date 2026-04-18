@@ -17,7 +17,7 @@ static const config_key_t workspace_keys[] = {
 static const int num_workspace_keys = 1;
 
 // Checks if given path is a Craft workspace
-int is_craft_workspace(const char* path) {
+static int is_craft_workspace(const char* path) {
 
     // Check if craft.toml exists at path
     char toml_path[PATH_SIZE];
@@ -134,7 +134,8 @@ int load_workspace_config(workspace_config_t* config, const char* workspace_root
     return 0;
 }
 
-int generate_workspace_toml(const char* workspace_root, const workspace_config_t* config) {
+// Generates craft.toml for a workspace based on config values
+static int generate_workspace_toml(const char* workspace_root, const workspace_config_t* config) {
 
     // Get path to toml file
     char toml_path[PATH_SIZE];
@@ -170,7 +171,8 @@ int generate_workspace_toml(const char* workspace_root, const workspace_config_t
     return 0;
 }
 
-int detect_workspace_members(workspace_config_t* config, const char* workspace_root, const char* path) {
+// Scans subdirectories in workspace for craft.toml containing project section
+static int detect_workspace_members(workspace_config_t* config, const char* workspace_root, const char* path) {
 
     // Open directory
     dir_t* dir = open_dir(path);
@@ -238,7 +240,8 @@ int fetch_workspace_dependencies(const char* workspace_root, const workspace_con
     return 0;
 }
 
-int init_workspace_at_path(const char* path) {
+// Initializes a workspace at the given path
+static int init_workspace_at_path(const char* path) {
 
     // Detect projects in workspace and create craft.toml
     workspace_config_t config = {0};
