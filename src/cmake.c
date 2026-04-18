@@ -196,7 +196,12 @@ static int write_git_dependency(FILE* file, const char* project_path, project_co
     // Has CMakeLists.txt but not a Craft project
     // Use add_subdirectory with user provided links
     else if (file_exists(dep_cmake)) {
-        fprintf(file, "if(NOT TARGET %s)\n", dep->name);
+        if (dep->links_count > 0) {
+            fprintf(file, "if(NOT TARGET %s)\n", dep->links[0]);
+        }
+        else {
+            fprintf(file, "if(NOT TARGET %s)\n", dep->name);
+        }
         fprintf(file, "    add_subdirectory(${CMAKE_SOURCE_DIR}/.craft/deps/%s ${CMAKE_SOURCE_DIR}/.craft/deps/%s/build)\n", dep->name, dep->name);
         fprintf(file, "endif()\n");
 
@@ -325,7 +330,7 @@ int generate_workspace_cmake(const char* workspace_root, workspace_config_t* con
         }
 
         // Add member project as a subdirectory of the build
-        fprintf(file, "if (NOT TARGET %s)\n", member_config.project.name);
+        fprintf(file, "if(NOT TARGET %s)\n", member_config.project.name);
         fprintf(file, "    add_subdirectory(${CMAKE_SOURCE_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n", config->members[i], config->members[i]);
         fprintf(file, "endif()\n");
     }

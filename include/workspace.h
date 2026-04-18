@@ -31,6 +31,9 @@ int fetch_workspace_dependencies(const char* workspace_root, const workspace_con
 // Initializes a workspace at the given path
 int init_workspace_at_path(const char* path);
 
+// Returns the number of executable members in the workspace
+int get_executable_member_count(const char* workspace_root, const workspace_config_t* config);
+
 // workspace command handler
 int handle_workspace(const command_t* command_data);
 

@@ -266,6 +266,32 @@ int init_workspace_at_path(const char* path) {
     return 0;
 }
 
+int get_executable_member_count(const char* workspace_root, const workspace_config_t* config) {
+
+    int count = 0;
+
+    // Loop through members in workspace
+    for (int i = 0; i < config->member_count; i++) {
+        char path_to_member[PATH_SIZE];
+        snprintf(path_to_member, sizeof(path_to_member), "%s/%s", workspace_root, config->members[i]);
+
+        // Load member config and check if it is executable
+        project_config_t member_config = {0};
+        if (load_project_config(&member_config, path_to_member) != 0) {
+            return -1;
+        }
+        if (validate_project_config(&member_config) != 0) {
+            return -1;
+        }
+
+        if (strcmp(member_config.build.type, "executable") == 0) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
 int handle_workspace(const command_t* command_data) {
 
     // Retrive path of current working directory where craft is being called

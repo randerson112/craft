@@ -8,48 +8,12 @@
 #include "craft_toml.h"
 #include "build.h"
 #include "platform.h"
+#include "workspace.h"
 
-// Runs an executable relative from the current directory
-int run_executable_relative(const char* cwd, const char* executable_path)
-{
-    char full_path[PATH_SIZE];
+// Runs the executable in the project build directory
+int run_executable_project(const char* project_root, const char* executable_name) {
 
-    // Combine current working directory with relative path, adding .exe for windows
-    #ifdef _WIN32
-    snprintf(full_path, sizeof(full_path), "%s/%s.exe", cwd, executable_path);
-    #else
-    snprintf(full_path, sizeof(full_path), "%s/%s", cwd, executable_path);
-    #endif
-
-    if (!file_exists(full_path)) {
-        fprintf(stderr, "Error: No executable found at '%s'\n", executable_path);
-        return -1;
-    }
-
-    // Run executable
-    char command[COMMAND_SIZE];
-    snprintf(command, sizeof(command), "\"%s\"", full_path);
-
-    if (system(command) != 0)
-    {
-        fprintf(stderr, "Error: Failed to run executable\n");
-        return -1;
-    }
-
-    // Run successful
-    return 0;
-}
-
-// Runs the executable in the build directory
-int run_executable_build(const char* cwd) {
-
-    // Get path to project root
-    char project_root[PATH_SIZE];
-    if (get_project_root(project_root, sizeof(project_root), cwd) != 0) {
-        fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
-        return -1;
-    }
-
+    // Load project config
     project_config_t config;
     if (load_project_config(&config, project_root) != 0) {
         return -1;
@@ -71,22 +35,26 @@ int run_executable_build(const char* cwd) {
     snprintf(build_dir, sizeof(build_dir), "%s/build", project_root);
     if (!dir_exists(build_dir)) {
         fprintf(stderr, "Error: No build directory found\n\n");
-        fprintf(stderr, "Run 'craft build' to build the project first\n");
         return -1;
     }
 
-    // Get path to executable in build
-    char executable_name[128];
-    #ifdef _WIN32
-    snprintf(executable_name, sizeof(executable_name), "%s.exe", config.name);
-    #else
-    snprintf(executable_name, sizeof(executable_name), "%s", config.project.name);
-    #endif
+    // If executable name not specified get it from project name
+    char final_executable_name[128];
+    if (executable_name == NULL) {
+        #ifdef _WIN32
+        snprintf(final_executable_name, sizeof(final_executable_name), "%s.exe", config.project.name);
+        #else
+        snprintf(final_executable_name, sizeof(final_executable_name), "%s", config.project.name);
+        #endif
+    }
+    else {
+        snprintf(final_executable_name, sizeof(final_executable_name), "%s", executable_name);
+    }
 
+    // Get path to executable
     char executable_path[PATH_SIZE];
-    if (!search_dir_for_file(executable_path, PATH_SIZE, build_dir, executable_name)) {
-        fprintf(stderr, "Error: Executable '%s' not found in build directory\n\n", config.project.name);
-        fprintf(stderr, "Try running 'craft build' to re-build the project first\n");
+    if (!search_dir_for_file(executable_path, PATH_SIZE, build_dir, final_executable_name)) {
+        fprintf(stderr, "Error: Executable '%s' not found in build directory\n", final_executable_name);
         return -1;
     }
 
@@ -94,7 +62,96 @@ int run_executable_build(const char* cwd) {
     char command[COMMAND_SIZE];
     snprintf(command, sizeof(command), "%s", executable_path);
 
-    fprintf(stdout, "Running '%s'...\n\n", executable_name);
+    fprintf(stdout, "Running '%s'...\n\n", final_executable_name);
+    if (system(command) != 0)
+    {
+        fprintf(stderr, "Error: Failed to run executable\n");
+        return -1;
+    }
+
+    // Run successful
+    return 0;
+}
+
+// Runs a specified executable in the workspace, runs the only executable present if name not specified
+int run_executable_workspace(const char* workspace_root, const char* executable_name) {
+
+    // Load workspace config
+    workspace_config_t config = {0};
+    if (load_workspace_config(&config, workspace_root) != 0) {
+        return -1;
+    }
+
+    // Get number of executables in the workspace
+    int executable_count = get_executable_member_count(workspace_root, &config);
+
+    // Throw error if workspace does not have any executables
+    if (executable_count == 0) {
+        fprintf(stderr, "Error: Workspace does not contain any executables\n");
+        return -1;
+    }
+
+    // If there are multiple executables and no executable was specified, throw error
+    if (executable_count > 1 && executable_name == NULL) {
+        fprintf(stderr, "Error: Workspace contains multiple executables\n");
+        fprintf(stderr, "       Please specify the name of executable to run\n");
+        return -1;
+    }
+
+    // Find executable member and get its name
+    char final_executable_name[128];
+    if (executable_name == NULL) {
+        for (int i = 0; i < config.member_count; i++) {
+            char path_to_member[PATH_SIZE];
+            snprintf(path_to_member, sizeof(path_to_member), "%s/%s", workspace_root, config.members[i]);
+
+            // Load member config and check if it is executable
+            project_config_t member_config = {0};
+            if (load_project_config(&member_config, path_to_member) != 0) {
+                return -1;
+            }
+            if (validate_project_config(&member_config) != 0) {
+                return -1;
+            }
+
+            // Get the name of the project if executable
+            if (strcmp(member_config.build.type, "executable") == 0) {
+                #ifdef _WIN32
+                snprintf(final_executable_name, sizeof(final_executable_name), "%s.exe", member_config.project.name);
+                #else
+                snprintf(final_executable_name, sizeof(final_executable_name), "%s", member_config.project.name);
+                #endif
+            }
+        }
+    }
+    else {
+        snprintf(final_executable_name, sizeof(final_executable_name), "%s", executable_name);
+    }
+
+    // Build workspace before run
+    if (build_workspace(workspace_root) != 0) {
+        return -1;
+    }
+
+    // Get path to build directory
+    char build_dir[PATH_SIZE];
+    snprintf(build_dir, sizeof(build_dir), "%s/build", workspace_root);
+    if (!dir_exists(build_dir)) {
+        fprintf(stderr, "Error: No build directory found\n\n");
+        return -1;
+    }
+
+    char executable_path[PATH_SIZE];
+    if (!search_dir_for_file(executable_path, PATH_SIZE, build_dir, final_executable_name)) {
+        fprintf(stderr, "Error: Executable '%s' not found in build directory\n", final_executable_name);
+        return -1;
+    }
+
+    // Run executable
+    char command[COMMAND_SIZE];
+    snprintf(command, sizeof(command), "%s", executable_path);
+
+    fprintf(stdout, "Running '%s'...\n\n", final_executable_name);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to run executable\n");
@@ -114,12 +171,23 @@ int handle_run(const command_t* command_data) {
         return -1;
     }
 
-    // If no arguments, run the executable in the build directory
-    if (command_data->arg_count == 0) {
-        return run_executable_build(cwd);
+    // Get executable name if specified
+    const char* executable_name = NULL;
+    if (command_data->arg_count > 0) {
+        executable_name = command_data->args[0];
     }
 
-    // If path was specified, run that executable instead
-    const char* executable_path = command_data->args[0];
-    return run_executable_relative(cwd, executable_path);
+    // Get path to project or workspace root and run executable
+    char project_root[PATH_SIZE];
+    if (get_project_root(project_root, sizeof(project_root), cwd) == 0) {
+        return run_executable_project(project_root, executable_name);
+    }
+
+    char workspace_root[PATH_SIZE];
+    if (get_workspace_root(workspace_root, sizeof(workspace_root), cwd) != 0) {
+        fprintf(stderr, "Error: No craft.toml found in current directory or any parent directory\n");
+        return -1;
+    }
+
+    return run_executable_workspace(workspace_root, executable_name);
 }
