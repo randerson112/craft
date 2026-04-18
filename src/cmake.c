@@ -119,7 +119,7 @@ static void write_libs(FILE* file, project_config_t* config) {
 // Writes cmake to embed VERSION macro into binary
 static int write_version_compile_definition(FILE* file, project_config_t* config) {
     fprintf(file, "set(VERSION %s)\n", config->project.version);
-    fprintf(file, "target_compile_definitions(%s PRIVATE VERSION=\"${VERSION}\")\n", config->project.name);
+    fprintf(file, "target_compile_definitions(%s PRIVATE VERSION=\"${VERSION}\")\n\n", config->project.name);
     return 0;
 }
 
@@ -235,7 +235,7 @@ static int write_dependencies(FILE* file, const char* project_path, project_conf
 
     // Only write if there are dependencies present
     if (config->dependencies.dependencies_count > 0) {
-        fprintf(file, "\n# Dependencies\n\n");
+        fprintf(file, "# Dependencies\n");
         for (int i = 0; i < config->dependencies.dependencies_count; i++) {
             dependency_t* dep = &config->dependencies.dependencies[i];
 
@@ -260,11 +260,20 @@ static int write_dependencies(FILE* file, const char* project_path, project_conf
     return 0;
 }
 
-// Writes the escape hatch include
-static void write_escape_hatch(FILE* file) {
-    fprintf(file, "if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.extra.cmake)\n");
-    fprintf(file, "    include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.extra.cmake)\n");
+// Writes the before escape hatch include
+static void write_before_escape_hatch(FILE* file) {
+    fprintf(file, "# Additional configuration in CMakeLists.before.cmake will go here\n");
+    fprintf(file, "if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.before.cmake)\n");
+    fprintf(file, "    include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.before.cmake)\n");
     fprintf(file, "endif()\n\n");
+}
+
+// Writes the after escape hatch include
+static void write_after_escape_hatch(FILE* file) {
+    fprintf(file, "# Additional configuration in CMakeLists.after.cmake will go here\n");
+    fprintf(file, "if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.after.cmake)\n");
+    fprintf(file, "    include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.after.cmake)\n");
+    fprintf(file, "endif()\n");
 }
 
 int generate_project_cmake(const char* project_path, project_config_t* config) {
@@ -278,13 +287,14 @@ int generate_project_cmake(const char* project_path, project_config_t* config) {
     }
 
     write_header(file, config);
-    write_escape_hatch(file);
+    write_before_escape_hatch(file);
     write_sources(file, config);
     write_target(file, config);
     write_includes(file, config);
     write_libs(file, config);
     write_version_compile_definition(file, config);
     write_dependencies(file, project_path, config);
+    write_after_escape_hatch(file);
 
     fclose(file);
     return 0;
@@ -310,7 +320,7 @@ int generate_workspace_cmake(const char* workspace_root, workspace_config_t* con
     fprintf(file, "cmake_minimum_required(VERSION 3.14)\n");
     fprintf(file, "project(craft_workspace)\n\n");
 
-    write_escape_hatch(file);
+    write_before_escape_hatch(file);
 
     fprintf(file, "# Members\n");
     for (int i = 0; i < config->member_count; i++) {
@@ -334,6 +344,9 @@ int generate_workspace_cmake(const char* workspace_root, workspace_config_t* con
         fprintf(file, "    add_subdirectory(${CMAKE_SOURCE_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n", config->members[i], config->members[i]);
         fprintf(file, "endif()\n");
     }
+
+    write_after_escape_hatch(file);
+    fclose(file);
 
     return 0;
 }
