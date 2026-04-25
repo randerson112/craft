@@ -11,7 +11,7 @@
 #include "workspace.h"
 
 // Runs the executable in the project build directory
-int run_executable_project(const char* project_root, const char* executable_name) {
+int run_executable_project(const char* project_root, const char* executable_name, const char* profile) {
 
     // Load project config
     project_config_t config;
@@ -26,7 +26,7 @@ int run_executable_project(const char* project_root, const char* executable_name
     }
 
     // Build project before run
-    if (build_project(project_root) != 0) {
+    if (build_project(project_root, profile) != 0) {
         return -1;
     }
 
@@ -74,7 +74,7 @@ int run_executable_project(const char* project_root, const char* executable_name
 }
 
 // Runs a specified executable in the workspace, runs the only executable present if name not specified
-int run_executable_workspace(const char* workspace_root, const char* executable_name) {
+int run_executable_workspace(const char* workspace_root, const char* executable_name, const char* profile) {
 
     // Load workspace config
     workspace_config_t config = {0};
@@ -129,7 +129,7 @@ int run_executable_workspace(const char* workspace_root, const char* executable_
     }
 
     // Build workspace before run
-    if (build_workspace(workspace_root) != 0) {
+    if (build_workspace(workspace_root, profile) != 0) {
         return -1;
     }
 
@@ -177,10 +177,28 @@ int handle_run(const command_t* command_data) {
         executable_name = command_data->args[0];
     }
 
+    // Get release or profile option
+    const option_t* release_option = get_option(command_data, "release");
+    const option_t* profile_option = get_option(command_data, "profile");
+
+    if (release_option && profile_option) {
+        fprintf(stderr, "Error: --release and --profile cannot be used together\n");
+        fprintf(stderr, "       --release is a shorthand for --profile release\n");
+        return -1;
+    }
+
+    const char* profile = "dev";
+    if (release_option) {
+        profile = "release";
+    }
+    if (profile_option) {
+        profile = profile_option->arg;
+    }
+
     // Get path to project or workspace root and run executable
     char project_root[PATH_SIZE];
     if (get_project_root(project_root, sizeof(project_root), cwd) == 0) {
-        return run_executable_project(project_root, executable_name);
+        return run_executable_project(project_root, executable_name, profile);
     }
 
     char workspace_root[PATH_SIZE];
@@ -189,5 +207,5 @@ int handle_run(const command_t* command_data) {
         return -1;
     }
 
-    return run_executable_workspace(workspace_root, executable_name);
+    return run_executable_workspace(workspace_root, executable_name, profile);
 }

@@ -34,10 +34,30 @@ typedef struct {
     int dependencies_count;
 } dependencies_section_t;
 
+// Struct to store data about a build profile
+typedef struct {
+    char name[64];
+    int optimize;
+    int symbols;
+    int warnings;
+    int warnings_as_errors;
+    int lto;
+    char defines[16][128];
+    int define_count;
+    char flags[16][128];
+    int flag_count;
+    char link_flags[16][128];
+    int link_flag_count;
+    char sanitizers[16][128];
+    int sanitizer_count;
+} build_profile_t;
+
 // Struct to hold project config data from craft.toml
 typedef struct {
     project_section_t project;
     build_section_t build;
+    build_profile_t profiles[16];
+    int profile_count;
     dependencies_section_t dependencies;
 } project_config_t;
 

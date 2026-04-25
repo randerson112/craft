@@ -35,7 +35,7 @@ int dispatch(command_t* command_data) {
     // Dispatch to respective command handler
     if (strcmp(command, "project") == 0)  return handle_project(command_data);
     if (strcmp(command, "init") == 0)     return handle_init(command_data);
-    if (strcmp(command, "build") == 0)    return handle_build();
+    if (strcmp(command, "build") == 0)    return handle_build(command_data);
     if (strcmp(command, "run") == 0)      return handle_run(command_data);
     if (strcmp(command, "gen") == 0)      return handle_gen(command_data);
     if (strcmp(command, "clean") == 0)    return handle_clean();

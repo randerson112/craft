@@ -260,7 +260,7 @@ static int load_build_section(build_section_t* build, toml_result_t* result) {
     return 0;
 }
 
-// Loads the dependencies section values into config struct
+// Loads the dependencies section values into config struct if present
 static int load_dependencies_section(dependencies_section_t* dependencies, toml_result_t* result) {
 
     // Check if section is present
@@ -379,6 +379,16 @@ static int load_dependencies_section(dependencies_section_t* dependencies, toml_
     }
 
     return 0;
+}
+
+// loads build profile sections into config struct if present
+static int load_profile_sections(build_profile_t* profiles, toml_result_t* result) {
+
+    // Check if section is present
+    toml_datum_t deps_section = toml_seek(result->toptab, "profile");
+    if (deps_section.type != TOML_TABLE) {
+        return 0;
+    }
 }
 
 int load_project_config(project_config_t* config, const char* project_root) {

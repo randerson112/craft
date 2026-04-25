@@ -7,6 +7,8 @@
 
 static const char* project_options[] = {"template", "lang", "no-git"};
 static const char* init_options[] = {"template", "lang", "no-git"};
+static const char* build_options[] = {"release", "profile"};
+static const char* run_options[] = {"release", "profile"};
 static const char* delete_options[] = {"lang"};
 static const char* list_options[] = {"lang", "all"};
 static const char* where_options[] = {"lang"};
@@ -26,11 +28,11 @@ static const subcommand_info_t config_subcommands[] = {
 	{"list", "craft config list",              NULL, 0, 0, 0}
 };
 
-const command_info_t commands_info[] = {
+static const command_info_t commands_info[] = {
 	{"project",   "craft project <path> [options]",     NULL,                 0, project_options, 3, 1, 1},
 	{"init",      "craft init [path] [options]",        NULL,                 0, init_options,    3, 0, 1},
-	{"build",     "craft build",                        NULL,                 0, NULL,            0, 0, 0},
-	{"run",       "craft run [path]",                   NULL,                 0, NULL,            0, 0, 1},
+	{"build",     "craft build",                        NULL,                 0, build_options,   2, 0, 0},
+	{"run",       "craft run [path]",                   NULL,                 0, run_options,     2, 0, 1},
 	{"clean",     "craft clean",                        NULL,                 0, NULL,            0, 0, 0},
 	{"gen",       "craft gen <file>",                   NULL,                 0, NULL,            0, 1, 1},
 	{"help",      "craft help [command] [subcommand]",  NULL,                 0, NULL,            0, 0, 2},
@@ -42,10 +44,11 @@ const command_info_t commands_info[] = {
 	{"upgrade",   "craft upgrade",                      NULL,                 0, NULL,            0, 0, 0},
 	{"workspace", "craft workspace [path]",             NULL,                 0, NULL,            0, 0, 1}
 };
+static const int num_commands = 14;
 
 static const char* lang_args[] = {"c", "cpp"};
 
-const option_info_t options_info[] = {
+static const option_info_t options_info[] = {
 	{"template",  't', "--template <name>\n\t-t <name>",     1, NULL,      0},
 	{"lang",      'l', "--lang <language>\n\t-l <language>", 1, lang_args, 2},
 	{"no-git",     0,  "--no-git",                           0, NULL,      0},
@@ -54,12 +57,15 @@ const option_info_t options_info[] = {
     {"git",        0,  "--git <url>",                        1, NULL,      0},
     {"tag",        0,  "--tag <tag>",                        1, NULL,      0},
     {"branch",     0,  "--branch <branch>",                  1, NULL,      0},
-	{"links",     'l', "--links <list>\n\t-l <list>",        1, NULL,      0}
+	{"links",     'l', "--links <list>\n\t-l <list>",        1, NULL,      0},
+	{"profile",   'p', "--profile <name>\n\t-p <name>",      1, NULL,      0},
+	{"release",   'r',  "--release",                         0, NULL,      0}
 };
+static const int num_options = 11;
 
 // Gets respective command info struct based on command name
 const command_info_t* get_command_info(const char* command) {
-	for (int i = 0; i < NUM_COMMANDS; i++) {
+	for (int i = 0; i < num_commands; i++) {
 		if (strcmp(commands_info[i].name, command) == 0) {
 			return &commands_info[i];
 		}
@@ -84,7 +90,7 @@ const subcommand_info_t* get_subcommand_info(const char* command, const char* su
 
 // Gets respective option info struct based on option name
 const option_info_t* get_option_info(const char* option) {
-	for (int i = 0; i < NUM_OPTIONS; i++) {
+	for (int i = 0; i < num_options; i++) {
 		if (strcmp(options_info[i].name, option) == 0) {
 			return &options_info[i];
 		}
@@ -95,7 +101,7 @@ const option_info_t* get_option_info(const char* option) {
 
 // Gets respective option info struct based on shorthand
 const option_info_t* get_option_info_from_shorthand(const char shorthand) {
-	for (int i = 0; i < NUM_OPTIONS; i++) {
+	for (int i = 0; i < num_options; i++) {
 		if (options_info[i].shorthand == shorthand) {
 			return &options_info[i];
 		}
@@ -257,13 +263,13 @@ const char* get_option_usage(const char* option) {
 const char* get_command_suggestion(const char* unknown) {
 
 	// Get array of command names
-	const char* valid_commands[NUM_COMMANDS];
-	for (int i = 0; i < NUM_COMMANDS; i++) {	
+	const char* valid_commands[num_commands];
+	for (int i = 0; i < num_commands; i++) {	
 		valid_commands[i] = commands_info[i].name;
 	}
 
 	// Return suggestion if unkown command is close enough
-	const char* suggestion = suggest(unknown, valid_commands, NUM_COMMANDS);
+	const char* suggestion = suggest(unknown, valid_commands, num_commands);
 	return suggestion;
 }
 

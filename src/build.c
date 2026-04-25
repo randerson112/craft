@@ -12,7 +12,7 @@
 #include "deps.h"
 #include "platform.h"
 
-int build_project(const char* project_root) {
+int build_project(const char* project_root, const char* profile) {
 
     // Regenerate CMakeLists.txt from craft.toml if needed
     project_config_t config;
@@ -80,7 +80,7 @@ int build_project(const char* project_root) {
     return 0;
 }
 
-int build_workspace(const char* workspace_root) {
+int build_workspace(const char* workspace_root, const char* profile) {
 
     // Regenerate CMakeLists.txt from craft.toml if needed
     workspace_config_t config = {0};
@@ -138,13 +138,31 @@ int build_workspace(const char* workspace_root) {
     return 0;
 }
 
-int handle_build() {
+int handle_build(const command_t* command_data) {
     // Retrive path of current working directory where craft is being called
     char cwd[PATH_SIZE];
     if (get_cwd(cwd, sizeof(cwd)) == NULL)
     {
         fprintf(stderr, "Error: Failed to get current working directory\n");
         return -1;
+    }
+
+    // Get release or profile option
+    const option_t* release_option = get_option(command_data, "release");
+    const option_t* profile_option = get_option(command_data, "profile");
+
+    if (release_option && profile_option) {
+        fprintf(stderr, "Error: --release and --profile cannot be used together\n");
+        fprintf(stderr, "       --release is a shorthand for --profile release\n");
+        return -1;
+    }
+
+    const char* profile = "dev";
+    if (release_option) {
+        profile = "release";
+    }
+    if (profile_option) {
+        profile = profile_option->arg;
     }
 
     // Determine if in a workspace or a project and build
@@ -155,8 +173,8 @@ int handle_build() {
             fprintf(stderr, "Error: Could not find craft.toml in current directory or any parent directory\n");
             return -1;
         }
-        return build_workspace(workspace_root);
+        return build_workspace(workspace_root, profile);
     }
 
-    return build_project(project_root);
+    return build_project(project_root, profile);
 }
