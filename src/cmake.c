@@ -116,6 +116,94 @@ static void write_libs(FILE* file, project_config_t* config) {
     }
 }
 
+// Writes cmake for all defined build profiles
+static void write_build_profiles(FILE* file, project_config_t* config) {
+    for (int i = 0; i < config->profile_count; i++) {
+        build_profile_t* profile = &config->profiles[i];
+
+        fprintf(file, "if(CRAFT_PROFILE STREQUAL \"%s\")\n", profile->name);
+
+        // Compiler flags
+        fprintf(file, "\tif(MSVC)\n");
+        fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
+        if (profile->optimize) {
+            fprintf(file, " /O2");
+        }
+        if (profile->symbols) {
+            fprintf(file, " /Zi");
+        }
+        if (profile->warnings) {
+            fprintf(file, " /W4");
+        }
+        if (profile->werror) {
+            fprintf(file, " /WX");
+        }
+        fprintf(file, ")\n");
+        fprintf(file, "\telse()\n");
+        fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
+        if (profile->optimize) {
+            fprintf(file, " -O2");
+        }
+        if (profile->symbols) {
+            fprintf(file, " -g");
+        }
+        if (profile->warnings) {
+            fprintf(file, " -Wall -Wextra");
+        }
+        if (profile->werror) {
+            fprintf(file, " -Werror");
+        }
+        if (profile->lto) {
+            fprintf(file, " -flto");
+        }
+        fprintf(file, ")\n");
+        fprintf(file, "\tendif()\n\n");
+
+        // Custom defines
+        if (profile->define_count > 0) {
+            fprintf(file, "\ttarget_compile_definitions(%s PRIVATE", config->project.name);
+            for (int j = 0; j < profile->define_count; j++) {
+                fprintf(file, " %s", profile->defines[j]);
+            }
+            fprintf(file, ")\n\n");
+        }
+
+        // Custom flags
+        if (profile->flag_count > 0) {
+            fprintf(file, "\ttarget_compile_options(%s PRIVATE", config->project.name);
+            for (int j = 0; j < profile->flag_count; j++) {
+                fprintf(file, " %s", profile->flags[j]);
+            }
+            fprintf(file, ")\n\n");
+        }
+
+        // Custom link flags
+        if (profile->link_flag_count > 0) {
+            fprintf(file, "\ttarget_link_options(%s PRIVATE", config->project.name);
+            for (int j = 0; j < profile->link_flag_count; j++) {
+                fprintf(file, " %s", profile->link_flags[j]);
+            }
+            fprintf(file, ")\n\n");
+        }
+
+        // Sanitizers
+        if (profile->sanitizer_count > 0) {
+            fprintf(file, "\tif(NOT MSVC)\n");
+            fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
+            for (int i = 0; i < profile->sanitizer_count; i++)
+                fprintf(file, " -fsanitize=%s", profile->sanitizers[i]);
+            fprintf(file, ")\n");
+            fprintf(file, "\t\ttarget_link_options(%s PRIVATE", config->project.name);
+            for (int i = 0; i < profile->sanitizer_count; i++)
+                fprintf(file, " -fsanitize=%s", profile->sanitizers[i]);
+            fprintf(file, ")\n");
+            fprintf(file, "\tendif()\n\n");
+        }
+
+        fprintf(file, "endif()\n\n");
+    }
+}
+
 // Writes cmake to embed VERSION macro into binary
 static int write_version_compile_definition(FILE* file, project_config_t* config) {
     fprintf(file, "set(VERSION %s)\n", config->project.version);
@@ -292,6 +380,7 @@ int generate_project_cmake(const char* project_path, project_config_t* config) {
     write_target(file, config);
     write_includes(file, config);
     write_libs(file, config);
+    write_build_profiles(file, config);
     write_version_compile_definition(file, config);
     write_dependencies(file, project_path, config);
     write_after_escape_hatch(file);

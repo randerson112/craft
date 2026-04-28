@@ -38,10 +38,15 @@ typedef struct {
 typedef struct {
     char name[64];
     int optimize;
+    int has_optimize;
     int symbols;
+    int has_symbols;
     int warnings;
-    int warnings_as_errors;
+    int has_warnings;
+    int werror;
+    int has_werror;
     int lto;
+    int has_lto;
     char defines[16][128];
     int define_count;
     char flags[16][128];

@@ -26,7 +26,38 @@ static const config_key_t build_keys[] = {
 };
 static const int num_build_keys = 5;
 
-// Checks if given path is a Craft project
+// Information about the profile section keys in craft.toml
+static const config_key_t profile_keys[] = {
+    {"optimize", 0},
+    {"symbols", 0},
+    {"warnings", 0},
+    {"werror", 0},
+    {"lto", 0},
+    {"defines", 0},
+    {"flags", 0},
+    {"link_flags", 0},
+    {"sanitizers", 0}
+};
+static const int num_profile_keys = 9;
+
+// Default values for dev profile
+static const build_profile_t default_dev_profile = {
+    .optimize = 0,
+    .symbols = 1,
+    .warnings = 1,
+    .werror = 0,
+    .lto = 0
+};
+
+// Default values for release profile
+static const build_profile_t default_release_profile = {
+    .optimize = 1,
+    .symbols = 0,
+    .warnings = 0,
+    .werror = 0,
+    .lto = 1
+};
+
 int is_craft_project(const char* path) {
 
     // Check if craft.toml exists at path
@@ -381,14 +412,157 @@ static int load_dependencies_section(dependencies_section_t* dependencies, toml_
     return 0;
 }
 
+// Loads the default dev and release profile values into the config struct
+static void load_default_profiles(project_config_t* config) {
+    // Dev profile
+    build_profile_t* dev = &config->profiles[config->profile_count++];
+    *dev = default_dev_profile;
+    snprintf(dev->name, sizeof(dev->name), "dev");
+
+    // Release profile
+    build_profile_t* release = &config->profiles[config->profile_count++];
+    *release = default_release_profile;
+    snprintf(release->name, sizeof(release->name), "release");
+}
+
+// Returns pointer to profile in profiles array from a given name
+static build_profile_t* find_or_create_profile(project_config_t* config, const char* profile_name) {
+    // Check if profile already exists
+    for (int i = 0; i < config->profile_count; i++) {
+        if (strcmp(config->profiles[i].name, profile_name) == 0) {
+            return &config->profiles[i];
+        }
+    }
+
+    // New custom profile
+    if (config->profile_count >= 16) return NULL;
+
+    build_profile_t* profile = &config->profiles[config->profile_count++];
+    memset(profile, 0, sizeof(*profile));
+    snprintf(profile->name, sizeof(profile->name), "%s", profile_name);
+
+    return profile;
+}
+
 // loads build profile sections into config struct if present
-static int load_profile_sections(build_profile_t* profiles, toml_result_t* result) {
+static int load_profile_sections(project_config_t* config, toml_result_t* result) {
+
+    // Load the default profiles
+    load_default_profiles(config);
 
     // Check if section is present
-    toml_datum_t deps_section = toml_seek(result->toptab, "profile");
-    if (deps_section.type != TOML_TABLE) {
+    toml_datum_t profiles_table = toml_seek(result->toptab, "profile");
+    if (profiles_table.type != TOML_TABLE) {
         return 0;
     }
+
+    // Loop through profiles defined in craft.toml
+    for (int i = 0; i < profiles_table.u.tab.size; i++) {
+        const char* profile_name = profiles_table.u.tab.key[i];
+
+        build_profile_t* profile = find_or_create_profile(config, profile_name);
+        if (!profile) {
+            fprintf(stderr, "Error: Too many profiles defined in craft.toml\n");
+            return -1;
+        }
+
+        toml_datum_t profile_table = profiles_table.u.tab.value[i];
+
+        // Check for unknown keys
+        char section_name[64];
+        snprintf(section_name, sizeof(section_name), "profile.%s", profile_name);
+        if (check_unknown_keys(profile_table, section_name, profile_keys, num_profile_keys) != 0) {
+            return -1;
+        }
+
+        // Get profile keys
+        toml_datum_t optimize = toml_seek(profile_table, "optimize");
+        toml_datum_t symbols = toml_seek(profile_table, "symbols");
+        toml_datum_t warnings = toml_seek(profile_table, "warnings");
+        toml_datum_t werror = toml_seek(profile_table, "werror");
+        toml_datum_t lto = toml_seek(profile_table, "lto");
+        toml_datum_t defines = toml_seek(profile_table, "defines");
+        toml_datum_t flags = toml_seek(profile_table, "flags");
+        toml_datum_t link_flags = toml_seek(profile_table, "link_flags");
+        toml_datum_t sanitizers = toml_seek(profile_table, "sanitizers");
+
+        // Store values into config struct
+        // Optimize
+        if (optimize.type == TOML_BOOLEAN) {
+            profile->optimize = optimize.u.boolean ? 1 : 0;
+            profile->has_optimize = 1;
+        }
+
+        // Symbols
+        if (symbols.type == TOML_BOOLEAN) {
+            profile->symbols = symbols.u.boolean ? 1 : 0;
+            profile->has_symbols = 1;
+        }
+
+        // Warnings
+        if (warnings.type == TOML_BOOLEAN) {
+            profile->warnings = warnings.u.boolean ? 1 : 0;
+            profile->has_warnings = 1;
+        }
+
+        // Warnings as errors
+        if (werror.type == TOML_BOOLEAN) {
+            profile->werror = werror.u.boolean ? 1 : 0;
+            profile->has_werror = 1;
+        }
+
+        // Link time optimizations
+        if (lto.type == TOML_BOOLEAN) {
+            profile->lto = lto.u.boolean ? 1 : 0;
+            profile->has_lto = 1;
+        }
+
+        // Defines
+        if (defines.type == TOML_ARRAY) {
+            profile->define_count = defines.u.arr.size;
+            for (int j = 0; j < defines.u.arr.size; j++) {
+                toml_datum_t elem = defines.u.arr.elem[j];
+                if (elem.type == TOML_STRING) {
+                    snprintf(profile->defines[j], sizeof(profile->defines[j]), "%s", elem.u.s);
+                }
+            }
+        }
+
+        // Flags
+        if (flags.type == TOML_ARRAY) {
+            profile->flag_count = flags.u.arr.size;
+            for (int j = 0; j < flags.u.arr.size; j++) {
+                toml_datum_t elem = flags.u.arr.elem[j];
+                if (elem.type == TOML_STRING) {
+                    snprintf(profile->flags[j], sizeof(profile->flags[j]), "%s", elem.u.s);
+                }
+            }
+        }
+
+        // Link flags
+        if (link_flags.type == TOML_ARRAY) {
+            profile->link_flag_count = link_flags.u.arr.size;
+            for (int j = 0; j < link_flags.u.arr.size; j++) {
+                toml_datum_t elem = link_flags.u.arr.elem[j];
+                if (elem.type == TOML_STRING) {
+                    snprintf(profile->link_flags[j], sizeof(profile->link_flags[j]), "%s", elem.u.s);
+                }
+            }
+        }
+
+        // Sanitizers
+        if (sanitizers.type == TOML_ARRAY) {
+            profile->sanitizer_count = sanitizers.u.arr.size;
+            for (int j = 0; j < sanitizers.u.arr.size; j++) {
+                toml_datum_t elem = sanitizers.u.arr.elem[j];
+                if (elem.type == TOML_STRING) {
+                    snprintf(profile->sanitizers[j], sizeof(profile->sanitizers[j]), "%s", elem.u.s);
+                }
+            }
+        }
+    }
+
+    return 0;
 }
 
 int load_project_config(project_config_t* config, const char* project_root) {
@@ -422,6 +596,10 @@ int load_project_config(project_config_t* config, const char* project_root) {
         return -1;
     }
     if (load_build_section(&config->build, &result) != 0) {
+        toml_free(result);
+        return -1;
+    }
+    if (load_profile_sections(config, &result) != 0) {
         toml_free(result);
         return -1;
     }
@@ -514,6 +692,7 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
         return -1;
     }
 
+    // Project section
     fprintf(file, "[project]\n");
     if (strlen(config->project.name) > 0) {
         fprintf(file, "name = \"%s\"\n", config->project.name);
@@ -531,11 +710,10 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
         fprintf(file, "cpp_standard = %d\n", config->project.cpp_standard);
     }
 
-    // Built type
+    // Build section
     fprintf(file, "\n[build]\n");
     fprintf(file, "type = \"%s\"\n", config->build.type);
 
-    // Include dirs
     fprintf(file, "include_dirs = [");
     if (config->build.include_dir_count > 0) {
         for (int i = 0; i < config->build.include_dir_count; i++)
@@ -545,7 +723,6 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
     }
     fprintf(file, "]\n");
 
-    // Source dirs
     fprintf(file, "source_dirs = [");
     if (config->build.source_dir_count > 0) {
         for (int i = 0; i < config->build.source_dir_count; i++)
@@ -555,7 +732,6 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
     }
     fprintf(file, "]\n");
 
-    // Lib dirs (only write if present)
     if (config->build.lib_dir_count > 0) {
         fprintf(file, "lib_dirs = [");
         for (int i = 0; i < config->build.lib_dir_count; i++)
@@ -563,7 +739,6 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
         fprintf(file, "]\n");
     }
 
-    // Libs (only write if present)
     if (config->build.lib_count > 0) {
         fprintf(file, "libs = [");
         for (int i = 0; i < config->build.lib_count; i++)
@@ -571,7 +746,53 @@ int generate_craft_toml(const char* project_path, project_config_t* config) {
         fprintf(file, "]\n");
     }
 
-    // Write dependencies if present
+    // Profile sections
+    for (int i = 0; i < config->profile_count; i++) {
+        build_profile_t* profile = &config->profiles[i];
+        fprintf(file, "\n[profile.%s]\n", profile->name);
+
+        if (profile->has_optimize) {
+            fprintf(file, "optimize = %s\n", profile->optimize ? "true" : "false");
+        }
+        if (profile->has_symbols) {
+            fprintf(file, "symbols = %s\n", profile->symbols ? "true" : "false");
+        }
+        if (profile->has_warnings) {
+            fprintf(file, "warnings = %s\n", profile->warnings ? "true" : "false");
+        }
+        if (profile->has_werror) {
+            fprintf(file, "werror = %s\n", profile->werror ? "true" : "false");
+        }
+        if (profile->has_lto) {
+            fprintf(file, "lto = %s\n", profile->lto ? "true" : "false");
+        }
+        if (profile->define_count > 0) {
+            fprintf(file, "defines = [");
+            for (int j = 0; j < profile->define_count; j++)
+                fprintf(file, "%s\"%s\"", j > 0 ? ", " : "", profile->defines[j]);
+            fprintf(file, "]\n");
+        }
+        if (profile->flag_count > 0) {
+            fprintf(file, "flags = [");
+            for (int j = 0; j < profile->flag_count; j++)
+                fprintf(file, "%s\"%s\"", j > 0 ? ", " : "", profile->flags[j]);
+            fprintf(file, "]\n");
+        }
+        if (profile->link_flag_count > 0) {
+            fprintf(file, "link_flags = [");
+            for (int j = 0; j < profile->link_flag_count; j++)
+                fprintf(file, "%s\"%s\"", j > 0 ? ", " : "", profile->link_flags[j]);
+            fprintf(file, "]\n");
+        }
+        if (profile->sanitizer_count > 0) {
+            fprintf(file, "sanitizers = [");
+            for (int j = 0; j < profile->sanitizer_count; j++)
+                fprintf(file, "%s\"%s\"", j > 0 ? ", " : "", profile->sanitizers[j]);
+            fprintf(file, "]\n");
+        }
+    }
+
+    // Dependencies section
     if (config->dependencies.dependencies_count > 0) {
         fprintf(file, "\n[dependencies]\n");
         for (int i = 0; i < config->dependencies.dependencies_count; i++) {

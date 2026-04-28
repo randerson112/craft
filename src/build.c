@@ -59,7 +59,7 @@ int build_project(const char* project_root, const char* profile) {
     // Run cmake to build project
     fprintf(stdout, "Configuring...\n");
     char configure_command[COMMAND_SIZE];
-    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" -Wno-dev > %s", project_root, build_dir, DEVNULL);
+    snprintf(configure_command, sizeof(configure_command), "cmake -DCRAFT_PROFILE=\"%s\" -S \"%s\" -B \"%s/%s\" -Wno-dev > %s", profile, project_root, build_dir, profile, DEVNULL);
 
     if (system(configure_command) != 0) {
         fprintf(stderr, "Error: Failed to configure CMake\n");
@@ -67,7 +67,7 @@ int build_project(const char* project_root, const char* profile) {
     }
 
     char build_command[COMMAND_SIZE];
-    snprintf(build_command, sizeof(build_command), "cmake --build \"%s\" > %s", build_dir, DEVNULL);
+    snprintf(build_command, sizeof(build_command), "cmake --build \"%s/%s\" > %s", build_dir, profile, DEVNULL);
 
     fprintf(stdout, "Building...\n");
     if (system(build_command) != 0) {
