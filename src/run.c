@@ -77,8 +77,26 @@ int run_executable_build(const char* cwd) {
     snprintf(executable_name, sizeof(executable_name), "%s", config.name);
     #endif
 
+    // Look up the executable in known CMake generator output locations:
+    // build/<name> for single-config generators (Make, Ninja),
+    // build/<config>/<name> for multi-config generators (Visual Studio, Xcode).
+    static const char* const config_dirs[] = {
+        "", "Debug", "Release", "MinSizeRel", "RelWithDebInfo"
+    };
     char executable_path[PATH_SIZE];
-    if (!search_dir_for_file(executable_path, PATH_SIZE, build_dir, executable_name)) {
+    int found = 0;
+    for (size_t i = 0; i < sizeof(config_dirs) / sizeof(*config_dirs); i++) {
+        if (config_dirs[i][0] == '\0') {
+            snprintf(executable_path, PATH_SIZE, "%s/%s", build_dir, executable_name);
+        } else {
+            snprintf(executable_path, PATH_SIZE, "%s/%s/%s", build_dir, config_dirs[i], executable_name);
+        }
+        if (file_exists(executable_path)) {
+            found = 1;
+            break;
+        }
+    }
+    if (!found) {
         fprintf(stderr, "Error: Executable '%s' not found in build directory\n\n", config.name);
         fprintf(stderr, "Try running 'craft build' to re-build the project first\n");
         return -1;
