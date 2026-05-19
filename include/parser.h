@@ -1,8 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#define NUM_COMMANDS 13
-#define NUM_OPTIONS 9
+#define NUM_COMMANDS 14
+#define NUM_OPTIONS 10
 
 // Enum to denote the parse status
 typedef enum {

@@ -13,6 +13,7 @@ void print_craft_info() {
     fprintf(stdout, "    init            Initialize a project in the current or given directory\n");
     fprintf(stdout, "    build           Build the project in the current directory\n");
     fprintf(stdout, "    run             Run a compiled executable\n");
+    fprintf(stdout, "    test            Build and run tests in the tests/ directory\n");
     fprintf(stdout, "    gen             Generate a file with boilerplate\n");
     fprintf(stdout, "    clean           Remove the build directory\n");
     fprintf(stdout, "    add             Add a dependency to the project\n");
@@ -27,6 +28,7 @@ void print_craft_info() {
     fprintf(stdout, "    craft init\n");
     fprintf(stdout, "    craft build\n");
     fprintf(stdout, "    craft run\n");
+    fprintf(stdout, "    craft test\n");
     fprintf(stdout, "    craft clean\n");
     fprintf(stdout, "    craft add --path ../my_lib\n");
     fprintf(stdout, "    craft remove my_lib\n");
@@ -144,6 +146,34 @@ static void print_run_help() {
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "    craft run\n");
     fprintf(stdout, "    craft run my_app\n");
+}
+
+static void print_test_help() {
+    fprintf(stdout, "Command:\n");
+    fprintf(stdout, "    craft test - Build and run tests in the tests/ directory.\n\n");
+
+    fprintf(stdout, "Description:\n");
+    fprintf(stdout, "    Discovers .c / .cpp files in the project's tests/ directory and treats\n");
+    fprintf(stdout, "    each one as an independent test binary (cargo integration-test style).\n");
+    fprintf(stdout, "    Each test file must define its own main() — exit code 0 = pass, nonzero\n");
+    fprintf(stdout, "    = fail. For library projects the test binaries are linked against the\n");
+    fprintf(stdout, "    project library automatically. Test output is suppressed unless a test\n");
+    fprintf(stdout, "    fails; re-run a failed test binary directly to see its output.\n\n");
+
+    fprintf(stdout, "Usage:\n");
+    fprintf(stdout, "    craft test [name] [options]\n\n");
+
+    fprintf(stdout, "Arguments:\n");
+    fprintf(stdout, "    [name]   Optional substring filter. Only tests whose name contains\n");
+    fprintf(stdout, "             this string are run.\n\n");
+
+    fprintf(stdout, "Options:\n");
+    fprintf(stdout, "    --no-run   Build the test binaries but do not run them.\n\n");
+
+    fprintf(stdout, "Examples:\n");
+    fprintf(stdout, "    craft test\n");
+    fprintf(stdout, "    craft test parser           # run only tests with 'parser' in the name\n");
+    fprintf(stdout, "    craft test --no-run\n");
 }
 
 static void print_gen_help() {
@@ -605,6 +635,7 @@ int handle_help(const command_t* command_data) {
     if (strcmp(topic, "init") == 0)           { print_init_help();     return 0; }
     if (strcmp(topic, "build") == 0)          { print_build_help();    return 0; }
     if (strcmp(topic, "run") == 0)            { print_run_help();      return 0; }
+    if (strcmp(topic, "test") == 0)           { print_test_help();     return 0; }
     if (strcmp(topic, "gen") == 0)            { print_gen_help();      return 0; }
     if (strcmp(topic, "clean") == 0)          { print_clean_help();    return 0; }
     if (strcmp(topic, "add") == 0)            { print_add_help();      return 0; }

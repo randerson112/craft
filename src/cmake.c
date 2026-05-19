@@ -249,6 +249,40 @@ static int write_dependencies(FILE* file, const char* project_path, project_conf
     return 0;
 }
 
+// Emits test targets when a tests/ directory exists in the project. Each .c/.cpp
+// at the top level of tests/ becomes an add_executable target named after the
+// file (without extension). For library project types the test target is linked
+// against the project library automatically.
+static void write_tests(FILE* file, project_config_t* config) {
+    int is_library = (strcmp(config->build_type, "executable") != 0);
+
+    fprintf(file, "# Tests\n");
+    fprintf(file, "if(EXISTS \"${CMAKE_SOURCE_DIR}/tests\")\n");
+    fprintf(file, "    file(GLOB CRAFT_TEST_SOURCES CONFIGURE_DEPENDS \"tests/*.c\" \"tests/*.cpp\")\n");
+    fprintf(file, "    foreach(craft_test_source ${CRAFT_TEST_SOURCES})\n");
+    fprintf(file, "        get_filename_component(craft_test_name ${craft_test_source} NAME_WE)\n");
+    fprintf(file, "        add_executable(${craft_test_name} ${craft_test_source})\n");
+    fprintf(file, "        target_include_directories(${craft_test_name} PRIVATE .");
+
+    if (config->include_dir_count > 0) {
+        for (int i = 0; i < config->include_dir_count; i++) {
+            fprintf(file, " %s", config->include_dirs[i]);
+        }
+    } else {
+        fprintf(file, " include");
+    }
+    fprintf(file, ")\n");
+
+    if (is_library && strcmp(config->build_type, "header-only") != 0) {
+        fprintf(file, "        target_link_libraries(${craft_test_name} PRIVATE %s)\n", config->name);
+    } else if (strcmp(config->build_type, "header-only") == 0) {
+        fprintf(file, "        target_link_libraries(${craft_test_name} PRIVATE %s)\n", config->name);
+    }
+
+    fprintf(file, "    endforeach()\n");
+    fprintf(file, "endif()\n\n");
+}
+
 // Writes the escape hatch include
 static void write_escape_hatch(FILE* file) {
     fprintf(file, "if(EXISTS ${CMAKE_SOURCE_DIR}/CMakeLists.extra.cmake)\n");
@@ -274,6 +308,7 @@ int generate_cmake(const char* project_path, project_config_t* config) {
     write_libs(file, config);
     write_version_compile_definition(file, config);
     write_dependencies(file, project_path, config);
+    write_tests(file, config);
 
     fclose(file);
     return 0;
