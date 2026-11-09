@@ -19,6 +19,19 @@ int run_executable_project(const char* project_root, const char* executable_name
         return -1;
     }
 
+    // Check if profile exists
+    int found = 0;
+    for (int i = 0; i < config.profile_count; i++) {
+        if (strcmp(config.profiles[i].name, profile) == 0) {
+            found = 1;
+            break;
+        }
+    }
+    if (!found) {
+        fprintf(stderr, "Error: Profile '%s' is not defined\n", profile);
+        return -1;
+    }
+
     // Make sure project is an executable
     if (strcmp(config.build.type, "executable") != 0) {
         fprintf(stderr, "Error: '%s' is not an executable project\n", config.project.name);
@@ -32,7 +45,7 @@ int run_executable_project(const char* project_root, const char* executable_name
 
     // Get path to build directory
     char build_dir[PATH_SIZE];
-    snprintf(build_dir, sizeof(build_dir), "%s/build", project_root);
+    snprintf(build_dir, sizeof(build_dir), "%s/build/%s", project_root, profile);
     if (!dir_exists(build_dir)) {
         fprintf(stderr, "Error: No build directory found\n\n");
         return -1;
@@ -62,7 +75,7 @@ int run_executable_project(const char* project_root, const char* executable_name
     char command[COMMAND_SIZE];
     snprintf(command, sizeof(command), "%s", executable_path);
 
-    fprintf(stdout, "Running '%s'...\n\n", final_executable_name);
+    fprintf(stdout, "Running '%s' profile for '%s'...\n\n", profile, final_executable_name);
     if (system(command) != 0)
     {
         fprintf(stderr, "Error: Failed to run executable\n");

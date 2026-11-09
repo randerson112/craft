@@ -12,9 +12,17 @@
 #include "deps.h"
 #include "platform.h"
 
+static const char* profile_to_cmake_build_type(build_profile_t* profile) {
+    if (profile->optimize && !profile->symbols)
+        return "Release";
+    if (profile->optimize && profile->symbols)
+        return "RelWithDebInfo";
+    return "Debug";
+}
+
 int build_project(const char* project_root, const char* profile) {
 
-    // Regenerate CMakeLists.txt from craft.toml if needed
+    // Load project config
     project_config_t config;
     if (load_project_config(&config, project_root) != 0) {
         return -1;
@@ -24,6 +32,22 @@ int build_project(const char* project_root, const char* profile) {
         return -1;
     }
 
+    // Check if profile exists
+    build_profile_t* build_profile = NULL;
+    int found = 0;
+    for (int i = 0; i < config.profile_count; i++) {
+        if (strcmp(config.profiles[i].name, profile) == 0) {
+            found = 1;
+            build_profile = &config.profiles[i];
+            break;
+        }
+    }
+    if (!found) {
+        fprintf(stderr, "Error: Profile '%s' is not defined\n", profile);
+        return -1;
+    }
+
+    // Regenerate cmake if needed
     if (cmake_needs_regeneration(project_root)) {
         fprintf(stdout, "Regenerating CMake...\n");
         generate_project_cmake(project_root, &config);
@@ -56,10 +80,17 @@ int build_project(const char* project_root, const char* profile) {
         }
     }
 
+    // Get CMake build type for git dependencies
+    const char* cmake_build_type = profile_to_cmake_build_type(build_profile);
+
     // Run cmake to build project
     fprintf(stdout, "Configuring...\n");
     char configure_command[COMMAND_SIZE];
-    snprintf(configure_command, sizeof(configure_command), "cmake -DCRAFT_PROFILE=\"%s\" -S \"%s\" -B \"%s/%s\" -Wno-dev > %s", profile, project_root, build_dir, profile, DEVNULL);
+    snprintf(configure_command, sizeof(configure_command),
+        "cmake -DCRAFT_PROFILE=\"%s\" "
+        "-DCMAKE_BUILD_TYPE=\"Release\" "
+        "-S \"%s\" -B \"%s/%s\" -Wno-dev > %s",
+        profile, project_root, build_dir, profile, DEVNULL);
 
     if (system(configure_command) != 0) {
         fprintf(stderr, "Error: Failed to configure CMake\n");
@@ -76,7 +107,7 @@ int build_project(const char* project_root, const char* profile) {
     }
 
     // Build successful
-    fprintf(stdout, "Project built successfully\n");
+    fprintf(stdout, "Project '%s' profile built successfully\n", profile);
     return 0;
 }
 
@@ -117,7 +148,11 @@ int build_workspace(const char* workspace_root, const char* profile) {
     // Run cmake to build project
     fprintf(stdout, "Configuring...\n");
     char configure_command[COMMAND_SIZE];
-    snprintf(configure_command, sizeof(configure_command), "cmake -S \"%s\" -B \"%s\" -Wno-dev > %s", workspace_root, build_dir, DEVNULL);
+    snprintf(configure_command, sizeof(configure_command),
+        "cmake -DCRAFT_PROFILE=\"%s\" "
+        "-DCMAKE_BUILD_TYPE=\"Release\" "
+        "-S \"%s\" -B \"%s/%s\" -Wno-dev > %s",
+        profile, workspace_root, build_dir, profile, DEVNULL);
 
     if (system(configure_command) != 0) {
         fprintf(stderr, "Error: Failed to configure CMake\n");
@@ -125,7 +160,7 @@ int build_workspace(const char* workspace_root, const char* profile) {
     }
 
     char build_command[COMMAND_SIZE];
-    snprintf(build_command, sizeof(build_command), "cmake --build \"%s\" > %s", build_dir, DEVNULL);
+    snprintf(build_command, sizeof(build_command), "cmake --build \"%s/%s\" > %s", build_dir, profile, DEVNULL);
 
     fprintf(stdout, "Building...\n");
     if (system(build_command) != 0) {

@@ -21,6 +21,24 @@ add_executable(craft ${SOURCES})
 
 target_include_directories(craft PRIVATE . include)
 
+if(CRAFT_PROFILE STREQUAL "dev")
+	if(MSVC)
+		target_compile_options(craft PRIVATE /Zi /W4)
+	else()
+		target_compile_options(craft PRIVATE -g -Wall -Wextra)
+	endif()
+
+endif()
+
+if(CRAFT_PROFILE STREQUAL "release")
+	if(MSVC)
+		target_compile_options(craft PRIVATE /O2)
+	else()
+		target_compile_options(craft PRIVATE -O2 -flto)
+	endif()
+
+endif()
+
 set(VERSION 1.0.2)
 target_compile_definitions(craft PRIVATE VERSION="${VERSION}")
 

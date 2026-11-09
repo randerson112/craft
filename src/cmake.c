@@ -124,40 +124,53 @@ static void write_build_profiles(FILE* file, project_config_t* config) {
         fprintf(file, "if(CRAFT_PROFILE STREQUAL \"%s\")\n", profile->name);
 
         // Compiler flags
-        fprintf(file, "\tif(MSVC)\n");
-        fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
-        if (profile->optimize) {
-            fprintf(file, " /O2");
+        if (profile->optimize || profile->symbols || profile->warnings || profile->werror || profile->lto) {
+
+            // MSVC
+            fprintf(file, "\tif(MSVC)\n");
+            fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
+            if (profile->optimize) {
+                fprintf(file, " /O2");
+            }
+            if (profile->symbols) {
+                fprintf(file, " /Zi");
+            }
+            if (profile->warnings) {
+                fprintf(file, " /W4");
+            }
+            if (profile->werror) {
+                fprintf(file, " /WX");
+            }
+            if (profile->lto) {
+                fprintf(file, " /GL");
+            }
+            fprintf(file, ")\n");
+
+            if (profile->lto) {
+                fprintf(file, "\t\ttarget_link_options(%s PRIVATE /LTCG)\n", config->project.name);
+            }
+
+            // GCC and Clang
+            fprintf(file, "\telse()\n");
+            fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
+            if (profile->optimize) {
+                fprintf(file, " -O2");
+            }
+            if (profile->symbols) {
+                fprintf(file, " -g");
+            }
+            if (profile->warnings) {
+                fprintf(file, " -Wall -Wextra");
+            }
+            if (profile->werror) {
+                fprintf(file, " -Werror");
+            }
+            if (profile->lto) {
+                fprintf(file, " -flto");
+            }
+            fprintf(file, ")\n");
+            fprintf(file, "\tendif()\n\n");
         }
-        if (profile->symbols) {
-            fprintf(file, " /Zi");
-        }
-        if (profile->warnings) {
-            fprintf(file, " /W4");
-        }
-        if (profile->werror) {
-            fprintf(file, " /WX");
-        }
-        fprintf(file, ")\n");
-        fprintf(file, "\telse()\n");
-        fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
-        if (profile->optimize) {
-            fprintf(file, " -O2");
-        }
-        if (profile->symbols) {
-            fprintf(file, " -g");
-        }
-        if (profile->warnings) {
-            fprintf(file, " -Wall -Wextra");
-        }
-        if (profile->werror) {
-            fprintf(file, " -Werror");
-        }
-        if (profile->lto) {
-            fprintf(file, " -flto");
-        }
-        fprintf(file, ")\n");
-        fprintf(file, "\tendif()\n\n");
 
         // Custom defines
         if (profile->define_count > 0) {
@@ -190,11 +203,11 @@ static void write_build_profiles(FILE* file, project_config_t* config) {
         if (profile->sanitizer_count > 0) {
             fprintf(file, "\tif(NOT MSVC)\n");
             fprintf(file, "\t\ttarget_compile_options(%s PRIVATE", config->project.name);
-            for (int i = 0; i < profile->sanitizer_count; i++)
+            for (int j = 0; j < profile->sanitizer_count; j++)
                 fprintf(file, " -fsanitize=%s", profile->sanitizers[i]);
             fprintf(file, ")\n");
             fprintf(file, "\t\ttarget_link_options(%s PRIVATE", config->project.name);
-            for (int i = 0; i < profile->sanitizer_count; i++)
+            for (int j = 0; j < profile->sanitizer_count; j++)
                 fprintf(file, " -fsanitize=%s", profile->sanitizers[i]);
             fprintf(file, ")\n");
             fprintf(file, "\tendif()\n\n");
